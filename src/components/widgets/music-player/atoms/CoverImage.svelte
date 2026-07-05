@@ -3,6 +3,7 @@ import Icon from "@iconify/svelte";
 
 import Key from "../../../../i18n/i18nKey";
 import { i18n } from "../../../../i18n/translation";
+import { getAssetPath } from "@/utils/url-utils";
 
 interface Props {
 	cover: string;
@@ -21,16 +22,6 @@ const {
 	onclick,
 	interactive = false,
 }: Props = $props();
-
-function getAssetPath(path: string): string {
-	if (path.startsWith("http://") || path.startsWith("https://")) {
-		return path;
-	}
-	if (path.startsWith("/")) {
-		return path;
-	}
-	return `/${path}`;
-}
 
 const containerClasses = {
 	mini: "cover-container relative w-12 h-12 rounded-full overflow-hidden",

@@ -111,3 +111,22 @@ export function publicUrl(path: string) {
 	}
 	return url(path);
 }
+
+/**
+ * 为本地静态资源路径加上 base 前缀，用于子路径部署（如 GitHub Pages 项目页 /Mizuki/）。
+ * 外链（http://、https://）与协议相对（//）原样返回。
+ * 兼容根绝对路径（"/assets/..."）与裸相对路径（"assets/..."）两种写法。
+ */
+export function getAssetPath(path: string) {
+	if (!path) {
+		return "";
+	}
+	if (
+		path.startsWith("http://") ||
+		path.startsWith("https://") ||
+		path.startsWith("//")
+	) {
+		return path;
+	}
+	return url(path);
+}

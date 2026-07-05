@@ -9,6 +9,7 @@ import {
 } from "@/components/widgets/music-player/constants";
 import type { RepeatMode, Song } from "@/components/widgets/music-player/types";
 import { musicPlayerConfig } from "@/config";
+import { getAssetPath } from "@/utils/url-utils";
 
 export interface MusicPlayerState {
 	currentSong: Song;
@@ -29,19 +30,6 @@ export interface MusicPlayerState {
 	isHidden: boolean;
 	autoplayFailed: boolean;
 	willAutoPlay: boolean;
-}
-
-function getAssetPath(path: string): string {
-	if (!path) {
-		return "";
-	}
-	if (path.startsWith("http://") || path.startsWith("https://")) {
-		return path;
-	}
-	if (path.startsWith("/")) {
-		return path;
-	}
-	return `/${path}`;
 }
 
 class MusicPlayerStore {

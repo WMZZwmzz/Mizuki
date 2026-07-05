@@ -2,6 +2,7 @@
 import Icon from "@iconify/svelte";
 
 import type { Song } from "../types";
+import { getAssetPath } from "@/utils/url-utils";
 
 interface Props {
 	song: Song;
@@ -21,15 +22,6 @@ const {
 	lazy = true,
 }: Props = $props();
 
-function getAssetPath(path: string): string {
-	if (path.startsWith("http://") || path.startsWith("https://")) {
-		return path;
-	}
-	if (path.startsWith("/")) {
-		return path;
-	}
-	return `/${path}`;
-}
 </script>
 
 <div
