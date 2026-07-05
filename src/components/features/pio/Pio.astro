@@ -1,5 +1,6 @@
 ---
 import type { PioConfig } from "@/types/config";
+import { publicUrl } from "@/utils/url-utils";
 
 interface Props {
 	config: PioConfig;
@@ -7,7 +8,9 @@ interface Props {
 
 const { config } = Astro.props;
 
-const modelPaths = config.models ?? ["/pio/models/NOIR/noir.model3.json"];
+const modelPaths = (config.models ?? [
+	"/pio/models/NOIR/noir.model3.json",
+]).map(publicUrl);
 const modelConfigs = modelPaths.map((p) => ({ path: p }));
 
 const position = config.position === "right" ? "bottom-right" : "bottom-left";
@@ -70,7 +73,7 @@ const touchMessages = config.dialog?.touch ?? [];
 <iframe
 	id="l2d-iframe"
 	data-role="pio-layer"
-	src="/pio/live2d-host.html"
+	src={publicUrl("/pio/live2d-host.html")}
 	allowtransparency="true"
 	style={"position: fixed; z-index: 999; pointer-events: none; border: none; bottom: 0;"
 		+ (isRight ? " right: 0;" : " left: 0;")
@@ -138,7 +141,7 @@ const touchMessages = config.dialog?.touch ?? [];
 
 		if (!win.__mizukiPioController) {
 			const menuActions: Record<string, () => void> = {
-				home: () => (window.location.href = "/"),
+				home: () => (window.location.href = import.meta.env.BASE_URL),
 				scrollToTop: () => window.scrollTo({ top: 0, behavior: "smooth" }),
 			};
 

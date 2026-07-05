@@ -2,6 +2,7 @@
 import { Icon } from "astro-icon/components";
 
 import { announcementConfig } from "../../../config";
+import { publicUrl } from "../../../utils/url-utils";
 import I18nKey from "../../../i18n/i18nKey";
 import { i18n } from "../../../i18n/translation";
 import WidgetLayout from "../common/WidgetLayout.astro";
@@ -37,7 +38,7 @@ const style = Astro.props.style;
 				{
 					config.link && config.link.enable !== false && (
 						<a
-							href={config.link.url}
+							href={publicUrl(config.link.url)}
 							target={config.link.external ? "_blank" : "_self"}
 							rel={
 								config.link.external

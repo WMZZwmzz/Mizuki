@@ -99,3 +99,15 @@ export function getFileDirFromPath(filePath: string): string {
 export function url(path: string) {
 	return joinUrl("", import.meta.env.BASE_URL, path);
 }
+
+/**
+ * 为根绝对路径（如 "/assets/..."、"/about/"）加上 base 前缀。
+ * 外链、协议相对（//）、相对路径、mailto: 等原样返回，避免误加前缀。
+ * 用于 public/ 下的静态资源或内部链接在子路径部署（如 GitHub Pages 项目页 /Mizuki/）时正确解析。
+ */
+export function publicUrl(path: string) {
+	if (!path || !path.startsWith("/") || path.startsWith("//")) {
+		return path;
+	}
+	return url(path);
+}

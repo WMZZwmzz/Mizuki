@@ -1,6 +1,7 @@
 ---
 import { siteConfig } from "../../config";
 import type { FullscreenWallpaperConfig } from "../../types/config";
+import { publicUrl } from "../../utils/url-utils";
 
 interface Props {
 	config: FullscreenWallpaperConfig;
@@ -48,7 +49,12 @@ const getImageSources = async () => {
 	return { desktop: allImages, mobile: allImages };
 };
 
-const imageSources = await getImageSources();
+const rawImageSources = await getImageSources();
+// 为根绝对路径加上 base 前缀（子路径部署时 public/ 资源需正确解析）
+const imageSources = {
+	desktop: rawImageSources.desktop.map(publicUrl),
+	mobile: rawImageSources.mobile.map(publicUrl),
+};
 const hasDesktopImages = imageSources.desktop.length > 0;
 const hasMobileImages = imageSources.mobile.length > 0;
 
