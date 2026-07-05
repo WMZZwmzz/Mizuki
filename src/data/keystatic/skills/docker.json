@@ -1,0 +1,12 @@
+{
+  "name": "Docker",
+  "description": "A containerization platform that simplifies application deployment and environment management.",
+  "icon": "logos:docker-icon",
+  "category": "tools",
+  "level": "intermediate",
+  "years": 1,
+  "months": 0,
+  "projects": [],
+  "certifications": [],
+  "color": "#2496ED"
+}

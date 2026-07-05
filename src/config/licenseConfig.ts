@@ -1,8 +1,8 @@
 import type { LicenseConfig } from "../types/config";
+import { keystaticLicense } from "../data/keystatic-license";
 
-// 文章许可协议配置
 export const licenseConfig: LicenseConfig = {
-	enable: true,
-	name: "CC BY-NC-SA 4.0",
-	url: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+	enable: keystaticLicense.enable ?? true,
+	name: keystaticLicense.name || "CC BY-NC-SA 4.0",
+	url: keystaticLicense.url || "https://creativecommons.org/licenses/by-nc-sa/4.0/",
 };

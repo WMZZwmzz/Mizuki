@@ -1,0 +1,14 @@
+{
+  "name": "Kubernetes",
+  "description": "A container orchestration platform for automating deployment, scaling, and management of containerized applications.",
+  "icon": "logos:kubernetes",
+  "category": "tools",
+  "level": "beginner",
+  "years": 0,
+  "months": 4,
+  "projects": [
+    "microservices-deployment"
+  ],
+  "certifications": [],
+  "color": "#326CE5"
+}

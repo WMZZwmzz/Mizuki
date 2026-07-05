@@ -1,0 +1,15 @@
+{
+  "name": "Java",
+  "description": "A mainstream programming language for enterprise application development, cross-platform and object-oriented.",
+  "icon": "logos:java",
+  "category": "backend",
+  "level": "intermediate",
+  "years": 2,
+  "months": 0,
+  "projects": [
+    "enterprise-system",
+    "microservices-api"
+  ],
+  "certifications": [],
+  "color": "#ED8B00"
+}

@@ -1,5 +1,9 @@
+import markdoc from "@astrojs/markdoc";
+import node from "@astrojs/node";
+import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
 import mdx from '@astrojs/mdx';
+import keystatic from "@keystatic/astro";
 import { unified } from '@astrojs/markdown-remark';
 import svelte, { vitePreprocess } from "@astrojs/svelte";
 import { pluginCollapsibleSections } from "@expressive-code/plugin-collapsible-sections";
@@ -32,13 +36,19 @@ import { parseDirectiveNode } from "./src/plugins/remark-directive-rehype.js";
 import { remarkFixGithubAdmonitions } from "./src/plugins/remark-fix-github-admonitions.js";
 import { remarkMermaid } from "./src/plugins/remark-mermaid.js";
 
+// GitHub Pages 等纯静态宿主需要不带 SSR adapter 的构建；
+// Vercel 等支持 SSR 的宿主保留 node adapter + keystatic 管理后台。
+// 通过 DEPLOY_TARGET=pages 环境变量切换。
+const isPagesBuild = process.env.DEPLOY_TARGET === "pages";
+
 // https://astro.build/config
 export default defineConfig({
 	site: siteConfig.siteURL,
-	base: "/",
-	trailingSlash: "always",
+	base: "/Mizuki/",
+	trailingSlash: "ignore",
 
 	output: "static",
+	...(isPagesBuild ? {} : { adapter: node({ mode: "standalone" }) }),
 
 	image: {
 		layout: "constrained",
@@ -49,6 +59,9 @@ export default defineConfig({
 	},
 
 	integrations: [
+		// Keystatic 管理后台需要 SSR adapter，仅在非 Pages 构建中启用。
+		// Pages 构建内容已通过 sync-keystatic.mjs 同步到 src/content/，无需管理后台。
+		...(isPagesBuild ? [] : [keystatic()]),
 		oddmisc({
 			umami: {
 				shareUrl: false,
@@ -130,6 +143,8 @@ export default defineConfig({
 		}),
 		sitemap(),
 		mdx(),
+		markdoc(),
+		react(),
 	],
 	markdown: {
 		processor: unified({
@@ -191,7 +206,9 @@ export default defineConfig({
 		}),
 	},
 	vite: {
-		plugins: [tailwindcss()],
+		plugins: [
+			tailwindcss(),
+		],
 		// 开发环境预打包优化：将常用依赖提前编译，避免首次页面加载时 on-demand 编译导致 8s+ 的等待
 		optimizeDeps: {
 			include: [

@@ -1,0 +1,24 @@
+{
+  "title": "Student Management System Course Project",
+  "description": "Final project for the database course, developed a complete student information management system.",
+  "type": "project",
+  "startDate": "2023-11-01",
+  "endDate": "2023-12-15",
+  "location": "",
+  "organization": "",
+  "position": "",
+  "skills": [
+    "Java",
+    "MySQL",
+    "Swing",
+    "JDBC"
+  ],
+  "achievements": [
+    "Received excellent course project grade",
+    "Implemented complete CRUD functionality",
+    "Learned database design and optimization"
+  ],
+  "icon": "material-symbols:database",
+  "color": "#EA580C",
+  "featured": false
+}

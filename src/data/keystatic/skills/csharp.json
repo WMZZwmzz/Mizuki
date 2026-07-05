@@ -1,0 +1,15 @@
+{
+  "name": "C#",
+  "description": "A modern object-oriented programming language developed by Microsoft, suitable for the .NET ecosystem.",
+  "icon": "devicon:csharp",
+  "category": "backend",
+  "level": "intermediate",
+  "years": 1,
+  "months": 6,
+  "projects": [
+    "desktop-application",
+    "web-api"
+  ],
+  "certifications": [],
+  "color": "#239120"
+}

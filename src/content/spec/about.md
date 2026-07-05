@@ -1,3 +1,7 @@
+---
+title: "about"
+---
+
 
 This website is built with the **Astro** framework using the [Mizuki](https://github.com/LyraVoid/Mizuki) theme.
 

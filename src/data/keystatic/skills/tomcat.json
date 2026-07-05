@@ -1,0 +1,15 @@
+{
+  "name": "Apache Tomcat",
+  "description": "A Java Servlet container and web server, the standard deployment environment for Java web applications.",
+  "icon": "logos:tomcat",
+  "category": "tools",
+  "level": "intermediate",
+  "years": 1,
+  "months": 4,
+  "projects": [
+    "java-web-app",
+    "servlet-container"
+  ],
+  "certifications": [],
+  "color": "#F8DC75"
+}

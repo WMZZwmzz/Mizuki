@@ -1,0 +1,8 @@
+{
+  "enable": true,
+  "showFloating": true,
+  "mode": "local",
+  "metingApi": "https://meting.mysqil.com/api?server=:server&type=:type&id=:id&auth=:auth&r=:r",
+  "playlistId": "14164869977",
+  "server": "netease"
+}

@@ -1,0 +1,14 @@
+{
+  "name": "Firebase",
+  "description": "Google's mobile and web application development platform providing real-time database and authentication services.",
+  "icon": "simple-icons:firebase",
+  "category": "database",
+  "level": "intermediate",
+  "years": 0,
+  "months": 10,
+  "projects": [
+    "task-manager-app"
+  ],
+  "certifications": [],
+  "color": "#FFCA28"
+}

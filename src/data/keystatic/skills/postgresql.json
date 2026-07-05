@@ -1,0 +1,14 @@
+{
+  "name": "PostgreSQL",
+  "description": "A powerful open-source relational database management system.",
+  "icon": "logos:postgresql",
+  "category": "database",
+  "level": "intermediate",
+  "years": 1,
+  "months": 5,
+  "projects": [
+    "e-commerce-platform"
+  ],
+  "certifications": [],
+  "color": "#336791"
+}

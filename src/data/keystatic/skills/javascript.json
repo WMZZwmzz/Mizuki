@@ -1,0 +1,16 @@
+{
+  "name": "JavaScript",
+  "description": "Modern JavaScript development, including ES6+ syntax, asynchronous programming, and modular development.",
+  "icon": "logos:javascript",
+  "category": "frontend",
+  "level": "advanced",
+  "years": 3,
+  "months": 6,
+  "projects": [
+    "mizuki-blog",
+    "portfolio-website",
+    "data-visualization-tool"
+  ],
+  "certifications": [],
+  "color": "#F7DF1E"
+}

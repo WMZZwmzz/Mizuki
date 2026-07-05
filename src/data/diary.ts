@@ -1,49 +1,29 @@
-// 日记数据配置
-// 用于管理日记页面的数据
+// Auto-generated from Keystatic CMS — DO NOT EDIT MANUALLY
+// Edit via: http://localhost:4321/keystatic/
 
 export interface DiaryItem {
-	id: number;
-	content: string;
-	date: string;
-	images?: string[];
-	location?: string;
-	mood?: string;
-	tags?: string[];
+  id: number;
+  content: string;
+  date: string;
+  images?: string[];
+  location?: string;
+  mood?: string;
+  tags?: string[];
 }
 
-// 示例日记数据
-const diaryData: DiaryItem[] = [
-	{
-		id: 1,
-		content:
-			"The falling speed of cherry blossoms is five centimeters per second!",
-		date: "2025-01-15T10:30:00Z",
-		images: ["/images/diary/sakura.jpg", "/images/diary/1.webp"],
-	},
+export const diaryData: DiaryItem[] = [
+	{ id: 1, content: "这是一条通过 Keystatic 后台创建的测试日记！", date: "2026-07-03T10:00:00.000Z", images: undefined, location: "北京", mood: "开心", tags: ["测试", "Keystatic"] }
 ];
 
-// 获取日记列表（按时间倒序）
-export const getDiaryList = (limit?: number) => {
-	const sortedData = [...diaryData].sort(
-		(a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-	);
+export function getDiaryList(limit?: number): DiaryItem[] {
+  const sorted = [...diaryData].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+  );
+  return limit ? sorted.slice(0, limit) : sorted;
+}
 
-	if (limit && limit > 0) {
-		return sortedData.slice(0, limit);
-	}
-
-	return sortedData;
-};
-
-// 获取所有标签
-export const getAllTags = () => {
-	const tags = new Set<string>();
-	for (const item of diaryData) {
-		if (item.tags) {
-			for (const tag of item.tags) {
-				tags.add(tag);
-			}
-		}
-	}
-	return Array.from(tags).sort();
-};
+export function getAllTags(): string[] {
+  const tagSet = new Set<string>();
+  diaryData.forEach((entry) => entry.tags?.forEach((t) => tagSet.add(t)));
+  return [...tagSet].sort();
+}

@@ -1,0 +1,23 @@
+{
+  "title": "Markdown Extended Features",
+  "description": "Read more about Markdown features in Mizuki",
+  "published": "2024-05-01",
+  "updated": "2024-11-29",
+  "draft": false,
+  "pinned": false,
+  "tags": [],
+  "category": "Examples",
+  "image": "",
+  "comment": true,
+  "hideHomeContent": false,
+  "lang": "",
+  "author": "",
+  "sourceLink": "",
+  "licenseName": "",
+  "licenseUrl": "",
+  "encrypted": false,
+  "password": "",
+  "passwordHint": "",
+  "alias": "",
+  "content": "\n## GitHub Repository Cards\nYou can add dynamic cards that link to GitHub repositories, on page load, the repository information is pulled from the GitHub API. \n\n::github{repo=\"LyraVoid/Mizuki\"}\n\nCreate a GitHub repository card with the code `::github{repo=\"LyraVoid/Mizuki\"}`.\n\n```markdown\n::github{repo=\"LyraVoid/Mizuki\"}\n```\n\n## Admonitions\n\nFollowing types of admonitions are supported: `note` `tip` `important` `warning` `caution`\n\n:::note\nHighlights information that users should take into account, even when skimming.\n:::\n\n:::tip\nOptional information to help a user be more successful.\n:::\n\n:::important\nCrucial information necessary for users to succeed.\n:::\n\n:::warning\nCritical content demanding immediate user attention due to potential risks.\n:::\n\n:::caution\nNegative potential consequences of an action.\n:::\n\n### Basic Syntax\n\n```markdown\n:::note\nHighlights information that users should take into account, even when skimming.\n:::\n\n:::tip\nOptional information to help a user be more successful.\n:::\n```\n\n### Custom Titles\n\nThe title of the admonition can be customized.\n\n:::note[MY CUSTOM TITLE]\nThis is a note with a custom title.\n:::\n\n```markdown\n:::note[MY CUSTOM TITLE]\nThis is a note with a custom title.\n:::\n```\n\n### GitHub Syntax\n\n> [!TIP]\n> [The GitHub syntax](https://github.com/orgs/community/discussions/16925) is also supported.\n\n```\n> [!NOTE]\n> The GitHub syntax is also supported.\n\n> [!TIP]\n> The GitHub syntax is also supported.\n```\n\n### Spoiler\n\nYou can add spoilers to your text. The text also supports **Markdown** syntax.\n\nThe content :spoiler[is hidden **ayyy**]!\n\n```markdown\nThe content :spoiler[is hidden **ayyy**]!\n"
+}

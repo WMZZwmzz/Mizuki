@@ -1,0 +1,11 @@
+{
+  "title": "Tailwind CSS",
+  "id": 4,
+  "imgurl": "https://avatars.githubusercontent.com/u/67109815?v=4&s=640",
+  "desc": "A utility-first CSS framework for rapidly building custom designs",
+  "siteurl": "https://tailwindcss.com",
+  "tags": [
+    "CSS",
+    "Framework"
+  ]
+}

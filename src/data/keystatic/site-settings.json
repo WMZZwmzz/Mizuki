@@ -1,0 +1,18 @@
+{
+  "title": "无名之子",
+  "subtitle": "One demo website",
+  "siteURL": "https://wmzzwmzz.github.io/Mizuki/",
+  "siteLang": "zh_CN",
+  "themeHue": 240,
+  "themeFixed": false,
+  "pageAnime": true,
+  "pageDiary": true,
+  "pageFriends": true,
+  "pageProjects": true,
+  "pageSkills": false,
+  "pageTimeline": true,
+  "pageAlbums": true,
+  "pageDevices": false,
+  "navbarTitleText": "WuMingZhiZi",
+  "navbarTitleIcon": "assets/home/home.webp"
+}

@@ -1,0 +1,15 @@
+{
+  "name": "Kotlin",
+  "description": "A modern programming language developed by JetBrains, fully compatible with Java, the preferred choice for Android development.",
+  "icon": "logos:kotlin-icon",
+  "category": "backend",
+  "level": "beginner",
+  "years": 0,
+  "months": 8,
+  "projects": [
+    "android-app",
+    "kotlin-backend"
+  ],
+  "certifications": [],
+  "color": "#7F52FF"
+}

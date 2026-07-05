@@ -1,0 +1,15 @@
+{
+  "name": "Rust",
+  "description": "A systems programming language focusing on safety, speed, and concurrency, with no garbage collector.",
+  "icon": "logos:rust",
+  "category": "backend",
+  "level": "beginner",
+  "years": 0,
+  "months": 6,
+  "projects": [
+    "system-tool",
+    "performance-critical-app"
+  ],
+  "certifications": [],
+  "color": "#CE422B"
+}

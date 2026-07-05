@@ -1,0 +1,22 @@
+{
+  "title": "First Programming Experience",
+  "description": "First encountered programming in high school IT class, started learning Python basic syntax.",
+  "type": "education",
+  "startDate": "2021-03-01",
+  "endDate": "",
+  "location": "",
+  "organization": "",
+  "position": "",
+  "skills": [
+    "Python",
+    "Basic Programming Concepts"
+  ],
+  "achievements": [
+    "Completed first \"Hello World\" program",
+    "Learned basic loops and conditional statements",
+    "Developed interest in programming"
+  ],
+  "icon": "material-symbols:code",
+  "color": "#7C3AED",
+  "featured": false
+}

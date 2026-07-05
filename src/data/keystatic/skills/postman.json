@@ -1,0 +1,15 @@
+{
+  "name": "Postman",
+  "description": "An API development and testing tool that simplifies API design, testing, and documentation.",
+  "icon": "logos:postman-icon",
+  "category": "tools",
+  "level": "intermediate",
+  "years": 1,
+  "months": 8,
+  "projects": [
+    "api-testing",
+    "api-documentation"
+  ],
+  "certifications": [],
+  "color": "#FF6C37"
+}

@@ -1,0 +1,22 @@
+{
+  "title": "FolkADB",
+  "description": "A portable ADB/Fastboot tool written in C, featuring interactive CLI, Tab completion, drag-and-drop module installation, and Shizuku activation.",
+  "image": "",
+  "category": "desktop",
+  "techStack": [
+    "C"
+  ],
+  "status": "completed",
+  "liveDemo": "",
+  "sourceCode": "https://github.com/LyraVoid/FolkADB",
+  "visitUrl": "",
+  "startDate": "2025-06-01",
+  "endDate": "2026-01-01",
+  "featured": false,
+  "tags": [
+    "Android",
+    "ADB",
+    "CLI"
+  ],
+  "showImage": false
+}

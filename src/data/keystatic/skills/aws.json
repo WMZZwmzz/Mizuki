@@ -1,0 +1,15 @@
+{
+  "name": "AWS",
+  "description": "Amazon's cloud platform providing comprehensive cloud computing solutions.",
+  "icon": "logos:aws",
+  "category": "tools",
+  "level": "intermediate",
+  "years": 1,
+  "months": 0,
+  "projects": [
+    "cloud-deployment",
+    "serverless-app"
+  ],
+  "certifications": [],
+  "color": "#FF9900"
+}

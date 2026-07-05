@@ -1,0 +1,14 @@
+{
+  "name": "Django",
+  "description": "A high-level Python web framework with rapid development and clean, pragmatic design.",
+  "icon": "logos:django-icon",
+  "category": "backend",
+  "level": "beginner",
+  "years": 0,
+  "months": 6,
+  "projects": [
+    "blog-backend"
+  ],
+  "certifications": [],
+  "color": "#092E20"
+}

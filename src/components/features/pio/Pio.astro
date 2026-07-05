@@ -31,9 +31,11 @@ const widgetConfig: Record<string, unknown> = {
 	model: modelConfigs.length === 1 ? modelConfigs[0] : modelConfigs,
 	position,
 	size: config.width ?? 280,
-	transitionDuration: 1500,
+	transitionDuration: 300,
 	transitionType: "slide",
 	_hideAbout: config.hideAboutMenu ?? true,
+	// 让 iframe 内的拖拽逻辑感知模式：'fixed' 时禁用拖拽
+	mode: config.mode ?? "draggable",
 };
 
 if (config.menus?.items && config.menus.items.length > 0) {
@@ -48,29 +50,61 @@ if (config.menus?.items && config.menus.items.length > 0) {
 }
 
 if (Object.keys(tipsData).length > 0) {
-	if (!Array.isArray(widgetConfig.model)) {
+	if (Array.isArray(widgetConfig.model)) {
+		for (const m of widgetConfig.model) {
+			(m as Record<string, unknown>).tips = tipsData;
+		}
+	} else {
 		(widgetConfig.model as Record<string, unknown>).tips = tipsData;
 	}
 }
 
 const widgetWidth = config.width ?? 280;
+const widgetHeight = config.height ?? 600;
 const hiddenOnMobile = config.hiddenOnMobile ?? true;
 const isRight = config.position === "right";
+const isDraggable = (config.mode ?? "draggable") !== "fixed";
+const touchMessages = config.dialog?.touch ?? [];
 ---
 
 <iframe
 	id="l2d-iframe"
+	data-role="pio-layer"
 	src="/pio/live2d-host.html"
 	allowtransparency="true"
 	style={"position: fixed; z-index: 999; pointer-events: none; border: none; bottom: 0;"
 		+ (isRight ? " right: 0;" : " left: 0;")
 		+ " width: " + widgetWidth + "px;"
-		+ " height: 600px;"
+		+ " height: " + widgetHeight + "px;"
 		+ " opacity: 0;"}
 	data-config={JSON.stringify(widgetConfig)}
 	data-hidden-on-mobile={hiddenOnMobile ? "true" : "false"}
 	data-width={widgetWidth}
+	data-is-right={isRight ? "true" : "false"}
 ></iframe>
+
+<!-- 交互代理层：覆盖 canvas 区域，捕获鼠标事件转发给 iframe -->
+<div
+	id="pio-interact-proxy"
+	data-role="pio-layer"
+	style={"position: fixed; z-index: 998; bottom: 0; pointer-events: none;"
+		+ (isDraggable ? " cursor: grab;" : " cursor: pointer;")
+		+ (isRight ? " right: 0;" : " left: 0;")
+		+ " width: " + widgetWidth + "px;"
+		+ " height: " + widgetHeight + "px;"}
+></div>
+
+<!-- 气泡容器 -->
+<div
+	id="pio-bubble-container"
+	data-role="pio-layer"
+	style={"position: fixed; z-index: 1000; bottom: 0; pointer-events: none;"
+		+ (isRight ? " right: 0;" : " left: 0;")
+		+ " width: " + widgetWidth + "px;"
+		+ " height: " + widgetHeight + "px;"}
+	data-messages={JSON.stringify(touchMessages)}
+>
+</div>
 
 <script>
 	type PioController = {
@@ -116,7 +150,207 @@ const isRight = config.position === "right";
 			let currentConfigKey = "";
 			let pendingInit: number | undefined;
 			let swupHooksRegistered = false;
+			let modelHeight = 0; // 模型实际高度，由 iframe l2d-loaded 上报，用于 Y 轴钳制
 
+			// ── 气泡系统 ──
+			const bubbleContainer = document.getElementById("pio-bubble-container");
+			const bubbleMessages: string[] = bubbleContainer?.dataset.messages
+				? JSON.parse(bubbleContainer.dataset.messages)
+				: [];
+			const msgs = bubbleMessages.length > 0 ? bubbleMessages : ["你好呀~"];
+			let lastBubbleTime = 0;
+
+			// 注入动画
+			const animStyle = document.createElement("style");
+			animStyle.textContent =
+				"@keyframes pio-in{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}" +
+				"@keyframes pio-out{from{opacity:1;transform:scale(1)}to{opacity:0;transform:scale(.8)}}";
+			document.head.appendChild(animStyle);
+
+			const POSITIONS = [
+				{ bottom: 340, left: "50%", tf: "translateX(-50%)" },
+				{ bottom: 60, left: "50%", tf: "translateX(-50%)" },
+				{ bottom: 200, left: "-10px", tf: "translateX(-100%)" },
+				{ bottom: 200, left: "calc(100% + 10px)", tf: "none" },
+			];
+
+			function showBubble() {
+				if (!bubbleContainer) return;
+				const now = Date.now();
+				if (now - lastBubbleTime < 600) return;
+				lastBubbleTime = now;
+
+				const msg = msgs[Math.floor(Math.random() * msgs.length)];
+				const pos = POSITIONS[Math.floor(Math.random() * POSITIONS.length)];
+
+				const b = document.createElement("div");
+				b.textContent = msg;
+				Object.assign(b.style, {
+					position: "absolute",
+					bottom: pos.bottom + "px",
+					left: pos.left,
+					transform: pos.tf,
+					background: "#4a9eff",
+					color: "#fff",
+					padding: "8px 14px",
+					borderRadius: "12px",
+					fontSize: "13px",
+					lineHeight: "1.4",
+					maxWidth: "200px",
+					wordBreak: "break-word",
+					whiteSpace: "normal",
+					textAlign: "center",
+					boxShadow: "0 2px 8px rgba(74,158,255,.3)",
+					pointerEvents: "none",
+					opacity: "0",
+					zIndex: "1",
+					animation: "pio-in .3s ease-out forwards",
+				});
+				bubbleContainer.appendChild(b);
+
+				while (bubbleContainer.children.length > 3) {
+					bubbleContainer.firstChild?.remove();
+				}
+				setTimeout(() => {
+					b.style.animation = "pio-out .3s ease-in forwards";
+					setTimeout(() => b.remove(), 300);
+				}, 2500);
+			}
+
+			// ── 交互代理：转发鼠标事件给 iframe ──
+				const proxy = document.getElementById("pio-interact-proxy");
+				const bubbleContainerEl = document.getElementById(
+					"pio-bubble-container",
+				);
+				// 是否可拖拽：从 iframe data-config 中读取 mode（'fixed' 时禁用拖拽）
+				const layerConfig = config as Record<string, unknown>;
+				const isDraggable = (layerConfig.mode ?? "draggable") !== "fixed";
+				// 三层（iframe / proxy / bubble）需要整体跟随拖拽
+				const layers = [el, proxy, bubbleContainerEl].filter(
+					(x): x is HTMLElement | HTMLIFrameElement => !!x,
+				);
+				const layerWidth = Number(el?.dataset.width || 280);
+
+				if (proxy && el) {
+					let isDragging = false;
+					let isHovering = false;
+					// 累计 transform 偏移量（跨多次拖拽持久化）
+					let dragTranslateX = 0;
+					let dragTranslateY = 0;
+					// 拖拽跟踪：父页面直接计算增量，无需 iframe 往返
+					let dragStartX = 0;
+					let dragStartY = 0;
+					let dragLastX = 0;
+					let dragLastY = 0;
+					let dragMoved = false;
+
+					const forwardEvent = (type: string, e: MouseEvent) => {
+						// 传递 iframe 在父页面视口中的偏移，供 iframe 内部坐标转换使用
+						const iframeRect = el.getBoundingClientRect();
+						el.contentWindow?.postMessage(
+							{ type: "l2d-mouse", event: type, x: e.clientX, y: e.clientY,
+							  iframeX: iframeRect.left, iframeY: iframeRect.top },
+							"*",
+						);
+					};
+
+					// 拖拽时按增量同步三层位置（使用 transform，避免触发 layout 导致 iframe 内 WebGL 丢上下文）
+					const applyDragDelta = (dx: number, dy: number) => {
+						if (dx === 0 && dy === 0) return;
+						// rect 已含当前 transform，直接拿来算新位置
+						const rect = el.getBoundingClientRect();
+						let newLeft = rect.left + dx;
+						let newTop = rect.top + dy;
+						// 钳制在视口内：需减去图层自身宽高，否则拖到底边时整个部件会移出视口而消失
+						const maxX = window.innerWidth - layerWidth;
+						const maxY = window.innerHeight - rect.height;
+						// 模型在 iframe 底部，允许 iframe 顶部超出视口（minY 为负），向上拖拽范围 = innerHeight - modelHeight
+						const minY = modelHeight - rect.height;
+						newLeft = Math.max(0, Math.min(newLeft, maxX));
+						newTop = Math.max(minY, Math.min(newTop, maxY));
+						// 累计实际位移（含钳制修正），用 transform 避免触发 layout/resize
+						dragTranslateX += newLeft - rect.left;
+						dragTranslateY += newTop - rect.top;
+						const transform = `translate(${dragTranslateX}px, ${dragTranslateY}px)`;
+						for (const layer of layers) {
+							layer.style.transform = transform;
+						}
+					};
+
+					// 动态检测鼠标是否在代理区域内，按需启用 pointer-events
+					const updateProxyState = (e: MouseEvent) => {
+						if (isDragging) return;
+						const rect = proxy.getBoundingClientRect();
+						const inBounds =
+							e.clientX >= rect.left && e.clientX <= rect.right &&
+							e.clientY >= rect.top && e.clientY <= rect.bottom;
+
+						if (inBounds && !isHovering) {
+							isHovering = true;
+							proxy.style.pointerEvents = "auto";
+							// 通知 iframe 内 Widget 鼠标进入，触发按钮栏显示
+							forwardEvent("mouseenter", e);
+						} else if (!inBounds && isHovering) {
+							isHovering = false;
+							proxy.style.pointerEvents = "none";
+							// 通知 iframe 内 Widget 鼠标离开，隐藏按钮栏
+							forwardEvent("mouseleave", e);
+						}
+					};
+
+					document.addEventListener("mousemove", (e) => {
+						updateProxyState(e);
+						if (isDragging) {
+							// 父页面直接计算增量并应用 transform，消除 iframe postMessage 往返延迟
+							const dx = e.clientX - dragLastX;
+							const dy = e.clientY - dragLastY;
+							dragLastX = e.clientX;
+							dragLastY = e.clientY;
+							if (Math.abs(e.clientX - dragStartX) > 5 || Math.abs(e.clientY - dragStartY) > 5) dragMoved = true;
+							applyDragDelta(dx, dy);
+						}
+					}, { passive: true });
+
+					proxy.addEventListener("mousedown", (e) => {
+						isDragging = true;
+						proxy.style.pointerEvents = "auto";
+						if (isDraggable) proxy.style.cursor = "grabbing";
+						dragStartX = dragLastX = e.clientX;
+						dragStartY = dragLastY = e.clientY;
+						dragMoved = false;
+						forwardEvent("mousedown", e);
+					});
+
+					proxy.addEventListener("mouseleave", () => {
+						if (!isDragging) {
+							isHovering = false;
+							proxy.style.pointerEvents = "none";
+						}
+					});
+
+					document.addEventListener("mouseup", (e) => {
+						if (isDragging) {
+							isDragging = false;
+							proxy.style.cursor = isDraggable ? "grab" : "pointer";
+							forwardEvent("mouseup", e);
+							requestAnimationFrame(() => {
+								if (!isHovering) {
+									proxy.style.pointerEvents = "none";
+								}
+							});
+						}
+					});
+
+					proxy.addEventListener("click", (e) => {
+						// 拖拽后吞掉一次 click，避免触发模型动作/气泡
+						if (dragMoved) { dragMoved = false; return; }
+						forwardEvent("click", e);
+					});
+
+
+				}
+
+				// ── 原有逻辑 ──
 			function applyVisibility() {
 				if (!currentEl) return;
 				if (currentHiddenOnMobile && window.innerWidth <= 1280) {
@@ -161,11 +395,15 @@ const isRight = config.position === "right";
 					const h = e.data.contentHeight || 500;
 					currentEl.style.height = h + "px";
 					currentEl.style.opacity = "1";
-					currentEl.style.pointerEvents = "auto";
+					modelHeight = e.data.modelHeight || h;
 				}
 
 				if (e.data.type === "l2d-action") {
 					menuActions[e.data.action]?.();
+				}
+
+				if (e.data.type === "l2d-click") {
+					showBubble();
 				}
 			}
 
@@ -197,6 +435,9 @@ const isRight = config.position === "right";
 					once: true,
 				});
 			}
+
+			// 欢迎气泡
+			setTimeout(showBubble, 1500);
 
 			win.__mizukiPioController = {
 				update(nextEl, nextConfig, nextHiddenOnMobile) {

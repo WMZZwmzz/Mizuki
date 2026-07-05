@@ -1,0 +1,15 @@
+{
+  "name": "Node.js",
+  "description": "A JavaScript runtime based on Chrome V8 engine, used for server-side development.",
+  "icon": "logos:nodejs-icon",
+  "category": "backend",
+  "level": "intermediate",
+  "years": 2,
+  "months": 3,
+  "projects": [
+    "data-visualization-tool",
+    "e-commerce-platform"
+  ],
+  "certifications": [],
+  "color": "#339933"
+}

@@ -1,12 +1,10 @@
 ---
-title: Markdown Mermaid
-published: 2023-10-01
-pinned: false
-description: A simple example of a Markdown blog post with Mermaid.
-tags: [Markdown, Blogging, Mermaid]
-category: Examples
-draft: false
+title: "Markdown Mermaid"
+published: "2023-10-01"
+description: "A simple example of a Markdown blog post with Mermaid."
+category: "Examples"
 ---
+
 # Complete Guide to Markdown with Mermaid Diagrams
 
 This article demonstrates how to create various complex diagrams using Mermaid in Markdown documents, including flowcharts, sequence diagrams, Gantt charts, class diagrams, and state diagrams.

@@ -1,0 +1,14 @@
+{
+  "name": "Angular",
+  "description": "An enterprise-level frontend framework developed by Google, a complete single-page application solution.",
+  "icon": "logos:angular-icon",
+  "category": "frontend",
+  "level": "beginner",
+  "years": 0,
+  "months": 9,
+  "projects": [
+    "enterprise-dashboard"
+  ],
+  "certifications": [],
+  "color": "#DD0031"
+}

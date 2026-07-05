@@ -1,0 +1,15 @@
+{
+  "name": "OpenResty",
+  "description": "A high-performance web platform based on Nginx and LuaJIT, supporting dynamic web application development.",
+  "icon": "simple-icons:nginx",
+  "category": "tools",
+  "level": "beginner",
+  "years": 0,
+  "months": 8,
+  "projects": [
+    "api-gateway",
+    "dynamic-routing"
+  ],
+  "certifications": [],
+  "color": "#00A693"
+}

@@ -1,0 +1,15 @@
+{
+  "name": "Nginx",
+  "description": "A high-performance web server and reverse proxy server.",
+  "icon": "logos:nginx",
+  "category": "tools",
+  "level": "intermediate",
+  "years": 1,
+  "months": 2,
+  "projects": [
+    "web-server-config",
+    "load-balancer"
+  ],
+  "certifications": [],
+  "color": "#009639"
+}

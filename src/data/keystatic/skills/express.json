@@ -1,0 +1,14 @@
+{
+  "name": "Express.js",
+  "description": "A fast, minimalist Node.js web application framework.",
+  "icon": "simple-icons:express",
+  "category": "backend",
+  "level": "intermediate",
+  "years": 1,
+  "months": 8,
+  "projects": [
+    "data-visualization-tool"
+  ],
+  "certifications": [],
+  "color": "#616161"
+}

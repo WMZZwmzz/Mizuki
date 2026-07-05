@@ -1,26 +1,31 @@
 import type { PioConfig } from "../types/config";
+import { keystaticEffects } from "../data/keystatic-effects";
 
-// Pio 看板娘配置
+const kp = keystaticEffects.pio;
+
 export const pioConfig: PioConfig = {
-	enable: true, // 启用看板娘
-	models: ["/pio/models/NOIR/noir.model3.json"], // 默认模型路径
-	position: "left", // 模型位置
-	width: 280, // 默认宽度
-	height: 250, // 默认高度
-	mode: "draggable", // 默认为可拖拽模式
-	hiddenOnMobile: true, // 默认在移动设备上隐藏
-	hideAboutMenu: false, // 隐藏内置 About 菜单按钮
+	enable: kp.enable ?? true,
+	models: [
+		"/pio/models/snow_miku/model.json",
+		"/pio/models/bilibili-22/index.json",
+		"/pio/models/bilibili-33/index.json",
+		"/pio/models/HyperdimensionNeptunia/nepnep/index.json",
+		"/pio/models/HyperdimensionNeptunia/blanc_normal/index.json",
+	],
+	position: kp.position || "left",
+	width: 280,
+	height: 600,
+	mode: kp.draggable ? "draggable" : "static",
+	hiddenOnMobile: kp.hiddenOnMobile ?? true,
+	hideAboutMenu: false,
 	dialog: {
-		welcome: "Welcome to Mizuki Website!", // 欢迎词
-		touch: [
-			"What are you doing?",
-			"Stop touching me!",
-			"HENTAI!",
-			"Don't bully me like that!",
-		], // 触摸提示
-		home: "Click here to go back to homepage!", // 首页提示
-		skin: ["Want to see my new outfit?", "The new outfit looks great~"], // 换装提示
-		close: "QWQ See you next time~", // 关闭提示
-		link: "https://github.com/LyraVoid/Mizuki", // 关于链接
+		welcome: kp.welcome || "嗨~ 欢迎来到 Mizuki 博客！",
+		touch: kp.touchDialog?.length
+			? kp.touchDialog
+			: ["诶嘿~盯~", "戳我干嘛啦！", "呼呼，好痒呀！"],
+		home: "回首页看看吧！",
+		skin: ["要不要换个造型？", "新造型不错吧~"],
+		close: "拜拜~ 下次见！",
+		link: "https://github.com/LyraVoid/Mizuki",
 	},
 };

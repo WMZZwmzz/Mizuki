@@ -1,0 +1,25 @@
+{
+  "title": "FolkTool",
+  "description": "A fast ROOT flashing tool for FolkPatch with a graphical interface and automated operations, simplifying the complex flashing process.",
+  "image": "",
+  "category": "desktop",
+  "techStack": [
+    "Flutter",
+    "Dart",
+    "C++",
+    "CMake"
+  ],
+  "status": "completed",
+  "liveDemo": "",
+  "sourceCode": "https://github.com/LyraVoid/FolkTool",
+  "visitUrl": "",
+  "startDate": "2026-02-01",
+  "endDate": "2026-02-28",
+  "featured": false,
+  "tags": [
+    "Android",
+    "Tool",
+    "Desktop"
+  ],
+  "showImage": false
+}

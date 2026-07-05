@@ -1,0 +1,12 @@
+{
+  "name": "Python",
+  "description": "A general-purpose programming language suitable for web development, data analysis, machine learning, and more.",
+  "icon": "logos:python",
+  "category": "backend",
+  "level": "intermediate",
+  "years": 1,
+  "months": 10,
+  "projects": [],
+  "certifications": [],
+  "color": "#3776AB"
+}

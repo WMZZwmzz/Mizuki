@@ -1,0 +1,25 @@
+{
+  "title": "Completed Web Development Online Course",
+  "description": "Completed a full-stack web development online course, systematically learning frontend and backend development technologies.",
+  "type": "achievement",
+  "startDate": "2024-01-15",
+  "endDate": "2024-05-30",
+  "location": "",
+  "organization": "Mooc Website",
+  "position": "",
+  "skills": [
+    "HTML",
+    "CSS",
+    "JavaScript",
+    "Node.js",
+    "Express"
+  ],
+  "achievements": [
+    "Received course completion certificate",
+    "Completed 5 practical projects",
+    "Mastered full-stack development fundamentals"
+  ],
+  "icon": "material-symbols:verified",
+  "color": "#059669",
+  "featured": false
+}

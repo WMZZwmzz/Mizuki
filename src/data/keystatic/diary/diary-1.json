@@ -1,0 +1,13 @@
+{
+  "title": "diary-1",
+  "id": 1,
+  "content": "这是一条通过 Keystatic 后台创建的测试日记！",
+  "date": "2026-07-03T10:00:00.000Z",
+  "location": "北京",
+  "mood": "开心",
+  "tags": [
+    "测试",
+    "Keystatic"
+  ],
+  "images": []
+}

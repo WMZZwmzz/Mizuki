@@ -1,0 +1,15 @@
+{
+  "name": "React",
+  "description": "A JavaScript library for building user interfaces, including Hooks, Context, and state management.",
+  "icon": "logos:react",
+  "category": "frontend",
+  "level": "advanced",
+  "years": 2,
+  "months": 10,
+  "projects": [
+    "portfolio-website",
+    "task-manager-app"
+  ],
+  "certifications": [],
+  "color": "#61DAFB"
+}

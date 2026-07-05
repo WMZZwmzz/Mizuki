@@ -1,0 +1,11 @@
+{
+  "sakuraEnable": true,
+  "sakuraSwitchable": true,
+  "sakuraNum": 21,
+  "pioEnable": true,
+  "pioPosition": "left",
+  "pioHiddenOnMobile": true,
+  "pioDraggable": true,
+  "pioWelcome": "嗨~ 欢迎来到 Mizuki 博客！",
+  "pioTouchDialog": "诶嘿~盯~\n戳我干嘛啦！\n呼呼，好痒呀！\n今天也元气满满！\n要抱抱！举高高！\n唔…被你发现啦？\n电量不足…求充电~\n再点就要收费咯！\n喵嗷~超凶！\n嘘…我在摸鱼呢。\n喜欢我，就常来哦！\n胖次才不给看！\n你手手好暖呀。\n捕捉到一只小可爱！\n头晕晕…转圈圈~\n噗咻~飞走啦！\n有事启奏，无事退朝~\n今天有想我吗？\n诶？刚刚谁戳我？\n脸红红…不许看！"
+}

@@ -1,0 +1,23 @@
+{
+  "title": "University Programming Contest",
+  "description": "Participated in a programming contest held by the university, improving algorithm and programming skills.",
+  "type": "achievement",
+  "startDate": "2023-10-20",
+  "endDate": "",
+  "location": "Beijing Institute of Technology",
+  "organization": "School of Computer Science",
+  "position": "",
+  "skills": [
+    "C++",
+    "Algorithms",
+    "Data Structures"
+  ],
+  "achievements": [
+    "Won third prize in university contest",
+    "Improved algorithmic thinking ability",
+    "Strengthened programming fundamentals"
+  ],
+  "icon": "material-symbols:emoji-events",
+  "color": "#7C3AED",
+  "featured": false
+}

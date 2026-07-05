@@ -1,7 +1,12 @@
 allowBuilds:
+  better-sqlite3: true
+  core-js: true
   esbuild: true
   sharp: true
   ttf2woff2: true
+overrides:
+  vite: ^7.3.5
+
 minimumReleaseAgeExclude:
   - '@astrojs/*'
   - astro

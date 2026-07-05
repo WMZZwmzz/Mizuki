@@ -1,0 +1,15 @@
+{
+  "name": "Apache HTTP Server",
+  "description": "The world's most popular web server software, a stable and reliable HTTP server.",
+  "icon": "logos:apache",
+  "category": "tools",
+  "level": "intermediate",
+  "years": 1,
+  "months": 6,
+  "projects": [
+    "traditional-web-server",
+    "php-hosting"
+  ],
+  "certifications": [],
+  "color": "#D22128"
+}

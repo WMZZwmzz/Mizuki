@@ -1,0 +1,14 @@
+{
+  "name": "GoLand",
+  "description": "A professional Go language IDE by JetBrains providing intelligent coding assistance and debugging tools.",
+  "icon": "logos:goland",
+  "category": "tools",
+  "level": "beginner",
+  "years": 0,
+  "months": 6,
+  "projects": [
+    "go-microservice"
+  ],
+  "certifications": [],
+  "color": "#3D7BF7"
+}

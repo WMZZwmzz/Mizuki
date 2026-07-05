@@ -1,0 +1,15 @@
+{
+  "name": "MySQL",
+  "description": "The world's most popular open-source relational database management system, widely used in web applications.",
+  "icon": "logos:mysql-icon",
+  "category": "database",
+  "level": "advanced",
+  "years": 2,
+  "months": 6,
+  "projects": [
+    "e-commerce-platform",
+    "blog-system"
+  ],
+  "certifications": [],
+  "color": "#4479A1"
+}

@@ -1,29 +1,26 @@
 import type { SakuraConfig } from "../types/config";
+import { keystaticEffects } from "../data/keystatic-effects";
+
+const ks = keystaticEffects.sakura;
 
 export const sakuraConfig: SakuraConfig = {
-	enable: false,
-	switchable: true,
-	sakuraNum: 21,
+	enable: ks.enable ?? false,
+	switchable: ks.switchable ?? true,
+	sakuraNum: ks.sakuraNum ?? 21,
 	limitTimes: -1,
 	size: {
-		min: 0.5, // 樱花最小尺寸倍数
-		max: 1.1, // 樱花最大尺寸倍数
+		min: 0.5,
+		max: 1.1,
 	},
 	opacity: {
-		min: 0.3, // 樱花最小不透明度
-		max: 0.9, // 樱花最大不透明度
+		min: 0.3,
+		max: 0.9,
 	},
 	speed: {
-		horizontal: {
-			min: -1.7, // 水平移动速度最小值
-			max: -1.2, // 水平移动速度最大值
-		},
-		vertical: {
-			min: 1.5, // 垂直移动速度最小值
-			max: 2.2, // 垂直移动速度最大值
-		},
-		rotation: 0.03, // 旋转速度
-		fadeSpeed: 0.03, // 消失速度，不应大于最小不透明度
+		horizontal: { min: -1.7, max: -1.2 },
+		vertical: { min: 1.5, max: 2.2 },
+		rotation: 0.03,
+		fadeSpeed: 0.03,
 	},
-	zIndex: 100, // 层级，确保樱花在合适的层级显示
+	zIndex: 100,
 };

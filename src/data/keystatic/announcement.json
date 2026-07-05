@@ -1,0 +1,11 @@
+{
+  "content": "ブログへようこそ！Mizuki は Astro + Svelte + Tailwind で構築された美しいブログテンプレートです。",
+  "title": "",
+  "icon": "",
+  "type": "info",
+  "closable": true,
+  "linkEnable": true,
+  "linkText": "詳しくはこちら",
+  "linkUrl": "/about/",
+  "linkExternal": false
+}

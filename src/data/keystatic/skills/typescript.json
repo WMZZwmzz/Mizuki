@@ -1,0 +1,16 @@
+{
+  "name": "TypeScript",
+  "description": "A type-safe superset of JavaScript that enhances code quality and development efficiency.",
+  "icon": "logos:typescript-icon",
+  "category": "frontend",
+  "level": "advanced",
+  "years": 2,
+  "months": 8,
+  "projects": [
+    "mizuki-blog",
+    "portfolio-website",
+    "task-manager-app"
+  ],
+  "certifications": [],
+  "color": "#3178C6"
+}

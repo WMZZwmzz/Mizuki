@@ -1,0 +1,15 @@
+{
+  "name": "C",
+  "description": "A low-level systems programming language, the foundation for operating systems and embedded systems development.",
+  "icon": "logos:c",
+  "category": "backend",
+  "level": "intermediate",
+  "years": 1,
+  "months": 2,
+  "projects": [
+    "embedded-system",
+    "kernel-module"
+  ],
+  "certifications": [],
+  "color": "#A8B9CC"
+}

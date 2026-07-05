@@ -1,16 +1,17 @@
 ---
-title: Encrypted Post
-published: 2024-01-15
-description: This is an article for testing the page encryption feature
-encrypted: true
+title: "Encrypted Post"
+published: "2024-01-15"
 pinned: true
-password: "123456"
-passwordHint: "123456"
-hideHomeContent: true
-alias: "encrypted-example"
+description: "This is an article for testing the page encryption feature"
 tags: ["Test", "Encryption"]
 category: "Technology"
+hideHomeContent: true
+encrypted: true
+password: "123456"
+passwordHint: "123456"
+alias: "encrypted-example"
 ---
+
 
 This blog template is built with [Astro](https://astro.build/). For the things that are not mentioned in this guide, you may find the answers in the [Astro Docs](https://docs.astro.build/).
 
@@ -137,3 +138,4 @@ The unlock box displays:
 - A password input field and unlock button
 
 After entering the correct password, the content is decrypted and displayed. The password is stored in session storage so users don't need to re-enter it on subsequent page loads within the same session.
+

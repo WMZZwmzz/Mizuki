@@ -1,0 +1,15 @@
+{
+  "name": "Webpack",
+  "description": "A static module bundler for modern JavaScript applications.",
+  "icon": "logos:webpack",
+  "category": "frontend",
+  "level": "intermediate",
+  "years": 1,
+  "months": 10,
+  "projects": [
+    "custom-build-tool",
+    "spa-application"
+  ],
+  "certifications": [],
+  "color": "#8DD6F9"
+}

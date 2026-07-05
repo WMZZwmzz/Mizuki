@@ -1,0 +1,14 @@
+{
+  "name": "Ruby",
+  "description": "A dynamic, open-source programming language focusing on simplicity and productivity, the foundation of the Rails framework.",
+  "icon": "logos:ruby",
+  "category": "backend",
+  "level": "beginner",
+  "years": 0,
+  "months": 4,
+  "projects": [
+    "web-prototype"
+  ],
+  "certifications": [],
+  "color": "#CC342D"
+}

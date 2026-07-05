@@ -1,0 +1,9 @@
+{
+  "enable": false,
+  "system": "twikoo",
+  "twikooEnvId": "https://twikoo.vercel.app",
+  "giscusRepo": "",
+  "giscusRepoId": "",
+  "giscusCategory": "Announcements",
+  "giscusCategoryId": ""
+}
