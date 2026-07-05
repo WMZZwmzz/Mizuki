@@ -15,37 +15,48 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout your repository using git
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v5
         with:
           submodules: true  # 支持 Git Submodule 模式
           token: ${{ secrets.GITHUB_TOKEN }}  # 自动访问同账号下的私有仓库
           lfs: true  # 拉取 LFS 管理的 Live2D 模型二进制
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           run_install: false
-          
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"  # 当前 LTS，避免已弃用的 Node 20
+
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
-      
-      - name: Build site
-        run: pnpm run build
+
+      # 以下把原来一整条 `pnpm run build` 拆成独立步骤，
+      # 这样哪一步失败会在 Actions 列表里直接显示红色 ❌，便于定位。
+
+      - name: Sync keystatic config
+        run: node scripts/sync-keystatic.mjs
+
+      - name: Update anime data
+        run: node scripts/update-anime.mjs
+
+      - name: Astro build (static for Pages)
+        run: pnpm exec astro build
         env:
           # 纯静态构建（不带 SSR adapter / keystatic 管理后台），
           # 产出带根 index.html 的 dist/，适配 GitHub Pages。
           DEPLOY_TARGET: pages
-          # 如果需要启用内容分离,取消以下注释并配置
-          # ENABLE_CONTENT_SYNC: true
-          # CONTENT_REPO_URL: ${{ secrets.CONTENT_REPO_URL }}
-          # USE_SUBMODULE: true
-      
+
+      - name: Build search index (pagefind)
+        run: pnpm exec pagefind --site dist
+
+      - name: Compress fonts
+        run: node scripts/compress-fonts/index.js
+
       - name: Deploy to pages branch
         uses: JamesIves/github-pages-deploy-action@v4
         with:
