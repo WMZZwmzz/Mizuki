@@ -44,7 +44,9 @@ const isPagesBuild = process.env.DEPLOY_TARGET === "pages";
 // https://astro.build/config
 export default defineConfig({
 	site: siteConfig.siteURL,
-	base: "/Mizuki/",
+	// Pages 子路径部署需要 /Mizuki/ 前缀；本地 dev 用 / 以兼容 keystatic 管理后台
+	// （keystatic 前端固定请求 /api/keystatic/*，不带 base，base 非 / 时会 404）。
+	base: isPagesBuild ? "/Mizuki/" : "/",
 	trailingSlash: "ignore",
 
 	output: "static",
