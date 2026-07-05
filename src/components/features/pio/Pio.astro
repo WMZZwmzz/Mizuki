@@ -161,7 +161,6 @@ const touchMessages = config.dialog?.touch ?? [];
 				? JSON.parse(bubbleContainer.dataset.messages)
 				: [];
 			const msgs = bubbleMessages.length > 0 ? bubbleMessages : ["你好呀~"];
-			let lastBubbleTime = 0;
 
 			// 注入动画
 			const animStyle = document.createElement("style");
@@ -179,9 +178,6 @@ const touchMessages = config.dialog?.touch ?? [];
 
 			function showBubble() {
 				if (!bubbleContainer) return;
-				const now = Date.now();
-				if (now - lastBubbleTime < 600) return;
-				lastBubbleTime = now;
 
 				const msg = msgs[Math.floor(Math.random() * msgs.length)];
 				const pos = POSITIONS[Math.floor(Math.random() * POSITIONS.length)];
@@ -211,7 +207,7 @@ const touchMessages = config.dialog?.touch ?? [];
 				});
 				bubbleContainer.appendChild(b);
 
-				while (bubbleContainer.children.length > 3) {
+				while (bubbleContainer.children.length > 6) {
 					bubbleContainer.firstChild?.remove();
 				}
 				setTimeout(() => {
