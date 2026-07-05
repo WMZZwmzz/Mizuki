@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  * { margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: transparent; pointer-events: none; }
+  canvas, button, a, [role="button"], [onclick] { pointer-events: auto; }
+  canvas { cursor: grab; }
+  canvas:active { cursor: grabbing; }
+</style>
+</head>
+<body>
+<script src="/pio/l2d-widget.min.js"></script>
+<script>
+  var widgetInstance = null;
+  var activeConfigKey = '';
+  var loadingConfigKey = '';
+  var lastContentHeight = 500;
+
+  var menuActions = {
+    home: function() { parent.postMessage({ type: 'l2d-action', action: 'home' }, '*'); },
+    scrollToTop: function() { parent.postMessage({ type: 'l2d-action', action: 'scrollToTop' }, '*'); },
+    sleep: function(w) { w.sleep(); },
+  };
+
+  // ── 拖拽状态：iframe 计算拖拽增量并同步给父页面，由父页面移动 iframe/proxy/bubble ──
+  // widget 容器本身保持锚定（bottom:0;left/right:0），仅父级 frame 整体移动，避免双重位移。
+  var dragState = { active: false, started: false, startX: 0, startY: 0, lastX: 0, lastY: 0 };
+  var DRAG_THRESHOLD = 5; // 移动超过该距离才视为真正的拖拽（避免误触点击）
+  var DRAG_MODE = 'draggable'; // 由父页面通过 l2d-init 覆盖；'fixed' 时禁用拖拽
+  var suppressNextClick = false; // 拖拽结束后吞掉一次 click
+
+  // 判断给定的 iframe 本地坐标是否落在菜单按钮上
+  function pointIsOnButton(localX, localY) {
+    var el = document.elementFromPoint(localX, localY);
+    while (el && el !== document.body && el !== document.documentElement) {
+      if (el.tagName === 'BUTTON' || el.tagName === 'A' ||
+          el.getAttribute('role') === 'button' || el.onclick) {
+        return true;
+      }
+      el = el.parentElement;
+    }
+    return false;
+  }
+
+  function startDrag(parentX, parentY) {
+    if (DRAG_MODE === 'fixed') return false;
+    dragState.active = true;
+    dragState.started = false;
+    dragState.startX = parentX;
+    dragState.startY = parentY;
+    dragState.lastX = parentX;
+    dragState.lastY = parentY;
+    return true;
+  }
+
+  function updateDrag(parentX, parentY) {
+    if (!dragState.active) return;
+
+    if (!dragState.started) {
+      var dx0 = parentX - dragState.startX;
+      var dy0 = parentY - dragState.startY;
+      if (Math.abs(dx0) < DRAG_THRESHOLD && Math.abs(dy0) < DRAG_THRESHOLD) return;
+      dragState.started = true;
+    }
+
+    // 父页面现在直接计算增量并移动，无需 iframe 往返 postMessage
+    dragState.lastX = parentX;
+    dragState.lastY = parentY;
+  }
+
+  function endDrag() {
+    dragState.active = false;
+    // 若拖拽真的发生过，吞掉紧随其后的 click，避免触发点击气泡/模型动作
+    if (dragState.started) suppressNextClick = true;
+    dragState.started = false;
+  }
+
+  function notifyLoaded() {
+    var maxBottom = 0;
+    document.querySelectorAll('*').forEach(function(el) {
+      if (el.getBoundingClientRect) {
+        var r = el.getBoundingClientRect();
+        if (r.width > 0 && r.height > 0 && r.bottom > maxBottom) {
+          maxBottom = r.bottom;
+        }
+      }
+    });
+
+    // 测量 canvas（模型）高度，供父页面做 Y 轴钳制
+    var canvas = document.querySelector('canvas');
+    var modelHeight = canvas ? Math.ceil(canvas.getBoundingClientRect().height) : 0;
+
+    lastContentHeight = Math.ceil(maxBottom) || lastContentHeight || 500;
+    parent.postMessage({ type: 'l2d-loaded', contentHeight: lastContentHeight, modelHeight: modelHeight || lastContentHeight }, '*');
+  }
+
+  function hideAboutMenu() {
+    if (document.getElementById('l2d-hide-about')) return;
+    var style = document.createElement('style');
+    style.id = 'l2d-hide-about';
+    style.textContent = 'button[title="About"] { display: none !important; }';
+    document.head.appendChild(style);
+  }
+
+  function destroyWidget() {
+    if (!widgetInstance) return;
+    try {
+      widgetInstance.destroy();
+    } catch (err) {
+      console.error('Failed to destroy Live2D widget:', err);
+    }
+    widgetInstance = null;
+  }
+
+  window.addEventListener('message', function(e) {
+    if (e.data.type !== 'l2d-init') return;
+    var config = e.data.config;
+    var configKey = JSON.stringify(config);
+
+    if (widgetInstance && activeConfigKey === configKey) {
+      notifyLoaded();
+      return;
+    }
+
+    if (loadingConfigKey === configKey) {
+      return;
+    }
+
+    loadingConfigKey = configKey;
+    if (widgetInstance) {
+      destroyWidget();
+    }
+
+    // 拖拽开关：父页面 config.mode 为 'fixed' 时禁用拖拽，其它值（含 'draggable'）启用
+    DRAG_MODE = config.mode === 'fixed' ? 'fixed' : 'draggable';
+
+    if (config.menus && config.menus.items) {
+      config.menus.items = config.menus.items.map(function(item) {
+        return {
+          icon: item.icon,
+          label: item.label,
+          onClick: menuActions[item.action] || function() {}
+        };
+      });
+    }
+
+    try {
+      widgetInstance = L2D_WIDGET.createWidget(config);
+      activeConfigKey = configKey;
+    } catch (err) {
+      loadingConfigKey = '';
+      activeConfigKey = '';
+      console.error('Failed to initialize Live2D widget:', err);
+      return;
+    }
+    loadingConfigKey = '';
+
+    if (config._hideAbout) {
+      hideAboutMenu();
+    }
+
+    var notified = false;
+    function notifyOnce() {
+      if (notified) return;
+      notified = true;
+      notifyLoaded();
+    }
+
+    var checkInterval = setInterval(function() {
+      var canvas = document.querySelector('canvas');
+      if (canvas && canvas.width > 0 && canvas.height > 0) {
+        clearInterval(checkInterval);
+        setTimeout(notifyOnce, 300);
+      }
+    }, 200);
+
+    setTimeout(function() {
+      clearInterval(checkInterval);
+      loadingConfigKey = '';
+      notifyOnce();
+    }, 15000);
+  });
+
+  // 接收父页面转发的鼠标事件并派发到对应元素（canvas 或按钮）
+  window.addEventListener('message', function(e) {
+    if (e.data.type !== 'l2d-mouse') return;
+
+    var eventType = e.data.event;
+    var parentX = e.data.x;
+    var parentY = e.data.y;
+
+    // 将父页面视口坐标转换为 iframe 本地坐标
+    var localX = parentX - (e.data.iframeX || 0);
+    var localY = parentY - (e.data.iframeY || 0);
+
+    var canvas = document.querySelector('canvas');
+    if (!canvas) return;
+
+    // mouseenter / mouseleave：oh-my-live2d 把菜单显隐监听器绑在 canvas 自身上，
+    // 因此合成事件必须直接派发到 canvas（mouseenter 不冒泡，派给父元素无法触发）。
+    if (eventType === 'mouseenter' || eventType === 'mouseleave') {
+      canvas.dispatchEvent(new MouseEvent(eventType, {
+        bubbles: false, cancelable: true,
+        clientX: localX, clientY: localY,
+      }));
+      // 同时派发 mouseover/mouseout（可冒泡版本），让向上冒泡路径上的监听器也能收到
+      canvas.dispatchEvent(new MouseEvent(
+        eventType === 'mouseenter' ? 'mouseover' : 'mouseout', {
+        bubbles: true, cancelable: true,
+        clientX: localX, clientY: localY,
+      }));
+      return;
+    }
+
+    // ── 拖拽：iframe 计算增量，父页面移动 frame ──
+    if (eventType === 'mousedown') {
+      // 命中按钮区域时，不进入拖拽，让下面的按钮分发逻辑去处理
+      if (!pointIsOnButton(localX, localY)) {
+        // startDrag 在 'fixed' 模式或失败时返回 false，此时回退为转发给 canvas（保留点击触发）
+        if (startDrag(parentX, parentY)) {
+          // 已进入拖拽态：mousedown 不再转发给 canvas，避免被识别成 onTap 触发模型动作
+          return;
+        }
+      }
+    }
+
+    if (dragState.active && (eventType === 'mousemove' || eventType === 'mouseup')) {
+      if (eventType === 'mousemove') {
+        updateDrag(parentX, parentY);
+      } else {
+        endDrag();
+      }
+      // 拖拽期间不向 canvas 转发 mousemove/mouseup，避免触发注视/点击
+      return;
+    }
+
+    // 普通的 mousemove/mouseup：转发给 canvas（模型头部跟随鼠标等）
+    if (eventType === 'mousemove' || eventType === 'mouseup') {
+      var moveEvt = new MouseEvent(eventType, {
+        bubbles: true, cancelable: true,
+        clientX: localX, clientY: localY,
+        button: 0, buttons: eventType === 'mouseup' ? 0 : 1,
+      });
+      canvas.dispatchEvent(moveEvt);
+      return;
+    }
+
+    // mousedown（按钮区域）/ click：用 elementFromPoint 判断目标是按钮还是 canvas
+    if (eventType === 'click' && suppressNextClick) {
+      suppressNextClick = false;
+      return;
+    }
+    var target = document.elementFromPoint(localX, localY);
+    var isButton = false;
+
+    if (target && target !== canvas && target !== document.body && target !== document.documentElement) {
+      // 向上查找是否为按钮元素
+      var el = target;
+      while (el && el !== document.body) {
+        if (el.tagName === 'BUTTON' || el.tagName === 'A' ||
+            el.getAttribute('role') === 'button' || el.onclick) {
+          isButton = true;
+          target = el;
+          break;
+        }
+        el = el.parentElement;
+      }
+    }
+
+    if (!isButton) {
+      target = canvas;
+    }
+
+    var mouseEvent = new MouseEvent(eventType, {
+      bubbles: true, cancelable: true,
+      clientX: localX, clientY: localY,
+      button: 0, buttons: eventType === 'mouseup' ? 0 : 1,
+    });
+    target.dispatchEvent(mouseEvent);
+
+    // 仅 canvas 点击触发气泡
+    if (eventType === 'click' && !isButton) {
+      parent.postMessage({ type: 'l2d-click' }, '*');
+    }
+  });
+</script>
+</body>
+</html>

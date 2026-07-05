@@ -1,0 +1,1 @@
+import"./profileConfig.DF2ukCr8.js";import"./zh_TW.vPeSsvua.js";function u(o,e){const n=o.replace(/^\/|\/$/g,"").toLowerCase(),r=e.replace(/^\/|\/$/g,"").toLowerCase();return n===r}function t(...o){return o.join("/").replace(/\/+/g,"/")}function c(o){return t("","/Mizuki/",o)}export{u as p,c as u};
