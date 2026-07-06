@@ -23,10 +23,10 @@ export interface KeystaticSettings {
 
 export const keystaticSettings: Partial<KeystaticSettings> = {
   "title": "无名之子",
-  "subtitle": "One demo website",
+  "subtitle": "の小站",
   "siteURL": "https://wmzzwmzz.github.io/Mizuki/",
   "siteLang": "zh_CN",
-  "themeHue": 240,
+  "themeHue": 360,
   "themeFixed": false,
   "pageAnime": true,
   "pageDiary": true,
