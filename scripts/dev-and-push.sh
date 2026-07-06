@@ -87,7 +87,7 @@ on_exit() {
 
 	# 只暂存 src/ 下的内容改动(keystatic json/ts + content),不碰根目录其他文件
 	git add src/
-	if ! git commit -m "$COMMIT_MSG" -m "Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>" >/dev/null 2>&1; then
+	if ! git commit -m "$COMMIT_MSG" >/dev/null 2>&1; then
 		echo "      ✗ commit 失败(可能没有可提交的改动)"
 		return 1
 	fi
