@@ -1,10 +1,11 @@
 // Auto-generated from Keystatic CMS — DO NOT EDIT MANUALLY
 export const keystaticProfile = {
 	avatar: "assets/images/avatar.webp",
-	name: "まつざか ゆき",
-	bio: "世界は大きい、君は行かなければならない",
+	name: "无名之子",
+	bio: "你好，我是无名之子。",
 	links: [
-		{ name: "Bilibili", url: "https://space.bilibili.com/", icon: "simple-icons:bilibili" },
-		{ name: "GitHub", url: "https://github.com/", icon: "simple-icons:github" }
+		{ name: "Bilibili", url: "https://space.bilibili.com/1986470618", icon: "simple-icons:bilibili" },
+		{ name: "Gitee", url: "https://gitee.com/WuMingZhiZi", icon: "mdi:git" },
+		{ name: "GitHub", url: "https://github.com/WMZZwmzz", icon: "simple-icons:github" }
 	],
 };
