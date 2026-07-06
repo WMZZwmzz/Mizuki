@@ -40,13 +40,17 @@ import { remarkMermaid } from "./src/plugins/remark-mermaid.js";
 // Vercel 等支持 SSR 的宿主保留 node adapter + keystatic 管理后台。
 // 通过 DEPLOY_TARGET=pages 环境变量切换。
 const isPagesBuild = process.env.DEPLOY_TARGET === "pages";
+// Cloudflare Pages 自动注入 CF_PAGES=1，部署在根域名，base 用 "/"；
+// GitHub Pages 项目站部署在 /Mizuki/ 子路径，需要带前缀。
+const isCloudflarePages = process.env.CF_PAGES === "1";
 
 // https://astro.build/config
 export default defineConfig({
 	site: siteConfig.siteURL,
 	// Pages 子路径部署需要 /Mizuki/ 前缀；本地 dev 用 / 以兼容 keystatic 管理后台
 	// （keystatic 前端固定请求 /api/keystatic/*，不带 base，base 非 / 时会 404）。
-	base: isPagesBuild ? "/Mizuki/" : "/",
+	// Cloudflare Pages 部署在根域名，base 用 "/"。
+	base: isCloudflarePages ? "/" : (isPagesBuild ? "/Mizuki/" : "/"),
 	trailingSlash: "ignore",
 
 	output: "static",
