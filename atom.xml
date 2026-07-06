@@ -5,7 +5,7 @@
   <link href="https://wmzzwmzz.github.io/Mizuki/" rel="alternate" type="text/html"/>
   <link href="https://wmzzwmzz.github.io/Mizuki/atom.xml" rel="self" type="application/atom+xml"/>
   <id>https://wmzzwmzz.github.io/Mizuki/</id>
-  <updated>2026-07-06T01:04:51.210Z</updated>
+  <updated>2026-07-06T01:57:56.912Z</updated>
   <language>zh_CN</language>
   <entry>
     <title>Markdown Tutorial</title>
@@ -726,7 +726,7 @@ This is another regular paragraph.
 <hr />
 ]]></content>
     <author>
-      <name>まつざか ゆき</name>
+      <name>无名之子</name>
     </author>
     <category term="Examples"></category>
   </entry>
@@ -795,7 +795,7 @@ This is a note with a custom title.
 <pre><code>The content :spoiler[is hidden **ayyy**]!</code></pre>
 ]]></content>
     <author>
-      <name>まつざか ゆき</name>
+      <name>无名之子</name>
     </author>
     <category term="Examples"></category>
   </entry>
@@ -959,7 +959,7 @@ This is a note with a custom title.
 <p>Try using Mermaid diagrams in your next technical blog post or project documentation - they will make your content more professional and easier to understand!</p>
 ]]></content>
     <author>
-      <name>まつざか ゆき</name>
+      <name>无名之子</name>
     </author>
     <category term="Examples"></category>
   </entry>
@@ -985,7 +985,7 @@ published: 2023-10-19
 <p>&lt;iframe width="100%" height="468" src="//player.bilibili.com/player.html?bvid=BV1fK4y1s7Qf&amp;p=1&amp;autoplay=0" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" &amp;autoplay=0&gt; &lt;/iframe&gt;</p>
 ]]></content>
     <author>
-      <name>まつざか ゆき</name>
+      <name>无名之子</name>
     </author>
     <category term="Examples"></category>
   </entry>
