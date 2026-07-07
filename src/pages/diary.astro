@@ -235,7 +235,7 @@ const subtitle = i18n(I18nKey.diarySubtitle);
 						return moments
 							.map(function (moment, index) {
 								const relativeTime = formatRelativeTime(moment.date);
-								const tagsAttr = (moment.tags || []).join(",");
+								const tagsAttr = escapeHtml((moment.tags || []).join(","));
 
 								let imagesHtml = "";
 								if (moment.images && moment.images.length > 0) {

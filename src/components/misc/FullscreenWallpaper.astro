@@ -179,41 +179,37 @@ const renderGroups = [
 					
 					const container = document.getElementById('wallpaper-single-container');
 					
-					if (desktopSrc) {
-						const desktopDiv = document.createElement('div');
-						desktopDiv.className = 'hidden lg:block w-full h-full relative';
-						desktopDiv.style.transform = 'translateZ(0)';
-						desktopDiv.innerHTML = `
-							<img
-								src="${desktopSrc}"
-								alt="desktop wallpaper"
-								class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${positionClass}"
-								style="transform: translateZ(0); backface-visibility: hidden; will-change: opacity; opacity: 1;"
-								decoding="async"
-								loading="eager"
-								fetchpriority="high"
-							/>
-						`;
-						container.appendChild(desktopDiv);
-					}
+				if (desktopSrc) {
+					const desktopDiv = document.createElement('div');
+					desktopDiv.className = 'hidden lg:block w-full h-full relative';
+					desktopDiv.style.transform = 'translateZ(0)';
+					const desktopImg = document.createElement('img');
+					desktopImg.src = desktopSrc;
+					desktopImg.alt = 'desktop wallpaper';
+					desktopImg.className = 'absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ' + positionClass;
+					desktopImg.style.cssText = 'transform: translateZ(0); backface-visibility: hidden; will-change: opacity; opacity: 1;';
+					desktopImg.decoding = 'async';
+					desktopImg.loading = 'eager';
+					desktopImg.fetchPriority = 'high';
+					desktopDiv.appendChild(desktopImg);
+					container.appendChild(desktopDiv);
+				}
 					
-					if (mobileSrc) {
-						const mobileDiv = document.createElement('div');
-						mobileDiv.className = 'block lg:hidden w-full h-full relative';
-						mobileDiv.style.transform = 'translateZ(0)';
-						mobileDiv.innerHTML = `
-							<img
-								src="${mobileSrc}"
-								alt="mobile wallpaper"
-								class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${positionClass}"
-								style="transform: translateZ(0); backface-visibility: hidden; will-change: opacity; opacity: 1;"
-								decoding="async"
-								loading="eager"
-								fetchpriority="high"
-							/>
-						`;
-						container.appendChild(mobileDiv);
-					}
+				if (mobileSrc) {
+					const mobileDiv = document.createElement('div');
+					mobileDiv.className = 'block lg:hidden w-full h-full relative';
+					mobileDiv.style.transform = 'translateZ(0)';
+					const mobileImg = document.createElement('img');
+					mobileImg.src = mobileSrc;
+					mobileImg.alt = 'mobile wallpaper';
+					mobileImg.className = 'absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ' + positionClass;
+					mobileImg.style.cssText = 'transform: translateZ(0); backface-visibility: hidden; will-change: opacity; opacity: 1;';
+					mobileImg.decoding = 'async';
+					mobileImg.loading = 'eager';
+					mobileImg.fetchPriority = 'high';
+					mobileDiv.appendChild(mobileImg);
+					container.appendChild(mobileDiv);
+				}
 				})();
 			</script>
 		</div>

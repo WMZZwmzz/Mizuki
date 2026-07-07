@@ -229,6 +229,7 @@ export const siteConfig: SiteConfig = {
 	thirdPartyAnalytics: {
 		enable: false, // 是否启用第三方统计（Microsoft Clarity），默认关闭，启用可能影响 Lighthouse 评分
 		clarityId: "", // Clarity 项目 ID
+		gtmId: "GTM-KRX3XGVH", // Google Tag Manager 容器 ID，留空则不加载 GTM
 	},
 	// 卡片样式配置
 	card: {

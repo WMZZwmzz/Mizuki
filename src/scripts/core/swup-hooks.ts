@@ -197,7 +197,6 @@ export class SwupHooksManager {
 
 			// 处理页面状态
 			const isHomePage = pathsEqual(visit.to.url, url("/"));
-			this.handleBodyClass(isHomePage);
 			this.handleBannerTextVisibility(isHomePage);
 			this.handleNavbarState(isHomePage);
 			this.handleMobileBannerVisibility(isHomePage);
@@ -281,7 +280,7 @@ export class SwupHooksManager {
 			const hasDesktopTOC =
 				tocElement && typeof (tocElement as any).init === "function";
 			const hasMobileTOC =
-				typeof (window as any).mobileTOCInit === "function";
+				typeof window.mobileTOCInit === "function";
 
 			if (hasDesktopTOC || hasMobileTOC) {
 				setTimeout(() => {
@@ -289,7 +288,7 @@ export class SwupHooksManager {
 						(tocElement as any).init();
 					}
 					if (hasMobileTOC) {
-						(window as any).mobileTOCInit();
+						window.mobileTOCInit();
 					}
 				}, ANIMATION_CONFIG.tocReadyDelay);
 			}
@@ -307,20 +306,13 @@ export class SwupHooksManager {
 			);
 			if (transparentMode === "semifull") {
 				if (
-					typeof (window as any).initSemifullScrollDetection ===
+					typeof window.initSemifullScrollDetection ===
 					"function"
 				) {
-					(window as any).initSemifullScrollDetection();
+					window.initSemifullScrollDetection();
 				}
 			}
 		}
-	}
-
-	/**
-	 * 处理 body class
-	 */
-	private handleBodyClass(_isHomePage: boolean): void {
-		// body class 统一由 CSS 处理，无需区分首页/非首页
 	}
 
 	/**
@@ -353,10 +345,10 @@ export class SwupHooksManager {
 			);
 			if (transparentMode === "semifull") {
 				if (
-					typeof (window as any).initSemifullScrollDetection ===
+					typeof window.initSemifullScrollDetection ===
 					"function"
 				) {
-					(window as any).initSemifullScrollDetection();
+					window.initSemifullScrollDetection();
 				}
 			}
 		}
@@ -693,10 +685,6 @@ export class SwupHooksManager {
 					},
 				});
 				document.dispatchEvent(pageLoadedEvent);
-				console.log(
-					"Layout: 触发 mizuki:page:loaded 事件，路径:",
-					window.location.pathname,
-				);
 			}
 		}, ANIMATION_CONFIG.commentInitDelay);
 	}

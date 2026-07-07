@@ -68,9 +68,12 @@ if (isLocal) {
 		.replace(/\\/g, "/");
 	const file = files[normalizedPath];
 	if (!file) {
-		console.error(
-			`\n[ERROR] Image file not found: ${normalizedPath.replace("../../../", "src/")}`,
-		);
+		const msg = `[ERROR] Image file not found: ${normalizedPath.replace("../../../", "src/")}`;
+		// 构建时图片缺失应 fail loud，避免线上静默渲染空白
+		if (import.meta.env.PROD) {
+			throw new Error(msg);
+		}
+		console.error(`\n${msg}`);
 	} else {
 		img = await file();
 	}

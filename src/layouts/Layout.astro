@@ -88,11 +88,7 @@ const getDefaultBanner = (): string => {
 	return "";
 };
 
-if (!banner || typeof banner !== "string" || banner.trim() === "") {
-	banner = getDefaultBanner();
-}
-
-// TODO don't use post cover as banner for now
+// TODO don't use post cover as banner for now — 暂统一直接使用默认 banner
 banner = getDefaultBanner();
 
 const enableBanner = !!siteConfig.banner.src;
@@ -110,11 +106,11 @@ let ogImageUrl: string | undefined;
 if (siteConfig.generateOgImages && postSlug) {
 	ogImageUrl = new URL(`/og/${postSlug}.png`, Astro.site).toString();
 } else if (coverImage) {
-	// For post pages with cover images, use the resolved cover image
-	ogImageUrl = coverImage.startsWith("http")
-		? coverImage
-		: new URL(coverImage, Astro.site).toString();
-} else if (banner) {
+		// For post pages with cover images, use the resolved cover image
+		ogImageUrl = coverImage.startsWith("http")
+			? coverImage
+			: new URL(publicUrl(coverImage), Astro.site).toString();
+	} else if (banner) {
 	// For others, use the first banner as OG image
 	ogImageUrl = banner.startsWith("http")
 		? banner
@@ -207,6 +203,7 @@ if (siteConfig.font) {
 
 		<!-- 第三方分析脚本 -->
 		<AnalyticsScripts
+			gtmId={siteConfig.thirdPartyAnalytics.gtmId}
 			thirdPartyAnalytics={siteConfig.thirdPartyAnalytics}
 		/>
 
@@ -234,7 +231,7 @@ if (siteConfig.font) {
 			rel="alternate"
 			type="application/rss+xml"
 			title={profileConfig.name}
-			href={`${Astro.site}rss.xml`}
+			href={new URL(url("/rss.xml"), Astro.site).toString()}
 		/>
 	</head>
 	<body
@@ -245,13 +242,15 @@ if (siteConfig.font) {
 		style={bodyFontFamily ? `font-family: ${bodyFontFamily};` : ""}
 		data-overlayscrollbars-initialize
 	>
-		<noscript
-			><iframe
-				src="https://www.googletagmanager.com/ns.html?id=GTM-KRX3XGVH"
-				height="0"
-				width="0"
-				style="display:none;visibility:hidden"></iframe></noscript
-		>
+		{siteConfig.thirdPartyAnalytics.gtmId && (
+			<noscript
+				><iframe
+					src={`https://www.googletagmanager.com/ns.html?id=${siteConfig.thirdPartyAnalytics.gtmId}`}
+					height="0"
+					width="0"
+					style="display:none;visibility:hidden"></iframe></noscript
+			>
+		)}
 		<!-- 页面顶部渐变高光效果 - 只在full和semifull模式下显示 -->
 		{shouldShowTopHighlight && <div class="top-gradient-highlight" />}
 

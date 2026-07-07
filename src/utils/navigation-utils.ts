@@ -246,14 +246,6 @@ export function getCurrentPath(): string {
 }
 
 /**
- * 检查是否为首页
- */
-export function isHomePage(): boolean {
-	const path = getCurrentPath();
-	return path === "/" || path === "";
-}
-
-/**
  * 检查是否为文章页面
  */
 export function isPostPage(): boolean {
