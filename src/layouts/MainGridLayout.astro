@@ -70,9 +70,13 @@ const isHomePage = Astro.url.pathname.replace(/\/+$/, "") === _siteBase;
 // 手机端非首页不显示banner的CSS类
 const mobileNonHomeBannerClass = !isHomePage ? "mobile-hide-banner" : "";
 
+// 按页面区分默认壁纸模式：首页全屏 hero（由 HeroOverlayScroll 滚动过渡到 overlay），
+// 其他页面默认 overlay（全屏壁纸背景 + 半透明卡片）
+const effectiveDefaultMode = isHomePage ? "fullscreen" : "overlay";
+
 // 计算主内容区域位置
 const finalMainPanelTop = getMainPanelTop(
-	siteConfig.wallpaperMode.defaultMode,
+	effectiveDefaultMode,
 	BANNER_HEIGHT,
 	BANNER_HEIGHT_FULLSCREEN,
 );
@@ -97,7 +101,7 @@ const { hasRightSidebarComponents, hasMobileDrawerComponents } =
 
 // 半透明效果
 const shouldEnable = shouldEnableTransparency(
-	siteConfig.wallpaperMode.defaultMode,
+	effectiveDefaultMode,
 );
 const transparentClass = getTransparencyClass(shouldEnable);
 
@@ -117,7 +121,7 @@ const defaultPostListLayout = siteConfig.postListLayout?.defaultMode || "list";
 	<GridScripts
 		navbarTransparentMode={siteConfig.banner?.navbar?.transparentMode ||
 			"semi"}
-		defaultWallpaperMode={siteConfig.wallpaperMode.defaultMode}
+		defaultWallpaperMode={effectiveDefaultMode}
 		defaultPostListLayout={siteConfig.postListLayout?.defaultMode || "list"}
 		BANNER_HEIGHT={BANNER_HEIGHT}
 		BANNER_HEIGHT_FULLSCREEN={BANNER_HEIGHT_FULLSCREEN}
@@ -132,7 +136,7 @@ const defaultPostListLayout = siteConfig.postListLayout?.defaultMode || "list";
 	<HeroOverlayScroll />
 
 	<!-- 全屏壁纸 - 始终渲染，通过 JS 控制显示隐藏 -->
-	<FullscreenWallpaper config={fullscreenWallpaperConfig} />
+	<FullscreenWallpaper config={fullscreenWallpaperConfig} defaultMode={effectiveDefaultMode} />
 
 	<!-- 全局图标加载器 -->
 	<IconifyLoader />
@@ -162,7 +166,7 @@ const defaultPostListLayout = siteConfig.postListLayout?.defaultMode || "list";
 
 	<!-- Main content -->
 	<div
-		class={`absolute w-full z-30 pointer-events-none ${mobileNonHomeBannerClass ? "mobile-main-no-banner" : ""} ${siteConfig.wallpaperMode.defaultMode === "none" ? "no-banner-layout" : ""} ${transparentClass}`}
+		class={`absolute w-full z-30 pointer-events-none ${mobileNonHomeBannerClass ? "mobile-main-no-banner" : ""} ${effectiveDefaultMode === "none" ? "no-banner-layout" : ""} ${transparentClass}`}
 		style={`top: ${finalMainPanelTop}`}
 	>
 		<!-- The pointer-events-none here prevent blocking the click event of the TOC -->
@@ -251,7 +255,7 @@ const defaultPostListLayout = siteConfig.postListLayout?.defaultMode || "list";
 							data-words={wordCount ? String(wordCount) : ""}
 							data-is-post={postSlug ? "true" : "false"}
 							data-is-home={isHomePage ? "true" : "false"}
-							data-wallpaper-mode={siteConfig.wallpaperMode.defaultMode}
+							data-wallpaper-mode={effectiveDefaultMode}
 							class="hidden"
 						>
 						</div>
@@ -298,7 +302,7 @@ const defaultPostListLayout = siteConfig.postListLayout?.defaultMode || "list";
 							"-right-(--toc-width)",
 							{
 								"toc-hide":
-									siteConfig.wallpaperMode.defaultMode ===
+									effectiveDefaultMode ===
 									"banner",
 							},
 						]}

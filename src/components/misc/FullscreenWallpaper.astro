@@ -6,9 +6,11 @@ import { publicUrl } from "../../utils/url-utils";
 interface Props {
 	config: FullscreenWallpaperConfig;
 	className?: string;
+	/** 该页面的有效默认壁纸模式（未设 localStorage 时的回退值） */
+	defaultMode?: string;
 }
 
-const { config, className } = Astro.props;
+const { config, className, defaultMode = "banner" } = Astro.props;
 
 // 获取当前设备类型的图片源
 const getImageSources = async () => {
@@ -108,11 +110,11 @@ const renderGroups = [
 	style={`z-index: ${zIndex}; transform: translateZ(0); perspective: 1000px; opacity: var(--wallpaper-opacity, ${opacity}); filter: blur(var(--wallpaper-blur, ${blurAmount}px));`}
 	data-fullscreen-wallpaper
 >
-	<script is:inline define:vars={{ wallpaperEnabled: config.enable ?? true, overlaySwitchable: config.overlay?.switchable ?? true }}>
+	<script is:inline define:vars={{ wallpaperEnabled: config.enable ?? true, overlaySwitchable: config.overlay?.switchable ?? true, defaultMode }}>
 	(function() {
 		const root = document.documentElement;
 		const wallpaperEnabledVal = wallpaperEnabled;
-		const mode = wallpaperEnabledVal ? (localStorage.getItem('wallpaperMode') || 'banner') : 'banner';
+		const mode = wallpaperEnabledVal ? (localStorage.getItem('wallpaperMode') || defaultMode) : 'banner';
 
 		if (mode === 'overlay') {
 			const isSw = typeof overlaySwitchable === 'object' ? overlaySwitchable : { opacity: !!overlaySwitchable, blur: !!overlaySwitchable, cardOpacity: !!overlaySwitchable };

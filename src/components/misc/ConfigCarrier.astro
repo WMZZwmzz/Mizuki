@@ -5,6 +5,11 @@ import {
 	sakuraConfig,
 	siteConfig,
 } from "@/config";
+
+// 按页面区分默认壁纸模式：首页 fullscreen（hero 滚动过渡），其他页面 overlay
+const _siteBase = import.meta.env.BASE_URL.replace(/\/+$/, "");
+const isHomePage = Astro.url.pathname.replace(/\/+$/, "") === _siteBase;
+const effectiveDefaultMode = isHomePage ? "fullscreen" : "overlay";
 ---
 
 <div
@@ -18,7 +23,7 @@ import {
 	data-overlay-card-opacity={fullscreenWallpaperConfig.overlay?.cardOpacity ?? 0.5}
 	data-fullscreen-opacity={fullscreenWallpaperConfig.opacity ?? 0.8}
 	data-fullscreen-blur={fullscreenWallpaperConfig.blur ?? 0}
-	data-default-wallpaper-mode={siteConfig.wallpaperMode.defaultMode}
+	data-default-wallpaper-mode={effectiveDefaultMode}
 	data-sakura-enabled={sakuraConfig.enable ? "true" : "false"}
 	data-waves-enabled={siteConfig.banner?.waves?.enable ? "true" : "false"}
 	data-banner-title-enabled={siteConfig.banner?.homeText?.enable ? "true" : "false"}

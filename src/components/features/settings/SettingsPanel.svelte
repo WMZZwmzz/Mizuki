@@ -22,7 +22,6 @@ import {
 	getStoredOverlayCardOpacity,
 	getStoredOverlayOpacity,
 	getStoredSakuraEnabled,
-	getStoredWallpaperMode,
 	getStoredWavesEnabled,
 	setBannerTitleEnabled,
 	setHue,
@@ -47,7 +46,9 @@ const allowLayoutSwitch =
 	(siteConfig.postListLayout.enable ?? false) &&
 	siteConfig.postListLayout.allowSwitch;
 const defaultLayout = siteConfig.postListLayout.defaultMode as LayoutMode;
-const defaultWallpaperMode = siteConfig.wallpaperMode.defaultMode;
+// 全局配置默认值（构建时）；运行时按页面从 ConfigCarrier 读取有效默认值
+const siteDefaultWallpaperMode = siteConfig.wallpaperMode.defaultMode;
+let defaultWallpaperMode = $state(siteDefaultWallpaperMode as WALLPAPER_MODE);
 
 const overlaySwitchable =
 	fullscreenWallpaperConfig.overlay?.switchable ?? false;
@@ -102,7 +103,7 @@ const hasAnyContent = $derived(
 
 let hue = $state(getHue());
 const defaultHue = getDefaultHue();
-let wallpaperMode = $state(defaultWallpaperMode as WALLPAPER_MODE);
+let wallpaperMode = $state(siteDefaultWallpaperMode as WALLPAPER_MODE);
 let currentLayout = $state(defaultLayout);
 let overlayOpacity = $state(getDefaultOverlayOpacity());
 const defaultOverlayOpacity = getDefaultOverlayOpacity();
@@ -136,8 +137,14 @@ function resetHue() {
 }
 
 function resetWallpaperMode() {
-	wallpaperMode = defaultWallpaperMode as WALLPAPER_MODE;
-	setWallpaperMode(defaultWallpaperMode as WALLPAPER_MODE);
+	// 重置 = 清除用户选择，回退到当前页面的有效默认模式（首页 fullscreen / 其他 overlay）
+	localStorage.removeItem("wallpaperMode");
+	wallpaperMode = defaultWallpaperMode;
+	window.dispatchEvent(
+		new CustomEvent("wallpaper-mode-change", {
+			detail: { mode: defaultWallpaperMode },
+		}),
+	);
 }
 
 function resetLayout() {
@@ -241,7 +248,18 @@ function checkMobile() {
 }
 
 onMount(() => {
-	wallpaperMode = getStoredWallpaperMode();
+	// 从 ConfigCarrier 读取当前页面的有效默认模式（首页 fullscreen，其他页面 overlay）
+	const carrier = document.getElementById("config-carrier");
+	const effective = carrier?.dataset?.defaultWallpaperMode as
+		| WALLPAPER_MODE
+		| undefined;
+	if (effective) {
+		defaultWallpaperMode = effective;
+	}
+
+	// 用户已存储的选择优先，否则用当前页面的有效默认模式
+	const stored = localStorage.getItem("wallpaperMode") as WALLPAPER_MODE | null;
+	wallpaperMode = stored ?? defaultWallpaperMode;
 	overlayOpacity = getStoredOverlayOpacity();
 	overlayBlur = getStoredOverlayBlur();
 	overlayCardOpacity = getStoredOverlayCardOpacity();
