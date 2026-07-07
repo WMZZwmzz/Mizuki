@@ -22,8 +22,8 @@ export interface KeystaticSettings {
 }
 
 export const keystaticSettings: Partial<KeystaticSettings> = {
-  "title": "无名之子",
-  "subtitle": "の小站",
+  "title": "无名之子の小站",
+  "subtitle": "GitHub",
   "siteURL": "https://wmzzwmzz.github.io/Mizuki/",
   "siteLang": "zh_CN",
   "themeHue": 360,

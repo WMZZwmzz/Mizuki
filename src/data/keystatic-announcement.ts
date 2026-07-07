@@ -1,6 +1,6 @@
 // Auto-generated from Keystatic CMS — DO NOT EDIT MANUALLY
 export const keystaticAnnouncement = {
-	content: "ブログへようこそ！Mizuki は Astro + Svelte + Tailwind で構築された美しいブログテンプレートです。",
+	content: "WuMingZhiZi's blog也是正式营业啦！",
 	title: "",
 	icon: "",
 	type: "info" as const,
