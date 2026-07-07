@@ -1,4 +1,5 @@
 import type { SakuraConfig } from "../types/config";
+import { publicUrl } from "./url-utils";
 
 // 樱花对象类
 class Sakura {
@@ -210,7 +211,9 @@ export class SakuraManager {
 
 		// 创建图片对象
 		this.img = new Image();
-		this.img.src = "/sakura.webp"; // 使用樱花图片
+		// 经 publicUrl 加 base 前缀，兼容子路径部署（GitHub Pages 的 base 为 /Mizuki/）；
+		// 硬编码 "/sakura.webp" 会在子路径下 404 导致 onerror、init() reject。
+		this.img.src = publicUrl("/sakura.webp");
 
 		// 等待图片加载完成
 		await new Promise<void>((resolve, reject) => {
