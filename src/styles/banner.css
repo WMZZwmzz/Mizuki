@@ -982,3 +982,83 @@ html.is-page-transitioning .banner-page-overlay {
   filter: none !important;
   transition: none !important;
 }
+
+/* ==========================================================================
+   首页 Hero → Overlay 滚动过渡
+   首屏全屏 banner，向下滚动时 banner 视差淡出、全屏壁纸淡入、卡片半透明渐变
+   由 src/layouts/partials/HeroOverlayScroll.astro 驱动 --hero-progress (0~1)
+   ========================================================================== */
+
+/* 全屏壁纸：覆盖 fullscreen 模式下的 display:none，opacity 跟随 progress 淡入 */
+body.hero-overlay-scroll [data-fullscreen-wallpaper] {
+  display: block !important;
+  opacity: calc(var(--hero-progress, 0) * var(--hero-wallpaper-target-opacity, 0.8)) !important;
+  filter: blur(calc(var(--hero-progress, 0) * var(--hero-wallpaper-target-blur, 0px))) !important;
+  transition: opacity 0.18s linear, filter 0.18s linear;
+  will-change: opacity;
+}
+
+/* Banner：视差淡出（轻微上移 + 缩放，增强层次感） */
+body.hero-overlay-scroll #banner-wrapper {
+  opacity: calc(1 - var(--hero-progress, 0));
+  transform: translateY(calc(var(--hero-progress, 0) * -2vh))
+    scale(calc(1 - var(--hero-progress, 0) * 0.03));
+  transform-origin: center top;
+  transition: opacity 0.18s linear, transform 0.18s linear;
+  will-change: opacity, transform;
+}
+
+/* Banner 文字更早淡出，避免与上滑内容重叠时可读性下降 */
+body.hero-overlay-scroll .banner-text-overlay {
+  opacity: calc(max(0, 1 - var(--hero-progress, 0) * 1.6));
+  transition: opacity 0.18s linear;
+}
+
+/* Banner 水波纹随 banner 一起淡出 */
+body.hero-overlay-scroll #header-waves {
+  opacity: calc(1 - var(--hero-progress, 0));
+  transition: opacity 0.18s linear;
+}
+
+/* 卡片背景透明度跟随 progress 线性渐变
+   progress=0 → 完全不透明（等同 --card-bg）
+   progress=1 → 半透明（等同 overlay 配置的 cardOpacity）
+   特异性高于 variables.styl 的默认规则，确保覆盖 */
+body.hero-overlay-scroll.wallpaper-transparent {
+  --card-bg-transparent: rgba(
+    255,
+    255,
+    255,
+    calc(1 - var(--hero-progress, 0) * (1 - var(--hero-card-target-opacity, 0.5)))
+  );
+}
+
+:root.dark body.hero-overlay-scroll.wallpaper-transparent {
+  --card-bg-transparent: rgba(
+    23,
+    23,
+    23,
+    calc(1 - var(--hero-progress, 0) * (1 - var(--hero-card-target-opacity, 0.5)))
+  );
+}
+
+/* 卡片背景色平滑过渡 */
+body.hero-overlay-scroll .card-base {
+  transition: background-color 0.3s ease, background 0.3s ease;
+}
+
+/* hero-scrolled 后禁用 banner 指针事件，避免误触 */
+body.hero-overlay-scroll.hero-scrolled #banner-wrapper {
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   移动端 Hero → Overlay 过渡适配
+   ========================================================================== */
+@media (max-width: 1279px) {
+  /* 移动端 banner 视差幅度略小，避免过度位移 */
+  body.hero-overlay-scroll #banner-wrapper {
+    transform: translateY(calc(var(--hero-progress, 0) * -1.5vh))
+      scale(calc(1 - var(--hero-progress, 0) * 0.02));
+  }
+}

@@ -27,6 +27,7 @@ import {
 import { widgetManager } from "../utils/widget-manager";
 import Layout from "./Layout.astro";
 import GridScripts from "./partials/GridScripts.astro";
+import HeroOverlayScroll from "./partials/HeroOverlayScroll.astro";
 
 interface Props {
 	title?: string;
@@ -126,6 +127,9 @@ const defaultPostListLayout = siteConfig.postListLayout?.defaultMode || "list";
 		wallpaperEnabled={fullscreenWallpaperConfig.enable ?? true}
 		postListLayoutEnabled={siteConfig.postListLayout?.enable ?? true}
 	/>
+
+	<!-- 首页全屏 hero 滚动过渡到 overlay 视觉 -->
+	<HeroOverlayScroll />
 
 	<!-- 全屏壁纸 - 始终渲染，通过 JS 控制显示隐藏 -->
 	<FullscreenWallpaper config={fullscreenWallpaperConfig} />

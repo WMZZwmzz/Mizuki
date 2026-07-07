@@ -1,0 +1,159 @@
+---
+/**
+ * HeroOverlayScroll - 首页全屏 hero 滚动过渡到 overlay 视觉
+ *
+ * 工作原理：
+ * - 仅在「首页 + fullscreen 壁纸模式」下启用
+ * - 监听滚动，计算 --hero-progress（0~1，在 0~70vh 区间内完成过渡）
+ * - CSS 据此变量让 banner 视差淡出、FullscreenWallpaper 淡入、卡片半透明渐变
+ * - 不调用 setWallpaperMode，不写入 localStorage，不影响用户手动设置
+ * - 滚回顶部自动恢复全屏 hero 状态
+ */
+import { fullscreenWallpaperConfig, siteConfig } from "../../config";
+
+const wallpaperEnabled = fullscreenWallpaperConfig.enable ?? true;
+const defaultWallpaperMode = siteConfig.wallpaperMode.defaultMode;
+// 子路径部署的 base（如 GitHub Pages 项目页 "/Mizuki/"）
+const siteBase = import.meta.env.BASE_URL;
+---
+
+<script
+	type="module"
+	is:inline
+	define:vars={{
+		wallpaperEnabled,
+		defaultWallpaperMode,
+		siteBase,
+	}}
+>
+	function getCarrierNumber(key, fallback) {
+		const carrier = document.getElementById("config-carrier");
+		const v = carrier && carrier.dataset ? carrier.dataset[key] : null;
+		const n = Number(v ?? fallback);
+		return Number.isFinite(n) ? n : fallback;
+	}
+
+	function isHomePagePath() {
+		return (
+			window.location.pathname.replace(/\/+$/, "") ===
+			siteBase.replace(/\/+$/, "")
+		);
+	}
+
+	function getCurrentWallpaperMode() {
+		return wallpaperEnabled
+			? localStorage.getItem("wallpaperMode") || defaultWallpaperMode
+			: defaultWallpaperMode;
+	}
+
+	// 过渡完成的滚动距离（相对视口高度），首屏 100vh hero，在 70vh 内完成过渡
+	const TRANSITION_RATIO = 0.7;
+
+	let scrollHandler = null;
+	let ticking = false;
+
+	function cleanup() {
+		if (scrollHandler) {
+			window.removeEventListener("scroll", scrollHandler, { passive: true });
+			scrollHandler = null;
+		}
+		ticking = false;
+	}
+
+	function disableHeroOverlay() {
+		cleanup();
+		document.body.classList.remove(
+			"hero-overlay-scroll",
+			"hero-scrolled",
+		);
+		// 仅当当前不是真正的 overlay 模式时才移除 wallpaper-transparent
+		// （overlay 模式由 applyWallpaperMode 维护，不应被此处清除）
+		if (getCurrentWallpaperMode() !== "overlay") {
+			document.body.classList.remove("wallpaper-transparent");
+		}
+		const root = document.documentElement;
+		root.style.removeProperty("--hero-progress");
+		root.style.removeProperty("--hero-wallpaper-target-opacity");
+		root.style.removeProperty("--hero-wallpaper-target-blur");
+		root.style.removeProperty("--hero-card-target-opacity");
+	}
+
+	function update() {
+		const scrollTop = window.scrollY || document.documentElement.scrollTop;
+		const vh = window.innerHeight;
+		const progress = Math.max(
+			0,
+			Math.min(1, scrollTop / (vh * TRANSITION_RATIO)),
+		);
+
+		const root = document.documentElement;
+		root.style.setProperty("--hero-progress", progress.toFixed(4));
+
+		// 阈值切换 hero-scrolled（用于 navbar 协调等离散状态）
+		// 使用滞后阈值避免在临界点抖动
+		const hasScrolled = document.body.classList.contains("hero-scrolled");
+		if (progress > 0.55 && !hasScrolled) {
+			document.body.classList.add("hero-scrolled");
+		} else if (progress < 0.45 && hasScrolled) {
+			document.body.classList.remove("hero-scrolled");
+		}
+
+		ticking = false;
+	}
+
+	function onScroll() {
+		if (!ticking) {
+			requestAnimationFrame(update);
+			ticking = true;
+		}
+	}
+
+	function initHeroOverlayScroll() {
+		// 仅首页 + fullscreen 模式启用
+		if (!isHomePagePath() || getCurrentWallpaperMode() !== "fullscreen") {
+			disableHeroOverlay();
+			return;
+		}
+
+		const body = document.body;
+		// 标识启用 hero→overlay 滚动过渡
+		body.classList.add("hero-overlay-scroll", "wallpaper-transparent");
+
+		// 读取 overlay 目标视觉参数（从 ConfigCarrier）
+		const targetOpacity = getCarrierNumber("overlayOpacity", 0.8);
+		const targetBlur = getCarrierNumber("overlayBlur", 10);
+		const targetCardOpacity = getCarrierNumber("overlayCardOpacity", 0.5);
+
+		const root = document.documentElement;
+		root.style.setProperty(
+			"--hero-wallpaper-target-opacity",
+			String(targetOpacity),
+		);
+		root.style.setProperty("--hero-wallpaper-target-blur", `${targetBlur}px`);
+		root.style.setProperty(
+			"--hero-card-target-opacity",
+			String(targetCardOpacity),
+		);
+
+		// 注册滚动监听
+		cleanup();
+		scrollHandler = onScroll;
+		window.addEventListener("scroll", scrollHandler, { passive: true });
+
+		// 立即更新一次
+		update();
+	}
+
+	// 初始化时机
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", initHeroOverlayScroll);
+	} else {
+		initHeroOverlayScroll();
+	}
+
+	// Swup 页面切换后重新初始化
+	document.addEventListener("swup:page:view", initHeroOverlayScroll);
+
+	// 用户手动切换壁纸模式后重新评估
+	window.addEventListener("wallpaper-mode-change", initHeroOverlayScroll);
+</script>
