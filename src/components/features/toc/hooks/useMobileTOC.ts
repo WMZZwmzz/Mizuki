@@ -113,10 +113,17 @@ export function generatePostItems(): PostItem[] {
 
 /**
  * 检查是否为首页
+ * 兼容子路径部署（如 GitHub Pages 项目页 /Mizuki/）：首页 pathname 应等于 base
  */
 export function checkIsHomePage(): boolean {
-	const pathname = window.location.pathname;
-	return pathname === "/" || pathname === "" || /^\/\d+\/?$/.test(pathname);
+	const base = import.meta.env.BASE_URL.replace(/\/+$/, "");
+	const pathname = window.location.pathname.replace(/\/+$/, "");
+	if (pathname === base) {
+		return true;
+	}
+	// 首页分页：base 后跟 /数字（如 /Mizuki/2）
+	const rest = base ? pathname.slice(base.length) : pathname;
+	return /^\/\d+$/.test(rest);
 }
 
 /**

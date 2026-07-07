@@ -62,7 +62,10 @@ const hasBannerCredit = siteConfig.banner.credit.enable;
 const hasBannerLink = !!siteConfig.banner.credit.url;
 
 // 检查是否为首页
-const isHomePage = Astro.url.pathname === "/" || Astro.url.pathname === "";
+// 兼容子路径部署（如 GitHub Pages 项目页 /Mizuki/）：
+// 首页 pathname 应等于 base（本地 base="/" → ""，线上 base="/Mizuki/" → "/Mizuki"）
+const _siteBase = import.meta.env.BASE_URL.replace(/\/+$/, "");
+const isHomePage = Astro.url.pathname.replace(/\/+$/, "") === _siteBase;
 // 手机端非首页不显示banner的CSS类
 const mobileNonHomeBannerClass = !isHomePage ? "mobile-hide-banner" : "";
 

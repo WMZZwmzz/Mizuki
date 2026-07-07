@@ -29,6 +29,9 @@ const {
 	wallpaperEnabled = true,
 	postListLayoutEnabled = true,
 } = Astro.props;
+
+// 子路径部署的 base（如 GitHub Pages 项目页 "/Mizuki/"），传入内联脚本用于首页判断
+const siteBase = import.meta.env.BASE_URL;
 ---
 
 <script
@@ -45,6 +48,7 @@ const {
 		bannerTitleEnabled,
 		wallpaperEnabled,
 		postListLayoutEnabled,
+		siteBase,
 	}}
 >
 	function getCarrierNumber(key, fallback) {
@@ -70,8 +74,10 @@ const {
 		}
 
 		const isMobile = window.innerWidth < 1280;
+		// 兼容子路径部署：首页 pathname 应等于 base（去掉末尾斜杠后比较）
 		const isHomePage =
-			window.location.pathname === "/" || window.location.pathname === "";
+			window.location.pathname.replace(/\/+$/, "") ===
+			siteBase.replace(/\/+$/, "");
 
 		mainContent.classList.remove("mobile-main-no-banner", "no-banner-layout");
 		mainContent.style.removeProperty("min-height");
