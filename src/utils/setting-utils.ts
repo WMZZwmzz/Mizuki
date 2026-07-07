@@ -406,7 +406,7 @@ export function getDefaultSakuraEnabled(): boolean {
 export function getStoredSakuraEnabled(): boolean {
 	if (!sakuraConfig.enable) return false;
 	const stored = localStorage.getItem("sakuraEnabled");
-	return stored !== null ? stored === "true" : false;
+	return stored !== null ? stored === "true" : getDefaultSakuraEnabled();
 }
 
 export function setSakuraEnabled(enabled: boolean): void {
