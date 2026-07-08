@@ -10,6 +10,55 @@
 </style>
 </head>
 <body>
+<script>
+// ── 看板娘点击穿透：WebGL 像素级透明检测 ──
+// 在 l2d-widget 创建 WebGL 上下文前拦截 getContext，强制 preserveDrawingBuffer:true，
+// 使帧缓冲在帧间保留，从而允许任意时刻通过 readPixels 读取像素 alpha。
+// 同源 iframe：父页面可直接同步调用下方 __l2dHitTest 判定点击是否落在不透明像素上。
+(function () {
+  var origGetContext = HTMLCanvasElement.prototype.getContext;
+  HTMLCanvasElement.prototype.getContext = function (type, attrs) {
+    var a = Object.assign({}, attrs || {});
+    if (typeof type === 'string' && /webgl/i.test(type)) {
+      a.preserveDrawingBuffer = true;
+    }
+    var ctx = origGetContext.call(this, type, a);
+    // 在 canvas 实例上缓存 GL 上下文（模型切换会重建 canvas，querySelector 始终取到最新）
+    if (ctx && typeof type === 'string' && /webgl/i.test(type)) {
+      this.__l2dGl = ctx;
+    }
+    return ctx;
+  };
+
+  var ALPHA_THRESHOLD = 25; // 0-255，抗锯齿边缘容差，低于此 alpha 视为透明
+  var _px = new Uint8Array(4);
+
+  // parentX/parentY：父页面视口坐标；iframeX/iframeY：iframe 在父视口中的偏移
+  // 返回 true=不透明（应捕获），false=透明（应穿透）；未就绪/异常时返回 true 保持原行为
+  window.__l2dHitTest = function (parentX, parentY, iframeX, iframeY) {
+    var canvas = document.querySelector('canvas');
+    if (!canvas || canvas.width === 0 || canvas.height === 0) return true;
+    var gl = canvas.__l2dGl;
+    if (!gl) return true;
+    var localX = parentX - (iframeX || 0);
+    var localY = parentY - (iframeY || 0);
+    var rect = canvas.getBoundingClientRect();
+    var cssX = localX - rect.left;
+    var cssY = localY - rect.top;
+    if (cssX < 0 || cssY < 0 || cssX > rect.width || cssY > rect.height) return false;
+    var fbX = Math.floor(cssX * (canvas.width / rect.width));
+    var fbY = Math.floor(cssY * (canvas.height / rect.height));
+    if (fbX < 0 || fbY < 0 || fbX >= canvas.width || fbY >= canvas.height) return false;
+    var glY = canvas.height - 1 - fbY; // WebGL 原点在左下角，需翻转 Y 轴
+    try {
+      gl.readPixels(fbX, glY, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, _px);
+      return _px[3] > ALPHA_THRESHOLD;
+    } catch (err) {
+      return true;
+    }
+  };
+})();
+</script>
 <script src="./l2d-widget.min.js"></script>
 <script>
   var widgetInstance = null;
