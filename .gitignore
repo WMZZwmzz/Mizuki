@@ -39,6 +39,11 @@ yarn.lock
 .idea
 *.iml
 .claude
+.trae/
+.workbuddy/
+
+# dev server logs
+.codex-dev-server.*.log
 
 cache/
 fuwari/
