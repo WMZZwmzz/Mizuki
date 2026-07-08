@@ -67,12 +67,13 @@ const widgetHeight = config.height ?? 600;
 const isRight = config.position === "right";
 const isDraggable = (config.mode ?? "draggable") !== "fixed";
 const touchMessages = config.dialog?.touch ?? [];
+const hiddenOnMobile = config.hiddenOnMobile ?? false;
 ---
 
 <iframe
 	id="l2d-iframe"
 	data-role="pio-layer"
-	src={publicUrl("/pio/live2d-host.html")}
+	data-src={publicUrl("/pio/live2d-host.html")}
 	allowtransparency="true"
 	style={"position: fixed; z-index: 999; pointer-events: none; border: none; bottom: 0;"
 		+ (isRight ? " right: 0;" : " left: 0;")
@@ -82,6 +83,7 @@ const touchMessages = config.dialog?.touch ?? [];
 	data-config={JSON.stringify(widgetConfig)}
 	data-width={widgetWidth}
 	data-is-right={isRight ? "true" : "false"}
+	data-hidden-on-mobile={hiddenOnMobile ? "true" : "false"}
 ></iframe>
 
 <!-- 交互代理层：覆盖 canvas 区域，捕获鼠标事件转发给 iframe -->
@@ -132,7 +134,19 @@ const touchMessages = config.dialog?.touch ?? [];
 		if (frame !== el) frame.remove();
 	}
 
-	if (el && configSource) {
+	// ── 移动端隐藏：屏幕宽度 <768px 时不加载 iframe、不渲染图层，避免 WebGL 性能开销 ──
+	const mobileHidden =
+		configSource?.dataset.hiddenOnMobile === "true" &&
+		window.matchMedia("(max-width: 767px)").matches;
+	if (mobileHidden) {
+		document
+			.querySelectorAll('[data-role="pio-layer"]')
+			.forEach((n) => n.remove());
+	}
+
+	if (el && configSource && !mobileHidden) {
+		// 桌面端：按需赋值 src 启动 iframe 加载（移动端跳过，避免触发 WebGL）
+		if (el.dataset.src) el.src = el.dataset.src;
 		const config = JSON.parse(configSource.dataset.config || "{}");
 
 		if (!win.__mizukiPioController) {
@@ -271,7 +285,76 @@ const touchMessages = config.dialog?.touch ?? [];
 						}
 					};
 
+					// ── 像素级透明检测：仅在不透明像素上捕获事件，透明区域点击穿透 ──
+					// iframe 与父页面同源，可直接同步调用 iframe 内的 readPixels，
+					// 从而让桌面端(mousemove)与移动端(合成 mousemove)都能在 mousedown 前确定 pointer-events。
+					type L2DHostWindow = Window & {
+						__l2dHitTest?: (
+							x: number,
+							y: number,
+							iframeX: number,
+							iframeY: number,
+						) => boolean;
+					};
+					const hitTest = (e: { clientX: number; clientY: number }): boolean => {
+						try {
+							const host = el.contentWindow as L2DHostWindow | null;
+							const fn = host?.__l2dHitTest;
+							if (typeof fn !== "function") return true; // 未就绪：保持捕获，避免加载前误穿透
+							const iframeRect = el.getBoundingClientRect();
+							return !!fn(
+								e.clientX,
+								e.clientY,
+								iframeRect.left,
+								iframeRect.top,
+							);
+						} catch {
+							return true;
+						}
+					};
+
+					// 点击穿透兜底：临时关闭代理层 pointer-events，定位下方真实元素并派发完整点击序列
+					const passThroughClick = (e: MouseEvent) => {
+						const x = e.clientX;
+						const y = e.clientY;
+						const prev = proxy.style.pointerEvents;
+						proxy.style.pointerEvents = "none";
+						const target = document.elementFromPoint(x, y) as HTMLElement | null;
+						proxy.style.pointerEvents = prev;
+						if (!target || target === proxy || target === el) return;
+						const down = new MouseEvent("mousedown", {
+							bubbles: true, cancelable: true, view: window,
+							clientX: x, clientY: y, button: 0, buttons: 1,
+						});
+						const up = new MouseEvent("mouseup", {
+							bubbles: true, cancelable: true, view: window,
+							clientX: x, clientY: y, button: 0, buttons: 0,
+						});
+						const click = new MouseEvent("click", {
+							bubbles: true, cancelable: true, view: window,
+							clientX: x, clientY: y, button: 0, buttons: 0,
+						});
+						target.dispatchEvent(down);
+						target.dispatchEvent(up);
+						target.dispatchEvent(click);
+					};
+
+					// mousemove 节流：降低 readPixels 的 GPU 同步开销（点击时不节流，实时判定）
+					let lastHitTime = 0;
+					let lastHitResult = true; // 默认不透明（捕获），避免加载前误穿透
+					const HIT_THROTTLE = 40;
+					const hitTestThrottled = (e: MouseEvent): boolean => {
+						const now = performance.now();
+						if (now - lastHitTime > HIT_THROTTLE) {
+							lastHitTime = now;
+							lastHitResult = hitTest(e);
+						}
+						return lastHitResult;
+					};
+
 					// 动态检测鼠标是否在代理区域内，按需启用 pointer-events
+					// bounds 进入/离开 → 转发 mouseenter/mouseleave（控制 iframe 内按钮栏显隐）
+					// bounds 内 → 按像素透明度切换 pointer-events（与按钮栏显隐解耦）
 					const updateProxyState = (e: MouseEvent) => {
 						if (isDragging) return;
 						const rect = proxy.getBoundingClientRect();
@@ -281,14 +364,16 @@ const touchMessages = config.dialog?.touch ?? [];
 
 						if (inBounds && !isHovering) {
 							isHovering = true;
-							proxy.style.pointerEvents = "auto";
-							// 通知 iframe 内 Widget 鼠标进入，触发按钮栏显示
 							forwardEvent("mouseenter", e);
 						} else if (!inBounds && isHovering) {
 							isHovering = false;
 							proxy.style.pointerEvents = "none";
-							// 通知 iframe 内 Widget 鼠标离开，隐藏按钮栏
 							forwardEvent("mouseleave", e);
+							return;
+						}
+
+						if (inBounds) {
+							proxy.style.pointerEvents = hitTestThrottled(e) ? "auto" : "none";
 						}
 					};
 
@@ -305,6 +390,26 @@ const touchMessages = config.dialog?.touch ?? [];
 						}
 					}, { passive: true });
 
+					// 移动端：在合成鼠标事件派发前，于 touchstart 同步确定 pointer-events，
+					// 避免部分浏览器跳过合成 mousemove 导致 mousedown 落到错误目标。
+					// passive 且不 preventDefault，不影响页面滚动。
+					document.addEventListener("touchstart", (e) => {
+						if (isDragging) return;
+						const t = e.touches[0];
+						if (!t) return;
+						const rect = proxy.getBoundingClientRect();
+						const inBounds =
+							t.clientX >= rect.left && t.clientX <= rect.right &&
+							t.clientY >= rect.top && t.clientY <= rect.bottom;
+						if (!inBounds) return;
+						const pe = hitTest(t) ? "auto" : "none";
+						proxy.style.pointerEvents = pe;
+						if (pe === "auto" && !isHovering) {
+							isHovering = true;
+							forwardEvent("mouseenter", new MouseEvent("mouseenter", { clientX: t.clientX, clientY: t.clientY }));
+						}
+					}, { passive: true, capture: true });
+
 					proxy.addEventListener("mousedown", (e) => {
 						isDragging = true;
 						proxy.style.pointerEvents = "auto";
@@ -315,29 +420,24 @@ const touchMessages = config.dialog?.touch ?? [];
 						forwardEvent("mousedown", e);
 					});
 
-					proxy.addEventListener("mouseleave", () => {
-						if (!isDragging) {
-							isHovering = false;
-							proxy.style.pointerEvents = "none";
-						}
-					});
-
 					document.addEventListener("mouseup", (e) => {
 						if (isDragging) {
 							isDragging = false;
 							proxy.style.cursor = isDraggable ? "grab" : "pointer";
 							forwardEvent("mouseup", e);
-							requestAnimationFrame(() => {
-								if (!isHovering) {
-									proxy.style.pointerEvents = "none";
-								}
-							});
+							// 拖拽结束后按当前位置重新评估 pointer-events（避免停在透明区仍捕获）
+							requestAnimationFrame(() => updateProxyState(e));
 						}
 					});
 
 					proxy.addEventListener("click", (e) => {
 						// 拖拽后吞掉一次 click，避免触发模型动作/气泡
 						if (dragMoved) { dragMoved = false; return; }
+						// 兜底：若透明区域仍捕获到 click（节流延迟/合成事件时序差异），则穿透到下方元素
+						if (!hitTest(e)) {
+							passThroughClick(e);
+							return;
+						}
 						forwardEvent("click", e);
 					});
 
