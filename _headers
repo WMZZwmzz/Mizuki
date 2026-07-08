@@ -4,6 +4,12 @@
   X-XSS-Protection: 1; mode=block
   Referrer-Policy: strict-origin-when-cross-origin
 
+/pio/live2d-host*
+  ! X-Frame-Options
+  ! Cache-Control
+  Content-Security-Policy: frame-ancestors 'self'
+  Cache-Control: public, max-age=3600, must-revalidate
+
 /atom.xml
   Access-Control-Allow-Origin: *
   Access-Control-Allow-Methods: GET
