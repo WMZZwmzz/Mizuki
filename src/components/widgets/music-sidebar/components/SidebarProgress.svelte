@@ -16,11 +16,66 @@ function handleClick(event: MouseEvent) {
 	if (!el || duration <= 0) {
 		return;
 	}
+	seekFromClientX(el, event.clientX);
+}
+
+function seekFromClientX(el: HTMLElement, clientX: number) {
 	const rect = el.getBoundingClientRect();
-	const percent = (event.clientX - rect.left) / rect.width;
+	if (rect.width <= 0 || duration <= 0) {
+		return;
+	}
+	const percent = (clientX - rect.left) / rect.width;
 	const clamped = Math.max(0, Math.min(1, percent));
 	const time = clamped * duration;
 	onSeek(time);
+}
+
+function handlePointerDown(event: PointerEvent) {
+	const el = event.currentTarget as HTMLElement | null;
+	if (!el || duration <= 0) {
+		return;
+	}
+
+	event.preventDefault();
+	seekFromClientX(el, event.clientX);
+
+	const pointerId = event.pointerId;
+	el.setPointerCapture(pointerId);
+
+	const handleMove = (moveEvent: PointerEvent) => {
+		if (moveEvent.pointerId !== pointerId) {
+			return;
+		}
+		seekFromClientX(el, moveEvent.clientX);
+	};
+
+	const cleanup = () => {
+		el.removeEventListener("pointermove", handleMove);
+		el.removeEventListener("pointerup", handleUp);
+		el.removeEventListener("pointercancel", handleCancel);
+		if (el.hasPointerCapture(pointerId)) {
+			el.releasePointerCapture(pointerId);
+		}
+	};
+
+	const handleUp = (upEvent: PointerEvent) => {
+		if (upEvent.pointerId !== pointerId) {
+			return;
+		}
+		seekFromClientX(el, upEvent.clientX);
+		cleanup();
+	};
+
+	const handleCancel = (cancelEvent: PointerEvent) => {
+		if (cancelEvent.pointerId !== pointerId) {
+			return;
+		}
+		cleanup();
+	};
+
+	el.addEventListener("pointermove", handleMove);
+	el.addEventListener("pointerup", handleUp);
+	el.addEventListener("pointercancel", handleCancel);
 }
 
 function handleKeyDown(event: KeyboardEvent) {
@@ -37,6 +92,7 @@ function handleKeyDown(event: KeyboardEvent) {
 		class="sidebar-progress-bar"
 		onclick={handleClick}
 		onkeydown={handleKeyDown}
+		onpointerdown={handlePointerDown}
 		role="slider"
 		tabindex="0"
 		aria-label="Music progress"
@@ -68,6 +124,7 @@ function handleKeyDown(event: KeyboardEvent) {
 		);
 		overflow: hidden;
 		cursor: pointer;
+		touch-action: none;
 	}
 
 	.sidebar-progress-fill {

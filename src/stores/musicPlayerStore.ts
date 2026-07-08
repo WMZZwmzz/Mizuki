@@ -54,7 +54,7 @@ class MusicPlayerStore {
 			duration: 0,
 			volume: 0.7,
 			isMuted: false,
-			isShuffled: false,
+			isShuffled: true,
 			isRepeating: 0,
 			showPlaylist: false,
 			errorMessage: "",
@@ -284,7 +284,7 @@ class MusicPlayerStore {
 			this.state.isLoading = false;
 
 			if (this.state.playlist.length > 0) {
-				this.loadSong(this.state.playlist[0], false);
+				this.loadInitialRandomSong();
 			}
 		} catch (_e) {
 			this.showError(i18n(Key.musicPlayerErrorPlaylist));
@@ -330,8 +330,14 @@ class MusicPlayerStore {
 		if (this.state.playlist.length === 0) {
 			this.showError("本地播放列表为空");
 		} else {
-			this.loadSong(this.state.playlist[0], false);
+			this.loadInitialRandomSong();
 		}
+	}
+
+	private loadInitialRandomSong(): void {
+		const initialIndex = Math.floor(Math.random() * this.state.playlist.length);
+		this.state.currentIndex = initialIndex;
+		this.loadSong(this.state.playlist[initialIndex], false);
 	}
 
 	private loadSong(song: Song, autoPlay = true): void {
@@ -538,7 +544,8 @@ class MusicPlayerStore {
 		if (!this.audio) {
 			return;
 		}
-		const newTime = percent * this.state.duration;
+		const clampedPercent = Math.max(0, Math.min(1, percent));
+		const newTime = clampedPercent * this.state.duration;
 		this.audio.currentTime = newTime;
 		this.state.currentTime = newTime;
 		this.broadcastState();

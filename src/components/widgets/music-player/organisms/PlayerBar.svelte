@@ -32,6 +32,7 @@ interface Props {
 	onRepeatClick: () => void;
 	onProgressClick: (event: MouseEvent) => void;
 	onProgressKeyDown: (event: KeyboardEvent) => void;
+	onProgressPointerDown: (event: PointerEvent) => void;
 	onVolumeButtonClick: () => void;
 	onSliderPointerDown: (event: PointerEvent) => void;
 	onSliderKeyDown: (event: KeyboardEvent) => void;
@@ -62,6 +63,7 @@ const {
 	onRepeatClick,
 	onProgressClick,
 	onProgressKeyDown,
+	onProgressPointerDown,
 	onVolumeButtonClick,
 	onSliderPointerDown,
 	onSliderKeyDown,
@@ -94,6 +96,7 @@ const {
 		{duration}
 		{onProgressClick}
 		{onProgressKeyDown}
+		{onProgressPointerDown}
 	/>
 	<PlayerControls
 		{isPlaying}

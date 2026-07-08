@@ -6,10 +6,16 @@ interface Props {
 	duration: number;
 	onProgressClick: (event: MouseEvent) => void;
 	onProgressKeyDown: (event: KeyboardEvent) => void;
+	onProgressPointerDown: (event: PointerEvent) => void;
 }
 
-const { currentTime, duration, onProgressClick, onProgressKeyDown }: Props =
-	$props();
+const {
+	currentTime,
+	duration,
+	onProgressClick,
+	onProgressKeyDown,
+	onProgressPointerDown,
+}: Props = $props();
 </script>
 
 <div class="progress-section mb-4">
@@ -18,5 +24,6 @@ const { currentTime, duration, onProgressClick, onProgressKeyDown }: Props =
 		{duration}
 		onclick={onProgressClick}
 		onkeydown={onProgressKeyDown}
+		onpointerdown={onProgressPointerDown}
 	/>
 </div>

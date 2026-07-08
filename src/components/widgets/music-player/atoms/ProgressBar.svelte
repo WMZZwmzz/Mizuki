@@ -7,15 +7,18 @@ interface Props {
 	duration: number;
 	onclick: (event: MouseEvent) => void;
 	onkeydown: (event: KeyboardEvent) => void;
+	onpointerdown: (event: PointerEvent) => void;
 }
 
-const { currentTime, duration, onclick, onkeydown }: Props = $props();
+const { currentTime, duration, onclick, onkeydown, onpointerdown }: Props =
+	$props();
 </script>
 
 <div
-	class="progress-bar flex-1 h-2 bg-[var(--btn-regular-bg)] rounded-full cursor-pointer"
+	class="progress-bar flex-1 h-2 bg-[var(--btn-regular-bg)] rounded-full cursor-pointer touch-none"
 	{onclick}
 	{onkeydown}
+	{onpointerdown}
 	role="slider"
 	tabindex="0"
 	aria-label={i18n(Key.musicPlayerProgress)}

@@ -56,6 +56,63 @@ function setProgress(event: MouseEvent) {
 	musicPlayerStore.setProgress(percent);
 }
 
+function startProgressDrag(event: PointerEvent) {
+	const slider = event.currentTarget as HTMLElement | null;
+	if (!slider) {
+		return;
+	}
+
+	const updateProgress = (clientX: number) => {
+		const rect = slider.getBoundingClientRect();
+		if (rect.width <= 0) {
+			return;
+		}
+		const percent = (clientX - rect.left) / rect.width;
+		musicPlayerStore.setProgress(percent);
+	};
+
+	event.preventDefault();
+	updateProgress(event.clientX);
+
+	const pointerId = event.pointerId;
+	slider.setPointerCapture(pointerId);
+
+	const handleMove = (moveEvent: PointerEvent) => {
+		if (moveEvent.pointerId !== pointerId) {
+			return;
+		}
+		updateProgress(moveEvent.clientX);
+	};
+
+	const cleanup = () => {
+		slider.removeEventListener("pointermove", handleMove);
+		slider.removeEventListener("pointerup", handleUp);
+		slider.removeEventListener("pointercancel", handleCancel);
+		if (slider.hasPointerCapture(pointerId)) {
+			slider.releasePointerCapture(pointerId);
+		}
+	};
+
+	const handleUp = (upEvent: PointerEvent) => {
+		if (upEvent.pointerId !== pointerId) {
+			return;
+		}
+		updateProgress(upEvent.clientX);
+		cleanup();
+	};
+
+	const handleCancel = (cancelEvent: PointerEvent) => {
+		if (cancelEvent.pointerId !== pointerId) {
+			return;
+		}
+		cleanup();
+	};
+
+	slider.addEventListener("pointermove", handleMove);
+	slider.addEventListener("pointerup", handleUp);
+	slider.addEventListener("pointercancel", handleCancel);
+}
+
 function handleProgressKeyDown(event: KeyboardEvent) {
 	if (event.key === "Enter" || event.key === " ") {
 		event.preventDefault();
@@ -294,6 +351,7 @@ onDestroy(() => {
 				onRepeatClick={toggleRepeat}
 				onProgressClick={setProgress}
 				onProgressKeyDown={handleProgressKeyDown}
+				onProgressPointerDown={startProgressDrag}
 				onVolumeButtonClick={handleVolumeButtonClick}
 				onSliderPointerDown={startVolumeDrag}
 				onSliderKeyDown={handleVolumeKeyDown}
