@@ -2,9 +2,9 @@
 export const keystaticMusic = {
 	enable: true,
 	showFloatingPlayer: true,
-	mode: "local" as const,
+	mode: "meting" as const,
 	meting_api: "https://meting.mysqil.com/api?server=:server&type=:type&id=:id&auth=:auth&r=:r",
-	id: "14164869977",
+	id: "13257099187",
 	server: "netease" as const,
 	type: "playlist" as const,
 };
