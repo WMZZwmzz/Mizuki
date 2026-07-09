@@ -25,7 +25,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: lts/*
+          node-version: "22"  # 与 deploy.yml 对齐；项目 pnpm/node:sqlite 要求 Node 22
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -46,7 +46,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: lts/*
+          node-version: "22"  # 与 deploy.yml 对齐；项目 pnpm/node:sqlite 要求 Node 22
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -69,7 +69,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: lts/*
+          node-version: "22"  # 与 deploy.yml 对齐；项目 pnpm/node:sqlite 要求 Node 22
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -78,6 +78,11 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build
+        # 用项目标准 `pnpm build` 构建纯静态产物（DEPLOY_TARGET=pages，与
+        # deploy.yml 一致）。此前 CI 失败的根因是 poster-image.ts 的图片 glob
+        # 误匹配了 public/pio/models 下 Git-LFS 跟踪的纹理（未开 lfs 的检出里
+        # 是指针文本），已在 poster-image.ts 排除 public/ 修复。
         run: pnpm build
         env:
           ENABLE_CONTENT_SYNC: false
+          DEPLOY_TARGET: pages

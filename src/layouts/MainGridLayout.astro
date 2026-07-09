@@ -72,7 +72,7 @@ const mobileNonHomeBannerClass = !isHomePage ? "mobile-hide-banner" : "";
 
 // 按页面区分默认壁纸模式：首页全屏 hero（由 HeroOverlayScroll 滚动过渡到 overlay），
 // 其他页面默认 overlay（全屏壁纸背景 + 半透明卡片）
-const effectiveDefaultMode = isHomePage ? "fullscreen" : "overlay";
+const effectiveDefaultMode: string = isHomePage ? "fullscreen" : "overlay";
 
 // 计算主内容区域位置
 const finalMainPanelTop = getMainPanelTop(

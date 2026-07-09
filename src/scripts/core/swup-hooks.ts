@@ -288,7 +288,7 @@ export class SwupHooksManager {
 						(tocElement as any).init();
 					}
 					if (hasMobileTOC) {
-						window.mobileTOCInit();
+						window.mobileTOCInit?.();
 					}
 				}, ANIMATION_CONFIG.tocReadyDelay);
 			}

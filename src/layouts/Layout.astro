@@ -203,7 +203,7 @@ if (siteConfig.font) {
 
 		<!-- 第三方分析脚本 -->
 		<AnalyticsScripts
-			gtmId={siteConfig.thirdPartyAnalytics.gtmId}
+			gtmId={siteConfig.thirdPartyAnalytics?.gtmId}
 			thirdPartyAnalytics={siteConfig.thirdPartyAnalytics}
 		/>
 
@@ -242,10 +242,10 @@ if (siteConfig.font) {
 		style={bodyFontFamily ? `font-family: ${bodyFontFamily};` : ""}
 		data-overlayscrollbars-initialize
 	>
-		{siteConfig.thirdPartyAnalytics.gtmId && (
+		{siteConfig.thirdPartyAnalytics?.gtmId && (
 			<noscript
 				><iframe
-					src={`https://www.googletagmanager.com/ns.html?id=${siteConfig.thirdPartyAnalytics.gtmId}`}
+					src={`https://www.googletagmanager.com/ns.html?id=${siteConfig.thirdPartyAnalytics?.gtmId}`}
 					height="0"
 					width="0"
 					style="display:none;visibility:hidden"></iframe></noscript

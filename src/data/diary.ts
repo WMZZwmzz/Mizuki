@@ -24,6 +24,6 @@ export function getDiaryList(limit?: number): DiaryItem[] {
 
 export function getAllTags(): string[] {
   const tagSet = new Set<string>();
-  diaryData.forEach((entry) => entry.tags?.forEach((t) => tagSet.add(t)));
+  diaryData.forEach((entry) => { entry.tags?.forEach((t) => { tagSet.add(t); }); });
   return [...tagSet].sort();
 }

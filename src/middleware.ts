@@ -1,5 +1,5 @@
 import { makeHandler } from "@keystatic/astro/api";
-import config from "../keystatic.config.ts";
+import config from "../keystatic.config";
 import { defineMiddleware } from "astro:middleware";
 
 const keystaticHandler = makeHandler({ config });

@@ -178,7 +178,7 @@ export function getDiaryList(limit?: number): DiaryItem[] {
 
 export function getAllTags(): string[] {
   const tagSet = new Set<string>();
-  diaryData.forEach((entry) => entry.tags?.forEach((t) => tagSet.add(t)));
+  diaryData.forEach((entry) => { entry.tags?.forEach((t) => { tagSet.add(t); }); });
   return [...tagSet].sort();
 }
 `,
@@ -292,7 +292,7 @@ export function getFeaturedProjects(): Project[] {
 
 export function getAllTechStack(): string[] {
   const set = new Set<string>();
-  projectsData.forEach((p) => p.techStack.forEach((t) => set.add(t)));
+  projectsData.forEach((p) => { p.techStack.forEach((t) => { set.add(t); }); });
   return [...set].sort();
 }
 `,

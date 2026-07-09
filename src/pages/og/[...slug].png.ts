@@ -336,7 +336,9 @@ export async function GET({
 		});
 	}
 
-	const svg = await satori(template, {
+	const svg = await satori(
+		template as unknown as Parameters<typeof satori>[0],
+		{
 		width: 1200,
 		height: 630,
 		fonts,

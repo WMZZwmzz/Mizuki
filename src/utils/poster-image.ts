@@ -18,7 +18,15 @@ export async function processPosterImage(
 	if (isLocal && filePath) {
 		const basePath = filePath.replace(/\/[^/]+$/, "").replace(/\\/g, "/");
 		const files = import.meta.glob<ImageMetadata>(
-			"../../**/*.{jpg,jpeg,png,gif,webp,avif,svg}",
+			[
+				"../../**/*.{jpg,jpeg,png,gif,webp,avif,svg}",
+				// 排除 public/ 与 dist/：public/pio/models/** 是 Git-LFS 跟踪的
+				// Live2D 纹理，在未启用 lfs 的 CI 检出里是 LFS 指针文本而非真图，
+				// Astro 读取其元数据会抛 NoImageMetadata 导致构建失败。
+				// 文章图片位于 src/content 下，不依赖 public/。
+				"!../../public/**",
+				"!../../dist/**",
+			],
 			{
 				import: "default",
 			},

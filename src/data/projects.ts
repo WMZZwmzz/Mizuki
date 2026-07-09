@@ -48,6 +48,6 @@ export function getFeaturedProjects(): Project[] {
 
 export function getAllTechStack(): string[] {
   const set = new Set<string>();
-  projectsData.forEach((p) => p.techStack.forEach((t) => set.add(t)));
+  projectsData.forEach((p) => { p.techStack.forEach((t) => { set.add(t); }); });
   return [...set].sort();
 }

@@ -106,7 +106,7 @@ export function url(path: string) {
  * 用于 public/ 下的静态资源或内部链接在子路径部署（如 GitHub Pages 项目页 /Mizuki/）时正确解析。
  */
 export function publicUrl(path: string) {
-	if (!path || !path.startsWith("/") || path.startsWith("//")) {
+	if (!path?.startsWith("/") || path.startsWith("//")) {
 		return path;
 	}
 	return url(path);

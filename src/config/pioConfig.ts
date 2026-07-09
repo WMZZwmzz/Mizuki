@@ -12,7 +12,7 @@ export const pioConfig: PioConfig = {
 		"/pio/models/HyperdimensionNeptunia/nepnep/index.json",
 		"/pio/models/HyperdimensionNeptunia/blanc_normal/index.json",
 	],
-	position: kp.position || "left",
+	position: (kp.position || "left") as "left" | "right",
 	width: 280,
 	height: 600,
 	mode: kp.draggable ? "draggable" : "static",
