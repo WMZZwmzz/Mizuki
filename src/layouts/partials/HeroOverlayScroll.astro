@@ -41,9 +41,14 @@ const siteBase = import.meta.env.BASE_URL;
 	}
 
 	function getCurrentWallpaperMode() {
+		// 优先取当前页面有效默认（#page-overlay-data 随 Swup 切换刷新），
+		// 回退到全局配置默认；这样从首页 Swup 进入文章页时能正确识别为 overlay
+		const dataEl = document.getElementById("page-overlay-data");
+		const pageDefault =
+			(dataEl && dataEl.dataset.wallpaperMode) || defaultWallpaperMode;
 		return wallpaperEnabled
-			? localStorage.getItem("wallpaperMode") || defaultWallpaperMode
-			: defaultWallpaperMode;
+			? (localStorage.getItem("wallpaperMode") || pageDefault)
+			: pageDefault;
 	}
 
 	// 过渡完成的滚动距离（相对视口高度），首屏 100vh hero，在 70vh 内完成过渡

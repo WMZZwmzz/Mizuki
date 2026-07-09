@@ -64,6 +64,15 @@ const siteBase = import.meta.env.BASE_URL;
 		return Number.isFinite(parsed) ? parsed : fallback;
 	}
 
+	// 读取当前页面的有效默认壁纸模式
+	// 优先取 #page-overlay-data[data-wallpaper-mode]——该元素位于 Swup 的 <main> 容器内，
+	// 会随页面切换刷新为当前页的 effectiveDefaultMode（首页 fullscreen，其余 overlay）；
+	// 回退到闭包 defaultWallpaperMode（仅首屏全量加载时准确，Swup 导航后会过期）
+	function getEffectiveDefaultWallpaperMode() {
+		const dataEl = document.getElementById("page-overlay-data");
+		return (dataEl && dataEl.dataset.wallpaperMode) || defaultWallpaperMode;
+	}
+
 	function syncMainContentPosition(mode) {
 		const mainContent = document.querySelector(
 			".absolute.w-full.z-30.pointer-events-none",
@@ -177,7 +186,7 @@ const siteBase = import.meta.env.BASE_URL;
 	// 立即执行，在页面渲染前应用壁纸模式和布局模式，避免闪烁
 	(function () {
 		const wallpaperMode =
-			wallpaperEnabled ? (localStorage.getItem("wallpaperMode") || defaultWallpaperMode) : defaultWallpaperMode;
+			wallpaperEnabled ? (localStorage.getItem("wallpaperMode") || getEffectiveDefaultWallpaperMode()) : getEffectiveDefaultWallpaperMode();
 		const body = document.body;
 		applyWallpaperVisualSettings(wallpaperMode);
 
@@ -275,7 +284,7 @@ const siteBase = import.meta.env.BASE_URL;
 	// 根据壁纸模式动态设置 banner 和全屏壁纸的显示
 	function applyWallpaperMode() {
 		const wallpaperMode =
-			wallpaperEnabled ? (localStorage.getItem("wallpaperMode") || defaultWallpaperMode) : defaultWallpaperMode;
+			wallpaperEnabled ? (localStorage.getItem("wallpaperMode") || getEffectiveDefaultWallpaperMode()) : getEffectiveDefaultWallpaperMode();
 
 		// 同步波浪状态：配置 enable 优先，其次 localStorage
 		if (!wavesEnabled) {
