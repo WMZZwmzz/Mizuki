@@ -49,6 +49,11 @@ const siteBase = import.meta.env.BASE_URL;
 	// 过渡完成的滚动距离（相对视口高度），首屏 100vh hero，在 70vh 内完成过渡
 	const TRANSITION_RATIO = 0.7;
 
+	// easeInOutCubic 缓动：两端慢、中间快，让滚动过渡更具质感而非机械线性
+	function easeInOutCubic(t) {
+		return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+	}
+
 	let scrollHandler = null;
 	let ticking = false;
 
@@ -81,20 +86,23 @@ const siteBase = import.meta.env.BASE_URL;
 	function update() {
 		const scrollTop = window.scrollY || document.documentElement.scrollTop;
 		const vh = window.innerHeight;
-		const progress = Math.max(
+		// 线性进度（用于阈值判断，确保切换位置可预测）
+		const raw = Math.max(
 			0,
 			Math.min(1, scrollTop / (vh * TRANSITION_RATIO)),
 		);
+		// 缓动进度（驱动视觉变量，让过渡两端慢、中间快）
+		const progress = easeInOutCubic(raw);
 
 		const root = document.documentElement;
 		root.style.setProperty("--hero-progress", progress.toFixed(4));
 
 		// 阈值切换 hero-scrolled（用于 navbar 协调等离散状态）
-		// 使用滞后阈值避免在临界点抖动
+		// 使用线性 raw + 滞后阈值避免在临界点抖动
 		const hasScrolled = document.body.classList.contains("hero-scrolled");
-		if (progress > 0.55 && !hasScrolled) {
+		if (raw > 0.55 && !hasScrolled) {
 			document.body.classList.add("hero-scrolled");
-		} else if (progress < 0.45 && hasScrolled) {
+		} else if (raw < 0.45 && hasScrolled) {
 			document.body.classList.remove("hero-scrolled");
 		}
 

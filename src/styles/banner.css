@@ -989,35 +989,38 @@ html.is-page-transitioning .banner-page-overlay {
    由 src/layouts/partials/HeroOverlayScroll.astro 驱动 --hero-progress (0~1)
    ========================================================================== */
 
-/* 全屏壁纸：覆盖 fullscreen 模式下的 display:none，opacity 跟随 progress 淡入 */
+/* 全屏壁纸：覆盖 fullscreen 模式下的 display:none，opacity 跟随 progress 淡入
+   progress 已由 JS easeInOutCubic 缓动，直接驱动无需 transition（消除滞后） */
 body.hero-overlay-scroll [data-fullscreen-wallpaper] {
   display: block !important;
   opacity: calc(var(--hero-progress, 0) * var(--hero-wallpaper-target-opacity, 0.8)) !important;
   filter: blur(calc(var(--hero-progress, 0) * var(--hero-wallpaper-target-blur, 0px))) !important;
-  transition: opacity 0.18s linear, filter 0.18s linear;
-  will-change: opacity;
+  will-change: opacity, filter;
 }
 
-/* Banner：视差淡出（轻微上移 + 缩放，增强层次感） */
+/* Banner：视差淡出（上移 + 缩放，增强层次感）
+   transition:none 覆盖 Banner.astro 的 Tailwind transition duration-700（0.7s），
+   否则 opacity/transform 会滞后于 progress，中间阶段残留底部裁剪边缘 */
 body.hero-overlay-scroll #banner-wrapper {
+  transition: none !important;
   opacity: calc(1 - var(--hero-progress, 0));
-  transform: translateY(calc(var(--hero-progress, 0) * -2vh))
-    scale(calc(1 - var(--hero-progress, 0) * 0.03));
+  transform: translateY(calc(var(--hero-progress, 0) * -4vh))
+    scale(calc(1 - var(--hero-progress, 0) * 0.05));
   transform-origin: center top;
-  transition: opacity 0.18s linear, transform 0.18s linear;
   will-change: opacity, transform;
 }
 
 /* Banner 文字更早淡出，避免与上滑内容重叠时可读性下降 */
 body.hero-overlay-scroll .banner-text-overlay {
   opacity: calc(max(0, 1 - var(--hero-progress, 0) * 1.6));
-  transition: opacity 0.18s linear;
+  will-change: opacity;
 }
 
-/* Banner 水波纹随 banner 一起淡出 */
+/* Banner 水波纹更早淡出（progress 0.4 前完全消失），
+   避免中间阶段波浪形状与壁纸背景对比形成可见线条 */
 body.hero-overlay-scroll #header-waves {
-  opacity: calc(1 - var(--hero-progress, 0));
-  transition: opacity 0.18s linear;
+  opacity: calc(max(0, 1 - var(--hero-progress, 0) * 2.5));
+  will-change: opacity;
 }
 
 /* 卡片背景透明度跟随 progress 线性渐变
@@ -1042,9 +1045,9 @@ body.hero-overlay-scroll.wallpaper-transparent {
   );
 }
 
-/* 卡片背景色平滑过渡 */
+/* 卡片背景色过渡（缩短以减少滞后，progress 已缓动） */
 body.hero-overlay-scroll .card-base {
-  transition: background-color 0.3s ease, background 0.3s ease;
+  transition: background-color 0.15s ease-out, background 0.15s ease-out;
 }
 
 /* hero-scrolled 后禁用 banner 指针事件，避免误触 */
@@ -1058,7 +1061,7 @@ body.hero-overlay-scroll.hero-scrolled #banner-wrapper {
 @media (max-width: 1279px) {
   /* 移动端 banner 视差幅度略小，避免过度位移 */
   body.hero-overlay-scroll #banner-wrapper {
-    transform: translateY(calc(var(--hero-progress, 0) * -1.5vh))
-      scale(calc(1 - var(--hero-progress, 0) * 0.02));
+    transform: translateY(calc(var(--hero-progress, 0) * -3vh))
+      scale(calc(1 - var(--hero-progress, 0) * 0.04));
   }
 }
