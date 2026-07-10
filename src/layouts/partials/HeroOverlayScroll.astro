@@ -4,7 +4,7 @@
  *
  * 工作原理：
  * - 仅在「首页 + fullscreen 壁纸模式」下启用
- * - 监听滚动，计算 --hero-progress（0~1，在 0~70vh 区间内完成过渡）
+ * - 监听滚动，计算 --hero-progress（0~1，在 0~90vh 区间内完成过渡）
  * - CSS 据此变量让 banner 视差淡出、FullscreenWallpaper 淡入、卡片半透明渐变
  * - 不调用 setWallpaperMode，不写入 localStorage，不影响用户手动设置
  * - 滚回顶部自动恢复全屏 hero 状态
@@ -51,23 +51,36 @@ const siteBase = import.meta.env.BASE_URL;
 			: pageDefault;
 	}
 
-	// 过渡完成的滚动距离（相对视口高度），首屏 100vh hero，在 70vh 内完成过渡
-	const TRANSITION_RATIO = 0.7;
+	// 过渡完成的滚动距离（相对视口高度），首屏 100vh hero，在 90vh 内完成过渡
+	const TRANSITION_RATIO = 0.9;
 
-	// easeInOutCubic 缓动：两端慢、中间快，让滚动过渡更具质感而非机械线性
-	function easeInOutCubic(t) {
-		return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+	// smootherStep 缓动：两端更柔和，中间平稳推进，避免机械线性
+	function smootherStep(t) {
+		return t * t * t * (t * (t * 6 - 15) + 10);
 	}
 
 	let scrollHandler = null;
-	let ticking = false;
+	let rafId = null;
+	// 实际应用到 --hero-progress 的平滑值；由 tick() 每帧向 targetProgress 追赶
+	let currentProgress = 0;
+	// 由滚动位置直接推导的目标进度（离散步进，未经平滑）
+	let targetProgress = 0;
+	let lastTime = 0;
+
+	// 平滑系数：越大越跟手、越小越柔和。8 对应约 125ms 时间常数，
+	// 足以把鼠标滚轮的离散步进抹平成连续淡入淡出，又不至于明显滞后
+	const SMOOTHING = 8;
 
 	function cleanup() {
 		if (scrollHandler) {
 			window.removeEventListener("scroll", scrollHandler, { passive: true });
 			scrollHandler = null;
 		}
-		ticking = false;
+		if (rafId !== null) {
+			cancelAnimationFrame(rafId);
+			rafId = null;
+		}
+		lastTime = 0;
 	}
 
 	function disableHeroOverlay() {
@@ -88,7 +101,8 @@ const siteBase = import.meta.env.BASE_URL;
 		root.style.removeProperty("--hero-card-target-opacity");
 	}
 
-	function update() {
+	// 由滚动位置计算目标进度，并处理 hero-scrolled 离散阈值切换
+	function updateTarget() {
 		const scrollTop = window.scrollY || document.documentElement.scrollTop;
 		const vh = window.innerHeight;
 		// 线性进度（用于阈值判断，确保切换位置可预测）
@@ -96,11 +110,7 @@ const siteBase = import.meta.env.BASE_URL;
 			0,
 			Math.min(1, scrollTop / (vh * TRANSITION_RATIO)),
 		);
-		// 缓动进度（驱动视觉变量，让过渡两端慢、中间快）
-		const progress = easeInOutCubic(raw);
-
-		const root = document.documentElement;
-		root.style.setProperty("--hero-progress", progress.toFixed(4));
+		targetProgress = smootherStep(raw);
 
 		// 阈值切换 hero-scrolled（用于 navbar 协调等离散状态）
 		// 使用线性 raw + 滞后阈值避免在临界点抖动
@@ -110,15 +120,48 @@ const siteBase = import.meta.env.BASE_URL;
 		} else if (raw < 0.45 && hasScrolled) {
 			document.body.classList.remove("hero-scrolled");
 		}
+	}
 
-		ticking = false;
+	// 每帧用帧率无关的指数平滑追赶目标值，把滚轮离散步进变成连续淡入淡出
+	function tick(now) {
+		if (lastTime === 0) lastTime = now;
+		let dt = (now - lastTime) / 1000;
+		lastTime = now;
+		// 标签页切回等造成的长间隔，钳制后避免一次大跳
+		if (dt > 0.1) dt = 0.1;
+
+		const diff = targetProgress - currentProgress;
+		if (Math.abs(diff) < 0.0005) {
+			currentProgress = targetProgress;
+		} else {
+			// 帧率无关的指数阻尼：120Hz/144Hz 屏幕上也能保持一致的平滑度
+			const factor = 1 - Math.exp(-SMOOTHING * dt);
+			currentProgress += diff * factor;
+		}
+		document.documentElement.style.setProperty(
+			"--hero-progress",
+			currentProgress.toFixed(4),
+		);
+
+		// 未收敛则继续下一帧；收敛后停止循环，等下次滚动再启动
+		if (Math.abs(targetProgress - currentProgress) > 0.0005) {
+			rafId = requestAnimationFrame(tick);
+		} else {
+			currentProgress = targetProgress;
+			rafId = null;
+		}
+	}
+
+	function requestUpdate() {
+		updateTarget();
+		if (rafId === null) {
+			lastTime = 0;
+			rafId = requestAnimationFrame(tick);
+		}
 	}
 
 	function onScroll() {
-		if (!ticking) {
-			requestAnimationFrame(update);
-			ticking = true;
-		}
+		requestUpdate();
 	}
 
 	function initHeroOverlayScroll() {
@@ -153,8 +196,13 @@ const siteBase = import.meta.env.BASE_URL;
 		scrollHandler = onScroll;
 		window.addEventListener("scroll", scrollHandler, { passive: true });
 
-		// 立即更新一次
-		update();
+		// 初始化：直接对齐当前滚动位置，避免页面已滚动时从 0 淡入
+		updateTarget();
+		currentProgress = targetProgress;
+		root.style.setProperty(
+			"--hero-progress",
+			currentProgress.toFixed(4),
+		);
 	}
 
 	// 初始化时机
