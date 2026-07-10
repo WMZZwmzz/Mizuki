@@ -51,8 +51,8 @@ const siteBase = import.meta.env.BASE_URL;
 			: pageDefault;
 	}
 
-	// 过渡完成的滚动距离（相对视口高度），首屏 100vh hero，在 90vh 内完成过渡
-	const TRANSITION_RATIO = 0.9;
+	// 过渡完成的滚动距离（相对视口高度），首屏 100vh hero，在 80vh 内完成过渡
+	const TRANSITION_RATIO = 0.8;
 
 	// smootherStep 缓动：两端更柔和，中间平稳推进，避免机械线性
 	function smootherStep(t) {
