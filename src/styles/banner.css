@@ -985,7 +985,8 @@ html.is-page-transitioning .banner-page-overlay {
 
 /* ==========================================================================
    首页 Hero → Overlay 滚动过渡
-   首屏全屏 banner，向下滚动时 banner 视差淡出、全屏壁纸淡入、卡片半透明渐变
+   首屏全屏 banner，向下滚动时整块 banner 纯淡出、全屏壁纸同步淡入、卡片半透明渐变
+   （PPT「淡化」式 cross-dissolve，无位移/缩放）
    由 src/layouts/partials/HeroOverlayScroll.astro 驱动 --hero-progress (0~1)
    ========================================================================== */
 
@@ -1001,28 +1002,15 @@ body.hero-overlay-scroll [data-fullscreen-wallpaper] {
   will-change: opacity;
 }
 
-/* Banner：淡出时只做轻量位移，避免缩放整屏大图带来的重采样卡顿 */
+/* Banner：整块作为一张「幻灯片」纯不透明淡出，与全屏壁纸同步交叉淡化(cross-dissolve)。
+   不做任何位移/缩放；文字(.banner-text-overlay)与水波纹(#header-waves)都是 wrapper 的子元素，
+   父级 opacity 会作为一个整体作用到它们身上，因此无需再单独设 opacity——
+   这样整块 hero 匀速、同步地淡出，呈现 PPT「淡化」式的连贯观感。
+   刻意不设速率差：任何“更早/更晚淡出”都会破坏整体感。 */
 body.hero-overlay-scroll #banner-wrapper {
   transition: none !important;
   opacity: calc(1 - var(--hero-progress, 0));
-  transform: translate3d(0, calc(var(--hero-progress, 0) * -2vh), 0);
-  transform-origin: center top;
   backface-visibility: hidden;
-  will-change: opacity, transform;
-}
-
-/* Banner 文字更早淡出，避免与上滑内容重叠时可读性下降 */
-body.hero-overlay-scroll .banner-text-overlay {
-  opacity: calc(max(0, 1 - var(--hero-progress, 0) * 1.6));
-  transition: none;
-  will-change: opacity;
-}
-
-/* Banner 水波纹更早淡出（progress 0.4 前完全消失），
-   避免中间阶段波浪形状与壁纸背景对比形成可见线条 */
-body.hero-overlay-scroll #header-waves {
-  opacity: calc(max(0, 1 - var(--hero-progress, 0) * 2.5));
-  transition: none;
   will-change: opacity;
 }
 
@@ -1060,10 +1048,5 @@ body.hero-overlay-scroll.hero-scrolled #banner-wrapper {
 
 /* ==========================================================================
    移动端 Hero → Overlay 过渡适配
+   移动端同样保持纯淡化，不做位移（与桌面端一致的 PPT「淡化」观感）
    ========================================================================== */
-@media (max-width: 1279px) {
-  /* 移动端 banner 视差幅度略小，避免过度位移 */
-  body.hero-overlay-scroll #banner-wrapper {
-    transform: translate3d(0, calc(var(--hero-progress, 0) * -1.5vh), 0);
-  }
-}
