@@ -1,3 +1,6 @@
 * text=auto eol=lf
+# .bat/.cmd 必须 CRLF：cmd 解析多行 for/if 块依赖 CRLF，LF 会让块被拆碎
+*.bat text eol=crlf
+*.cmd text eol=crlf
 *.js linguist-language=astro
 public/pio/models/** filter=lfs diff=lfs merge=lfs -text
