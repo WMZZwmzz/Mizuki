@@ -91,7 +91,7 @@ export default config({
 				pinned: fields.checkbox({ label: "置顶", defaultValue: false }),
 				tags: fields.array(fields.text({ label: "标签名", validation: { length: { min: 1 } } }), {
 					label: "标签",
-					itemLabel: (props) => props.fields.title.value,
+					itemLabel: (props) => props.value,
 				}),
 				category: fields.select({ label: "分类", options: POST_CATEGORIES, defaultValue: "Technology" }),
 				image: fields.text({ label: "封面图片", description: "封面图片路径或 URL" }),
@@ -143,11 +143,11 @@ export default config({
 				mood: fields.text({ label: "心情", description: "如：开心、平静、兴奋..." }),
 				tags: fields.array(fields.text({ label: "标签名" }), {
 					label: "标签",
-					itemLabel: (props) => props.fields.title.value,
+					itemLabel: (props) => props.value,
 				}),
 				images: fields.array(fields.text({ label: "图片 URL" }), {
 					label: "图片",
-					itemLabel: (props) => props.fields.title.value,
+					itemLabel: (props) => props.value,
 				}),
 			},
 		}),
@@ -169,7 +169,7 @@ export default config({
 				siteurl: fields.url({ label: "网站地址", validation: { isRequired: true } }),
 				tags: fields.array(fields.text({ label: "标签名" }), {
 					label: "标签",
-					itemLabel: (props) => props.fields.title.value,
+					itemLabel: (props) => props.value,
 				}),
 			},
 		}),
@@ -190,7 +190,7 @@ export default config({
 				category: fields.select({ label: "分类", options: PROJECT_CATEGORIES, defaultValue: "web" }),
 				techStack: fields.array(fields.text({ label: "技术名称" }), {
 					label: "技术栈",
-					itemLabel: (props) => props.fields.title.value,
+					itemLabel: (props) => props.value,
 				}),
 				status: fields.select({ label: "状态", options: PROJECT_STATUS, defaultValue: "completed" }),
 				liveDemo: fields.url({ label: "在线演示" }),
@@ -201,7 +201,7 @@ export default config({
 				featured: fields.checkbox({ label: "精选项目", defaultValue: false }),
 				tags: fields.array(fields.text({ label: "标签名" }), {
 					label: "标签",
-					itemLabel: (props) => props.fields.title.value,
+					itemLabel: (props) => props.value,
 				}),
 				showImage: fields.checkbox({ label: "显示封面图", defaultValue: true }),
 			},
@@ -227,11 +227,11 @@ export default config({
 				months: fields.integer({ label: "经验月数", defaultValue: 0, validation: { min: 0, max: 11 } }),
 				projects: fields.array(fields.text({ label: "项目 ID" }), {
 					label: "关联项目",
-					itemLabel: (props) => props.fields.title.value,
+					itemLabel: (props) => props.value,
 				}),
 				certifications: fields.array(fields.text({ label: "证书名称" }), {
 					label: "证书",
-					itemLabel: (props) => props.fields.title.value,
+					itemLabel: (props) => props.value,
 				}),
 				color: fields.text({ label: "主题色", description: "卡片主题色，如 #3178C6" }),
 			},
@@ -258,11 +258,11 @@ export default config({
 				position: fields.text({ label: "职位/角色" }),
 				skills: fields.array(fields.text({ label: "技能名称" }), {
 					label: "相关技能",
-					itemLabel: (props) => props.fields.title.value,
+					itemLabel: (props) => props.value,
 				}),
 				achievements: fields.array(fields.text({ label: "成就描述" }), {
 					label: "成就",
-					itemLabel: (props) => props.fields.title.value,
+					itemLabel: (props) => props.value,
 				}),
 				icon: fields.text({ label: "图标", description: "Iconify 图标名" }),
 				color: fields.text({ label: "主题色" }),
@@ -286,7 +286,7 @@ export default config({
 				location: fields.text({ label: "地点" }),
 				tags: fields.array(fields.text({ label: "标签名" }), {
 					label: "标签",
-					itemLabel: (props) => props.fields.title.value,
+					itemLabel: (props) => props.value,
 				}),
 				mode: fields.select({
 					label: "图片模式",

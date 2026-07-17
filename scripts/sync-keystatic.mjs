@@ -636,7 +636,6 @@ export const keystaticLicense = {
 
 function generateDevices() {
 	const entries = readJsonDir("devices");
-	if (entries.length === 0) return;
 
 	// 按 category 分组
 	const groups = {};
@@ -684,7 +683,12 @@ function syncAll() {
 
 	const hasData = (sub) => {
 		const dir = path.join(KEYSTATIC_DIR, sub);
-		return fs.existsSync(dir) && fs.readdirSync(dir).some((f) => f.endsWith(".json"));
+		// 有 JSON 数据，或已存在对应的生成文件（数据被清空时也要刷新为空数组），才重新生成；
+		// 两者皆无（从未使用的集合）则跳过，避免生成多余文件。
+		return (
+			(fs.existsSync(dir) && fs.readdirSync(dir).some((f) => f.endsWith(".json"))) ||
+			fs.existsSync(path.join(DATA_DIR, `${sub}.ts`))
+		);
 	};
 
 	const updated = [];
