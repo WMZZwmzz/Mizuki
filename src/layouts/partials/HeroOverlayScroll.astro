@@ -3,27 +3,28 @@
  * HeroOverlayScroll - 首页全屏 hero 滚动过渡到 overlay 视觉
  *
  * 工作原理：
- * - 仅在「首页 + fullscreen 壁纸模式」下启用
+ * - 在首页启用，无视用户设置的壁纸模式（横幅/全屏/覆盖均呈现全屏→覆盖过渡）
+ * - 进入首页时强制全屏 banner 视觉状态（enable-banner + fullscreen-banner）
  * - 监听滚动，计算 --hero-progress（0~1，在 0~90vh 区间内完成过渡）
  * - CSS 据此变量让 banner 视差淡出、FullscreenWallpaper 淡入、卡片半透明渐变
  * - 不调用 setWallpaperMode，不写入 localStorage，不影响用户手动设置
  * - 滚回顶部自动恢复全屏 hero 状态
+ * - 离开首页时清理强制状态并通知 GridScripts 恢复实际模式
  */
-import { fullscreenWallpaperConfig, siteConfig } from "../../config";
+import { siteConfig } from "../../config";
 
-const wallpaperEnabled = fullscreenWallpaperConfig.enable ?? true;
-const defaultWallpaperMode = siteConfig.wallpaperMode.defaultMode;
 // 子路径部署的 base（如 GitHub Pages 项目页 "/Mizuki/"）
 const siteBase = import.meta.env.BASE_URL;
+const navbarTransparentMode =
+	siteConfig.banner?.navbar?.transparentMode || "semi";
 ---
 
 <script
 	type="module"
 	is:inline
 	define:vars={{
-		wallpaperEnabled,
-		defaultWallpaperMode,
 		siteBase,
+		navbarTransparentMode,
 	}}
 >
 	function getCarrierNumber(key, fallback) {
@@ -40,15 +41,8 @@ const siteBase = import.meta.env.BASE_URL;
 		);
 	}
 
-	function getCurrentWallpaperMode() {
-		// 优先取当前页面有效默认（#page-overlay-data 随 Swup 切换刷新），
-		// 回退到全局配置默认；这样从首页 Swup 进入文章页时能正确识别为 overlay
-		const dataEl = document.getElementById("page-overlay-data");
-		const pageDefault =
-			(dataEl && dataEl.dataset.wallpaperMode) || defaultWallpaperMode;
-		return wallpaperEnabled
-			? (localStorage.getItem("wallpaperMode") || pageDefault)
-			: pageDefault;
+	function getStoredWallpaperMode() {
+		return localStorage.getItem("wallpaperMode") || "fullscreen";
 	}
 
 	// 过渡完成的滚动距离（相对视口高度），首屏 100vh hero，在 80vh 内完成过渡
@@ -66,6 +60,8 @@ const siteBase = import.meta.env.BASE_URL;
 	// 由滚动位置直接推导的目标进度（离散步进，未经平滑）
 	let targetProgress = 0;
 	let lastTime = 0;
+	// 当前 hero overlay 是否处于激活状态（防止 disable 重复派发事件）
+	let heroOverlayActive = false;
 
 	// 平滑系数：越大越跟手、越小越柔和。8 对应约 125ms 时间常数，
 	// 足以把鼠标滚轮的离散步进抹平成连续淡入淡出，又不至于明显滞后
@@ -84,21 +80,34 @@ const siteBase = import.meta.env.BASE_URL;
 	}
 
 	function disableHeroOverlay() {
+		if (!heroOverlayActive) return;
+		heroOverlayActive = false;
+
 		cleanup();
 		document.body.classList.remove(
 			"hero-overlay-scroll",
 			"hero-scrolled",
+			"wallpaper-transparent",
+			"enable-banner",
+			"fullscreen-banner",
 		);
-		// 仅当当前不是真正的 overlay 模式时才移除 wallpaper-transparent
-		// （overlay 模式由 applyWallpaperMode 维护，不应被此处清除）
-		if (getCurrentWallpaperMode() !== "overlay") {
-			document.body.classList.remove("wallpaper-transparent");
-		}
+		// 清除强制的 display 内联样式
+		const bannerWrapper = document.getElementById("banner-wrapper");
+		const fullscreenWallpaper = document.querySelector(
+			"[data-fullscreen-wallpaper]",
+		);
+		if (bannerWrapper) bannerWrapper.style.removeProperty("display");
+		if (fullscreenWallpaper)
+			fullscreenWallpaper.style.removeProperty("display");
+
 		const root = document.documentElement;
 		root.style.removeProperty("--hero-progress");
 		root.style.removeProperty("--hero-wallpaper-target-opacity");
 		root.style.removeProperty("--hero-wallpaper-target-blur");
 		root.style.removeProperty("--hero-card-target-opacity");
+
+		// 通知 GridScripts 恢复当前页面实际壁纸模式
+		window.dispatchEvent(new Event("wallpaper-mode-change"));
 	}
 
 	// 由滚动位置计算目标进度，并处理 hero-scrolled 离散阈值切换
@@ -165,13 +174,47 @@ const siteBase = import.meta.env.BASE_URL;
 	}
 
 	function initHeroOverlayScroll() {
-		// 仅首页 + fullscreen 模式启用
-		if (!isHomePagePath() || getCurrentWallpaperMode() !== "fullscreen") {
+		// 首页启用，无视壁纸模式设置（隐藏模式除外）
+		if (!isHomePagePath() || getStoredWallpaperMode() === "none") {
 			disableHeroOverlay();
 			return;
 		}
 
+		heroOverlayActive = true;
 		const body = document.body;
+
+		// 强制全屏 banner 视觉状态（覆盖 GridScripts 应用的其他模式）
+		body.classList.remove("no-banner-mode");
+		body.classList.add("enable-banner", "fullscreen-banner");
+
+		// 确保 banner 可见、全屏壁纸由 CSS（hero-overlay-scroll 规则）控制淡入
+		const bannerWrapper = document.getElementById("banner-wrapper");
+		const fullscreenWallpaper = document.querySelector(
+			"[data-fullscreen-wallpaper]",
+		);
+		if (bannerWrapper) bannerWrapper.style.display = "block";
+		if (fullscreenWallpaper) fullscreenWallpaper.style.display = "";
+
+		// 恢复 navbar 透明模式（覆盖 overlay/none 模式设置的 data-dynamic-transparent）
+		const navbar = document.getElementById("navbar");
+		if (navbar) {
+			navbar.removeAttribute("data-dynamic-transparent");
+			navbar.setAttribute("data-transparent-mode", navbarTransparentMode);
+		}
+
+		// 强制主内容区域为全屏 banner 布局位置
+		// （GridScripts 对 overlay/none 模式设了 inline top:5.5rem!important，
+		//   CSS !important 无法覆盖 inline !important，必须用 inline 覆写）
+		const mainContent = document.querySelector(
+			".absolute.w-full.z-30.pointer-events-none",
+		);
+		if (mainContent) {
+			mainContent.style.position = "relative";
+			mainContent.style.zIndex = "30";
+			mainContent.style.setProperty("top", "0", "important");
+			mainContent.style.setProperty("margin-top", "1rem", "important");
+		}
+
 		// 标识启用 hero→overlay 滚动过渡
 		body.classList.add("hero-overlay-scroll", "wallpaper-transparent");
 

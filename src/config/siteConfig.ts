@@ -9,7 +9,7 @@ export const siteConfig: SiteConfig = {
 	title: keystaticSettings.title || "Mizuki",
 	subtitle: keystaticSettings.subtitle || "One demo website",
 	siteURL: keystaticSettings.siteURL || "https://mizuki.mysqil.com/", // 请替换为你的站点URL，以斜杠结尾
-	siteStartDate: "2025-01-01", // 站点开始运行日期，用于站点统计组件计算运行天数
+	siteStartDate: "2026-07-05", // 站点开始运行日期，用于站点统计组件计算运行天数
 
 	lang: SITE_LANG as SiteConfig["lang"],
 
