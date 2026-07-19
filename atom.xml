@@ -5,6 +5,22 @@
   <link href="https://wmzzwmzz.github.io/Mizuki/" rel="alternate" type="text/html"/>
   <link href="https://wmzzwmzz.github.io/Mizuki/atom.xml" rel="self" type="application/atom+xml"/>
   <id>https://wmzzwmzz.github.io/Mizuki/</id>
-  <updated>2026-07-19T07:51:28.747Z</updated>
+  <updated>2026-07-19T13:34:30.352Z</updated>
   <language>zh_CN</language>
+  <entry>
+    <title>测试test</title>
+    <link href="https://wmzzwmzz.github.io/Mizuki/posts/test/" rel="alternate" type="text/html"/>
+    <id>https://wmzzwmzz.github.io/Mizuki/posts/test/</id>
+    <published>2026-07-19T00:00:00.000Z</published>
+    <updated>2026-07-19T00:00:00.000Z</updated>
+    <summary>文章摘要</summary>
+    <content type="html"><![CDATA[<p>测试测试
+testtest
+这是正文</p>
+]]></content>
+    <author>
+      <name>无名之子</name>
+    </author>
+    <category term="Technology"></category>
+  </entry>
 </feed>
