@@ -111,16 +111,22 @@ export const siteConfig: SiteConfig = {
 		// 支持单张图片或图片数组，当数组长度 > 1 时自动启用轮播
 		src: {
 			desktop: [
-				"/assets/desktop-banner/1.webp",
-				"/assets/desktop-banner/2.webp",
-				"/assets/desktop-banner/3.webp",
-				"/assets/desktop-banner/4.webp",
+				"/assets/wallpaper/aoishizukudark-1920x1080.webp",
+				"/assets/wallpaper/aoishizukulight-1920x1080.webp",
+				"/assets/wallpaper/shizukuaoidark-tenmushinryuusai-1920x1080.webp",
+				"/assets/wallpaper/shizukuaoilight-tenmushinryuusai-1920x1080.webp",
+				"/assets/wallpaper/shizukuaoilightanimalears-tenmushinryuusai-1920x1080.webp",
+				"/assets/wallpaper/shizukuwp21-2560x1600.webp",
+				"/assets/wallpaper/shizukuwp23-1920x1200.webp",
 			], // 桌面横幅图片
 			mobile: [
-				"/assets/mobile-banner/1.webp",
-				"/assets/mobile-banner/2.webp",
-				"/assets/mobile-banner/3.webp",
-				"/assets/mobile-banner/4.webp",
+				"/assets/wallpaper/aoishizukudark-1920x1080.webp",
+				"/assets/wallpaper/aoishizukulight-1920x1080.webp",
+				"/assets/wallpaper/shizukuaoidark-tenmushinryuusai-1920x1080.webp",
+				"/assets/wallpaper/shizukuaoilight-tenmushinryuusai-1920x1080.webp",
+				"/assets/wallpaper/shizukuaoilightanimalears-tenmushinryuusai-1920x1080.webp",
+				"/assets/wallpaper/shizukuwp21-2560x1600.webp",
+				"/assets/wallpaper/shizukuwp23-1920x1200.webp",
 			], // 移动横幅图片
 		}, // 使用本地横幅图片
 
