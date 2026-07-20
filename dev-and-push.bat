@@ -7,11 +7,15 @@ title Mizuki Dev ^& Push
 cd /d "%~dp0"
 
 rem ============ 解析参数 ============
+rem   位置参数 -> 提交信息；-v/--verify 推送后轮询 pages 分支；-y/--yes 跳过确认
 set "COMMIT_MSG="
 set "VERIFY=0"
+set "ASSUME_YES=0"
 for %%a in (%*) do (
 	if /i "%%~a"=="--verify" ( set "VERIFY=1"
 	) else if /i "%%~a"=="-v" ( set "VERIFY=1"
+	) else if /i "%%~a"=="--yes" ( set "ASSUME_YES=1"
+	) else if /i "%%~a"=="-y" ( set "ASSUME_YES=1"
 	) else ( set "COMMIT_MSG=%%~a"
 	)
 )
@@ -22,6 +26,7 @@ echo   Mizuki Dev ^& Push
 echo   后台地址: http://localhost:4321/keystatic
 echo   改完所有内容后，关闭 "Mizuki Dev Server" 窗口
 echo   （或在该窗口按 Ctrl+C），本窗口会自动 sync+commit+push
+if "%VERIFY%"=="1" ( echo   模式: --verify，推送后自动确认部署 ) else ( echo   模式: 普通，加 --verify 可自动确认部署 )
 echo ==================================================
 echo.
 
@@ -55,29 +60,36 @@ if not errorlevel 1 (
 	echo        [WARN] 同步有警告（通常无影响）
 )
 
-rem ============ [2/4] 检查 src/ 改动 ============
-set "CHANGES_FILE=%temp%\mz_changes.txt"
-git status --short -- src/ > "%CHANGES_FILE%" 2>&1
-set "CHANGES_SIZE=0"
-for %%F in ("%CHANGES_FILE%") do set "CHANGES_SIZE=%%~zF"
-if "%CHANGES_SIZE%"=="0" (
-	echo [2/4] 没有检测到内容改动，无需提交。再见
+rem ============ [2/4] 检查改动（src/ + 相册 public/images/albums/）============
+echo [2/4] 检查内容改动（src/ + public/images/albums/）...
+set "CHANGES="
+set "CHANGE_COUNT=0"
+for /f "delims=" %%L in ('git status --short -- src/ public/images/albums/ 2^>nul') do (
+	set "CHANGES=1"
+	set /a CHANGE_COUNT+=1
+	echo        %%L
+)
+if not defined CHANGES (
+	echo        没有检测到内容改动，无需提交。再见
 	goto :end
 )
+echo        共 !CHANGE_COUNT! 项改动
 
-echo [2/4] 检测到改动:
-for /f "usebackq delims=" %%L in ("%CHANGES_FILE%") do echo        %%L
-
+rem ============ [3/4] commit + push ============
 echo [3/4] 即将 commit + push 到 origin/master（会触发 GitHub Pages 部署）
 echo        提交信息: !COMMIT_MSG!
+if "%ASSUME_YES%"=="1" (
+	echo        -y 已指定，跳过确认
+	goto :do_commit
+)
 set "ANS="
 set /p "ANS=       确认推送? [Y/n] "
 if /i "!ANS!"=="n" (
 	echo        已取消。改动保留在工作区（未提交）。
 	goto :end
 )
-
-git add src/
+:do_commit
+git add src/ public/images/albums/
 git commit -m "!COMMIT_MSG!" >nul 2>&1
 if errorlevel 1 (
 	echo        [X] commit 失败（可能没有可提交的改动）
@@ -128,7 +140,6 @@ echo    [OK] pages 已更新 -^> !NOW_SHA!  部署成功
 goto :end
 
 :end
-if exist "%CHANGES_FILE%" del "%CHANGES_FILE%" >nul 2>&1
 echo.
 pause
 endlocal
@@ -136,7 +147,7 @@ exit /b
 
 rem ============ 浏览器探测子例程（后台重入）=============
 :openbrowser
-for /l %%i in (1,1,20) do (
+for /l %%i in (1,1,40) do (
 	curl -s -o nul -m 1 http://localhost:4321/ >nul 2>&1
 	if not errorlevel 1 (
 		start "" http://localhost:4321/keystatic
