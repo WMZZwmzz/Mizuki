@@ -68,10 +68,12 @@ async function main() {
 
 	// 创建 .env 文件
 	const envPath = path.join(rootDir, ".env");
+	// 清理用户输入：移除换行符和控制字符，防止 .env 注入
+	const sanitizedRepoUrl = repoUrl.trim().replace(/[\r\n\x00-\x1f\x7f]/g, "");
 	const envContent = `# Mizuki 内容仓库配置
 # 由初始化脚本自动生成
 
-CONTENT_REPO_URL=${repoUrl.trim()}
+CONTENT_REPO_URL=${sanitizedRepoUrl}
 CONTENT_DIR=./content
 `;
 
