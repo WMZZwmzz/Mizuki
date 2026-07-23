@@ -460,7 +460,7 @@
 					fontFamily: "inherit",
 					fontSize: "16px",
 				},
-				securityLevel: "loose",
+				securityLevel: "strict",
 				// 添加错误处理配置
 				errorLevel: "warn",
 				logLevel: "error",
@@ -530,7 +530,7 @@
 					secondaryColor: isDark ? "#333333" : "#f0f0f0",
 					tertiaryColor: isDark ? "#555555" : "#e0e0e0",
 				},
-				securityLevel: "loose",
+				securityLevel: "strict",
 				errorLevel: "warn",
 				logLevel: "error",
 			});
