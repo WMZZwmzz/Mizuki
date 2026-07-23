@@ -10,6 +10,7 @@
     "predev": "node scripts/sync-content.js || true",
     "prebuild": "node scripts/sync-content.js || true && node scripts/sync-keystatic.mjs",
     "dev": "node scripts/start-dev.mjs",
+    "dev:push": "node scripts/dev-and-push.mjs",
     "dev:astro": "astro dev",
     "sync:watch": "node scripts/sync-keystatic.mjs --watch",
     "start": "node scripts/start-dev.mjs",
