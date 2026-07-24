@@ -295,6 +295,12 @@ const hiddenOnMobile = config.hiddenOnMobile ?? false;
 							iframeX: number,
 							iframeY: number,
 						) => boolean;
+						__l2dIsButton?: (
+							x: number,
+							y: number,
+							iframeX: number,
+							iframeY: number,
+						) => boolean;
 					};
 					const hitTest = (e: { clientX: number; clientY: number }): boolean => {
 						try {
@@ -310,6 +316,25 @@ const hiddenOnMobile = config.hiddenOnMobile ?? false;
 							);
 						} catch {
 							return true;
+						}
+					};
+					// 是否命中菜单按钮：用于 mousedown 时区分「点击按钮」与「拖拽模型」
+					const isOnButton = (
+						e: { clientX: number; clientY: number },
+					): boolean => {
+						try {
+							const host = el.contentWindow as L2DHostWindow | null;
+							const fn = host?.__l2dIsButton;
+							if (typeof fn !== "function") return false;
+							const iframeRect = el.getBoundingClientRect();
+							return !!fn(
+								e.clientX,
+								e.clientY,
+								iframeRect.left,
+								iframeRect.top,
+							);
+						} catch {
+							return false;
 						}
 					};
 
@@ -411,12 +436,15 @@ const hiddenOnMobile = config.hiddenOnMobile ?? false;
 					}, { passive: true, capture: true });
 
 					proxy.addEventListener("mousedown", (e) => {
-						isDragging = true;
-						proxy.style.pointerEvents = "auto";
-						if (isDraggable) proxy.style.cursor = "grabbing";
-						dragStartX = dragLastX = e.clientX;
-						dragStartY = dragLastY = e.clientY;
-						dragMoved = false;
+						// 命中菜单按钮时不进入拖拽：按钮区域应留给 click，否则拖拽阈值会吞掉按钮点击
+						if (!isOnButton(e)) {
+							isDragging = true;
+							proxy.style.pointerEvents = "auto";
+							if (isDraggable) proxy.style.cursor = "grabbing";
+							dragStartX = dragLastX = e.clientX;
+							dragStartY = dragLastY = e.clientY;
+							dragMoved = false;
+						}
 						forwardEvent("mousedown", e);
 					});
 

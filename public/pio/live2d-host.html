@@ -34,14 +34,16 @@
   var _px = new Uint8Array(4);
 
   // parentX/parentY：父页面视口坐标；iframeX/iframeY：iframe 在父视口中的偏移
-  // 返回 true=不透明（应捕获），false=透明（应穿透）；未就绪/异常时返回 true 保持原行为
+  // 返回 true=应捕获（不透明像素 或 命中菜单按钮），false=应穿透；未就绪/异常时返回 true 保持原行为
   window.__l2dHitTest = function (parentX, parentY, iframeX, iframeY) {
+    var localX = parentX - (iframeX || 0);
+    var localY = parentY - (iframeY || 0);
+    // 菜单按钮是 HTML 元素，位于 canvas 透明区域，纯像素检测会误判为穿透 -> 先检测按钮
+    if (window.pointIsOnButton && window.pointIsOnButton(localX, localY)) return true;
     var canvas = document.querySelector('canvas');
     if (!canvas || canvas.width === 0 || canvas.height === 0) return true;
     var gl = canvas.__l2dGl;
     if (!gl) return true;
-    var localX = parentX - (iframeX || 0);
-    var localY = parentY - (iframeY || 0);
     var rect = canvas.getBoundingClientRect();
     var cssX = localX - rect.left;
     var cssY = localY - rect.top;
@@ -56,6 +58,14 @@
     } catch (err) {
       return true;
     }
+  };
+
+  // 仅判断是否命中菜单按钮：供父页面在 mousedown 时区分「点击按钮」与「拖拽模型」。
+  // 命中按钮时父页面不应进入拖拽，否则 5px 拖拽阈值会吞掉随后的 click。
+  window.__l2dIsButton = function (parentX, parentY, iframeX, iframeY) {
+    var localX = parentX - (iframeX || 0);
+    var localY = parentY - (iframeY || 0);
+    return !!(window.pointIsOnButton && window.pointIsOnButton(localX, localY));
   };
 })();
 </script>
