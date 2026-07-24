@@ -1,5 +1,5 @@
-import type { ProfileConfig } from "../types/config";
 import { keystaticProfile } from "../data/keystatic-profile";
+import type { ProfileConfig } from "../types/config";
 
 // 个人资料配置（Keystatic 后台可编辑，默认值作为兜）
 export const profileConfig: ProfileConfig = {
@@ -10,11 +10,24 @@ export const profileConfig: ProfileConfig = {
 		enable: true,
 		speed: 80,
 	},
-	links: keystaticProfile.links.length > 0
-		? keystaticProfile.links
-		: [
-				{ name: "Bilibili", icon: "simple-icons:bilibili", url: "https://space.bilibili.com/1986470618" },
-				{ name: "Gitee", icon: "mdi:git", url: "https://gitee.com/WuMingZhiZi" },
-				{ name: "GitHub", icon: "simple-icons:github", url: "https://github.com/WMZZwmzz" },
-			],
+	links:
+		keystaticProfile.links.length > 0
+			? keystaticProfile.links
+			: [
+					{
+						name: "Bilibili",
+						icon: "simple-icons:bilibili",
+						url: "https://space.bilibili.com/1986470618",
+					},
+					{
+						name: "Gitee",
+						icon: "mdi:git",
+						url: "https://gitee.com/WuMingZhiZi",
+					},
+					{
+						name: "GitHub",
+						icon: "simple-icons:github",
+						url: "https://github.com/WMZZwmzz",
+					},
+				],
 };

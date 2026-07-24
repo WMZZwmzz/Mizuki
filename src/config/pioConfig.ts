@@ -1,5 +1,5 @@
-import type { PioConfig } from "../types/config";
 import { keystaticEffects } from "../data/keystatic-effects";
+import type { PioConfig } from "../types/config";
 
 const kp = keystaticEffects.pio;
 

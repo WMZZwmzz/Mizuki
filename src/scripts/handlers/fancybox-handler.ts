@@ -101,7 +101,9 @@ export class FancyboxHandler {
 	 * 创建相册/文章图片配置
 	 * 保留默认 Carousel 插件配置，避免覆盖旋转工具栏
 	 */
-	private createAlbumImagesConfig(commonConfig: FancyboxConfig): FancyboxConfig {
+	private createAlbumImagesConfig(
+		commonConfig: FancyboxConfig,
+	): FancyboxConfig {
 		const carouselConfig = commonConfig.Carousel ?? {};
 		const lazyloadConfig = carouselConfig.Lazyload;
 

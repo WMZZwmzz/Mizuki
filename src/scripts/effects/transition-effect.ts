@@ -24,14 +24,8 @@ export class TransitionEffect {
 		this.root.style.setProperty("--transition-duration", `${duration}ms`);
 		this.root.style.setProperty("--transition-easing", easing);
 		this.root.style.setProperty("--transition-easing-out", easingOut);
-		this.root.style.setProperty(
-			"--transition-translate",
-			translateDistance,
-		);
-		this.root.style.setProperty(
-			"--transition-stagger",
-			`${staggerDelay}ms`,
-		);
+		this.root.style.setProperty("--transition-translate", translateDistance);
+		this.root.style.setProperty("--transition-stagger", `${staggerDelay}ms`);
 	}
 
 	/**

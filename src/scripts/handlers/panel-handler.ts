@@ -77,10 +77,7 @@ export class PanelHandler {
 			// 检查是否点击了忽略的元素
 			for (const ignoreId of panel.ignoreElements) {
 				const ignoreElement = document.getElementById(ignoreId);
-				if (
-					ignoreElement === target ||
-					ignoreElement?.contains(target)
-				) {
+				if (ignoreElement === target || ignoreElement?.contains(target)) {
 					return;
 				}
 			}

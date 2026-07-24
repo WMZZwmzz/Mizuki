@@ -1,6 +1,6 @@
+import { keystaticComments } from "../data/keystatic-comments";
 import type { CommentConfig } from "../types/config";
 import { SITE_LANG } from "./siteConfig";
-import { keystaticComments } from "../data/keystatic-comments";
 
 const kc = keystaticComments;
 

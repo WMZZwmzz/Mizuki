@@ -8,9 +8,9 @@ interface Props {
 
 const { config } = Astro.props;
 
-const modelPaths = (config.models ?? [
-	"/pio/models/NOIR/noir.model3.json",
-]).map(publicUrl);
+const modelPaths = (config.models ?? ["/pio/models/NOIR/noir.model3.json"]).map(
+	publicUrl,
+);
 const modelConfigs = modelPaths.map((p) => ({ path: p }));
 
 const position = config.position === "right" ? "bottom-right" : "bottom-left";

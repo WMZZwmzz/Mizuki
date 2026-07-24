@@ -1,8 +1,7 @@
 <script lang="ts">
 import Icon from "@iconify/svelte";
-
-import type { Song } from "../types";
 import { getAssetPath } from "@/utils/url-utils";
+import type { Song } from "../types";
 
 interface Props {
 	song: Song;
@@ -21,7 +20,6 @@ const {
 	onclick,
 	lazy = true,
 }: Props = $props();
-
 </script>
 
 <div

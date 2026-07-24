@@ -1,8 +1,7 @@
 <script lang="ts">
 import Icon from "@iconify/svelte";
-
-import type { Song } from "../../music-player/types";
 import { getAssetPath } from "@/utils/url-utils";
+import type { Song } from "../../music-player/types";
 
 interface Props {
 	song: Song;

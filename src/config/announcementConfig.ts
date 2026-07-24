@@ -1,10 +1,12 @@
-import type { AnnouncementConfig } from "../types/config";
 import { keystaticAnnouncement } from "../data/keystatic-announcement";
+import type { AnnouncementConfig } from "../types/config";
 
 // 公告栏配置（Keystatic 后台可编辑，默认值作为兜）
 export const announcementConfig: AnnouncementConfig = {
 	title: keystaticAnnouncement.title || "",
-	content: keystaticAnnouncement.content || "ブログへようこそ！これはサンプルの告知です",
+	content:
+		keystaticAnnouncement.content ||
+		"ブログへようこそ！これはサンプルの告知です",
 	icon: keystaticAnnouncement.icon || undefined,
 	type: keystaticAnnouncement.type || "info",
 	closable: keystaticAnnouncement.closable,

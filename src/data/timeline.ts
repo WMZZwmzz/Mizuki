@@ -3,6 +3,4 @@
 
 import type { TimelineItem } from "../components/features/timeline/types.ts";
 
-export const timelineData: TimelineItem[] = [
-
-];
+export const timelineData: TimelineItem[] = [];

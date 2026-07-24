@@ -52,10 +52,7 @@ export class SwupHooksManager {
 			if (selector.startsWith("#")) {
 				this.cachedElements.set(selector, document.getElementById(id));
 			} else {
-				this.cachedElements.set(
-					selector,
-					document.querySelector(selector),
-				);
+				this.cachedElements.set(selector, document.querySelector(selector));
 			}
 		}
 		return this.cachedElements.get(selector) ?? null;
@@ -104,7 +101,9 @@ export class SwupHooksManager {
 				const isFullscreen = this.getCurrentWallpaperMode() === "fullscreen";
 				const isHomePage = pathsEqual(visit.to.url, url("/"));
 				if (isFullscreen && !isHomePage) {
-					const mainGrid = this.getCachedElement("#main-grid") as HTMLElement | null;
+					const mainGrid = this.getCachedElement(
+						"#main-grid",
+					) as HTMLElement | null;
 					if (mainGrid) {
 						mainGrid.scrollIntoView({
 							behavior: args.options?.behavior ?? "auto",
@@ -141,10 +140,7 @@ export class SwupHooksManager {
 			const isSamePage = pathsEqual(targetPathname, window.location.pathname);
 
 			// 移除首次页面加载的延迟
-			document.documentElement.style.setProperty(
-				"--content-delay",
-				"0ms",
-			);
+			document.documentElement.style.setProperty("--content-delay", "0ms");
 
 			if (isSamePage) {
 				document.documentElement.classList.remove("is-page-transitioning");
@@ -274,13 +270,10 @@ export class SwupHooksManager {
 		const isArticlePage = tocWrapper !== null;
 
 		if (isArticlePage) {
-			const tocElement = this.getCachedElement(
-				SWUP_SELECTORS.tableOfContents,
-			);
+			const tocElement = this.getCachedElement(SWUP_SELECTORS.tableOfContents);
 			const hasDesktopTOC =
 				tocElement && typeof (tocElement as any).init === "function";
-			const hasMobileTOC =
-				typeof window.mobileTOCInit === "function";
+			const hasMobileTOC = typeof window.mobileTOCInit === "function";
 
 			if (hasDesktopTOC || hasMobileTOC) {
 				setTimeout(() => {
@@ -301,14 +294,9 @@ export class SwupHooksManager {
 	private reinitSemifullScrollDetection(): void {
 		const navbar = this.getCachedElement(SWUP_SELECTORS.navbar);
 		if (navbar) {
-			const transparentMode = navbar.getAttribute(
-				"data-transparent-mode",
-			);
+			const transparentMode = navbar.getAttribute("data-transparent-mode");
 			if (transparentMode === "semifull") {
-				if (
-					typeof window.initSemifullScrollDetection ===
-					"function"
-				) {
+				if (typeof window.initSemifullScrollDetection === "function") {
 					window.initSemifullScrollDetection();
 				}
 			}
@@ -340,14 +328,9 @@ export class SwupHooksManager {
 			navbar.setAttribute("data-is-home", isHomePage.toString());
 
 			// 重新初始化 semifull 模式滚动检测
-			const transparentMode = navbar.getAttribute(
-				"data-transparent-mode",
-			);
+			const transparentMode = navbar.getAttribute("data-transparent-mode");
 			if (transparentMode === "semifull") {
-				if (
-					typeof window.initSemifullScrollDetection ===
-					"function"
-				) {
+				if (typeof window.initSemifullScrollDetection === "function") {
 					window.initSemifullScrollDetection();
 				}
 			}
@@ -363,12 +346,8 @@ export class SwupHooksManager {
 			return;
 		}
 
-		const bannerWrapper = this.getCachedElement(
-			SWUP_SELECTORS.bannerWrapper,
-		);
-		const mainContentWrapper = this.getCachedElement(
-			".absolute.w-full.z-30",
-		);
+		const bannerWrapper = this.getCachedElement(SWUP_SELECTORS.bannerWrapper);
+		const mainContentWrapper = this.getCachedElement(".absolute.w-full.z-30");
 
 		if (bannerWrapper && mainContentWrapper) {
 			if (isHomePage) {
@@ -377,9 +356,7 @@ export class SwupHooksManager {
 					bannerWrapper.classList.remove("mobile-hide-banner");
 				}, ANIMATION_CONFIG.mobileBannerDelay);
 				setTimeout(() => {
-					mainContentWrapper.classList.remove(
-						"mobile-main-no-banner",
-					);
+					mainContentWrapper.classList.remove("mobile-main-no-banner");
 				}, ANIMATION_CONFIG.mobileContentDelay);
 			} else {
 				// 非首页：分阶段隐藏
@@ -425,13 +402,19 @@ export class SwupHooksManager {
 		}
 
 		const isMobile = window.innerWidth < 1280;
-		mainContentWrapper.classList.remove("mobile-main-no-banner", "no-banner-layout");
+		mainContentWrapper.classList.remove(
+			"mobile-main-no-banner",
+			"no-banner-layout",
+		);
 		mainContentWrapper.style.removeProperty("min-height");
 
 		if (mode === "fullscreen") {
 			if (isMobile && !isHomePage) {
 				bannerWrapper?.classList.add("mobile-hide-banner");
-				mainContentWrapper.classList.add("mobile-main-no-banner", "no-banner-layout");
+				mainContentWrapper.classList.add(
+					"mobile-main-no-banner",
+					"no-banner-layout",
+				);
 				mainContentWrapper.style.position = "";
 				mainContentWrapper.style.zIndex = "";
 				mainContentWrapper.style.setProperty("top", "5.5rem", "important");
@@ -586,9 +569,7 @@ export class SwupHooksManager {
 	 * 扩展/隐藏页面高度
 	 */
 	private extendPageHeight(hide: boolean): void {
-		const heightExtend = this.getCachedElement(
-			SWUP_SELECTORS.pageHeightExtend,
-		);
+		const heightExtend = this.getCachedElement(SWUP_SELECTORS.pageHeightExtend);
 		if (!heightExtend) {
 			return;
 		}
@@ -641,20 +622,15 @@ export class SwupHooksManager {
 			? THEME_CONFIG.darkExpressiveTheme
 			: THEME_CONFIG.lightExpressiveTheme;
 
-		const currentTheme =
-			document.documentElement.getAttribute("data-theme");
-		const hasDarkClass =
-			document.documentElement.classList.contains("dark");
+		const currentTheme = document.documentElement.getAttribute("data-theme");
+		const hasDarkClass = document.documentElement.classList.contains("dark");
 
 		// 如果主题不匹配，使用批量更新减少重绘
 		if (currentTheme !== expectedTheme || hasDarkClass !== isDark) {
 			requestAnimationFrame(() => {
 				// 同步 data-theme 属性
 				if (currentTheme !== expectedTheme) {
-					document.documentElement.setAttribute(
-						"data-theme",
-						expectedTheme,
-					);
+					document.documentElement.setAttribute("data-theme", expectedTheme);
 				}
 				// 同步 dark class
 				if (hasDarkClass !== isDark) {

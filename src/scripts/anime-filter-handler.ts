@@ -23,7 +23,9 @@ export function initFilterHandler() {
 					return;
 				}
 
-				filterTags.forEach((t) => t.classList.remove("anime-active"));
+				filterTags.forEach((t) => {
+					t.classList.remove("anime-active");
+				});
 				this.classList.add("anime-active");
 
 				if (
@@ -49,8 +51,8 @@ export function initFilterHandler() {
 				});
 
 				const status = this.getAttribute("data-status");
-				const animeItems = Array.from(listContainer!.children).filter(
-					(item) => item.hasAttribute("data-anime-status"),
+				const animeItems = Array.from(listContainer!.children).filter((item) =>
+					item.hasAttribute("data-anime-status"),
 				);
 				const itemsToHide: HTMLElement[] = [];
 				const itemsToShow: HTMLElement[] = [];
@@ -58,10 +60,8 @@ export function initFilterHandler() {
 
 				animeItems.forEach((item) => {
 					const itemStatus = item.getAttribute("data-anime-status");
-					const shouldShow =
-						status === "all" || itemStatus === status;
-					const isCurrentlyVisible =
-						!item.classList.contains("anime-hidden");
+					const shouldShow = status === "all" || itemStatus === status;
+					const isCurrentlyVisible = !item.classList.contains("anime-hidden");
 
 					if (shouldShow) {
 						if (isCurrentlyVisible) {
@@ -127,8 +127,7 @@ export function initFilterHandler() {
 							item.style.transition = "";
 							item.style.willChange = "opacity, transform";
 
-							const delay =
-								index < STAGGER_LIMIT ? index * 30 : 0;
+							const delay = index < STAGGER_LIMIT ? index * 30 : 0;
 							item.style.transitionDelay = `${delay}ms`;
 
 							requestAnimationFrame(() => {
@@ -139,18 +138,14 @@ export function initFilterHandler() {
 
 						setTimeout(
 							() => {
-								[...itemsToKeep, ...itemsToShow].forEach(
-									(item) => {
-										item.classList.remove(
-											"anime-fade-in-active",
-										);
-										item.style.transition = "";
-										item.style.transform = "";
-										item.style.opacity = "";
-										item.style.willChange = "";
-										item.style.transitionDelay = "";
-									},
-								);
+								[...itemsToKeep, ...itemsToShow].forEach((item) => {
+									item.classList.remove("anime-fade-in-active");
+									item.style.transition = "";
+									item.style.transform = "";
+									item.style.opacity = "";
+									item.style.willChange = "";
+									item.style.transitionDelay = "";
+								});
 							},
 							600 +
 								(itemsToShow.length > 0
@@ -161,9 +156,9 @@ export function initFilterHandler() {
 				};
 
 				if (itemsToHide.length > 0) {
-					itemsToHide.forEach((item) =>
-						item.classList.add("anime-fade-out"),
-					);
+					itemsToHide.forEach((item) => {
+						item.classList.add("anime-fade-out");
+					});
 					setTimeout(runAnimation, 200);
 				} else {
 					runAnimation();
@@ -187,12 +182,8 @@ export function initFilterHandler() {
 
 						const fragment = document.createDocumentFragment();
 						let movedCount = 0;
-						while (
-							lazyStore.content.firstChild &&
-							movedCount < BATCH_SIZE
-						) {
-							const node = lazyStore.content
-								.firstChild as HTMLElement;
+						while (lazyStore.content.firstChild && movedCount < BATCH_SIZE) {
+							const node = lazyStore.content.firstChild as HTMLElement;
 							if (node.nodeType === 1) {
 								node.classList.add("anime-fade-in-active");
 							}

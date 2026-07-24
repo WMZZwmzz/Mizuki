@@ -1,5 +1,5 @@
-import type { SakuraConfig } from "../types/config";
 import { keystaticEffects } from "../data/keystatic-effects";
+import type { SakuraConfig } from "../types/config";
 
 const ks = keystaticEffects.sakura;
 

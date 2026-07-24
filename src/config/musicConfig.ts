@@ -1,5 +1,5 @@
-import type { MusicPlayerConfig } from "../types/config";
 import { keystaticMusic } from "../data/keystatic-music";
+import type { MusicPlayerConfig } from "../types/config";
 
 export const musicPlayerConfig: MusicPlayerConfig = {
 	enable: keystaticMusic.enable ?? true,

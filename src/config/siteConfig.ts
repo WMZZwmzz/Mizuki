@@ -1,6 +1,6 @@
-import type { SiteConfig } from "../types/config";
-import { keystaticSettings } from "../data/keystatic-settings";
 import { keystaticHomepage } from "../data/keystatic-homepage";
+import { keystaticSettings } from "../data/keystatic-settings";
+import type { SiteConfig } from "../types/config";
 
 // 定义站点语言（Keystatic 设置优先）
 const SITE_LANG = keystaticSettings.siteLang || "zh_CN";
@@ -162,12 +162,12 @@ export const siteConfig: SiteConfig = {
 			subtitle: keystaticHomepage.subtitles?.length
 				? keystaticHomepage.subtitles
 				: [
-				"特別なことはないけど、君がいると十分です",
-				"今でもあなたは私の光",
-				"君ってさ、知らないうちに私の毎日になってたよ",
-				"君と話すと、なんか毎日がちょっと楽しくなるんだ",
-				"今日はなんでもない日。でも、ちょっとだけいい日",
-			],
+						"特別なことはないけど、君がいると十分です",
+						"今でもあなたは私の光",
+						"君ってさ、知らないうちに私の毎日になってたよ",
+						"君と話すと、なんか毎日がちょっと楽しくなるんだ",
+						"今日はなんでもない日。でも、ちょっとだけいい日",
+					],
 			typewriter: {
 				enable: keystaticHomepage.typewriterEnable ?? true,
 				speed: keystaticHomepage.typewriterSpeed ?? 100,

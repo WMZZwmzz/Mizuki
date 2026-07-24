@@ -182,9 +182,7 @@ export class SwupManager {
 	showBanner(): void {
 		requestAnimationFrame(() => {
 			// 处理单图 Banner (桌面端)
-			const banner = document.getElementById(
-				SWUP_SELECTORS.banner.slice(1),
-			);
+			const banner = document.getElementById(SWUP_SELECTORS.banner.slice(1));
 			if (banner) {
 				banner.classList.remove("opacity-0", "scale-105");
 			}

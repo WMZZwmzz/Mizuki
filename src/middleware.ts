@@ -1,6 +1,6 @@
+import { defineMiddleware } from "astro:middleware";
 import { makeHandler } from "@keystatic/astro/api";
 import config from "../keystatic.config";
-import { defineMiddleware } from "astro:middleware";
 
 const keystaticHandler = makeHandler({ config });
 
@@ -16,9 +16,12 @@ export const onRequest = defineMiddleware(async (context, next) => {
 			hostname === "::1";
 
 		if (!isProduction && !isLocal) {
-			return new Response("Keystatic is disabled in non-production environments", {
-				status: 403,
-			});
+			return new Response(
+				"Keystatic is disabled in non-production environments",
+				{
+					status: 403,
+				},
+			);
 		}
 
 		try {

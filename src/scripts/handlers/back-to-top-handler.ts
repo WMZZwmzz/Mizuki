@@ -197,9 +197,7 @@ export class BackToTopHandler {
 			return;
 		}
 
-		const isFullscreen = document.body.classList.contains(
-			"fullscreen-banner",
-		);
+		const isFullscreen = document.body.classList.contains("fullscreen-banner");
 		const bannerHeight = isFullscreen
 			? window.innerHeight
 			: window.innerHeight * (BANNER_HEIGHT_HOME / 100);

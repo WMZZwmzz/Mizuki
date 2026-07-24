@@ -100,9 +100,7 @@ const { hasRightSidebarComponents, hasMobileDrawerComponents } =
 	sidebarPresence;
 
 // 半透明效果
-const shouldEnable = shouldEnableTransparency(
-	effectiveDefaultMode,
-);
+const shouldEnable = shouldEnableTransparency(effectiveDefaultMode);
 const transparentClass = getTransparencyClass(shouldEnable);
 
 // 布局模式

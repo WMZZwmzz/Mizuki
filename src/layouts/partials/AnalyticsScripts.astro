@@ -18,10 +18,8 @@ interface Props {
 	};
 }
 
-const {
-	gtmId = "",
-	thirdPartyAnalytics = { enable: false, clarityId: "" },
-} = Astro.props;
+const { gtmId = "", thirdPartyAnalytics = { enable: false, clarityId: "" } } =
+	Astro.props;
 
 const clarityEnable =
 	thirdPartyAnalytics.enable && thirdPartyAnalytics.clarityId;
