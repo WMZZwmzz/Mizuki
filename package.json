@@ -23,9 +23,10 @@
     "preview": "astro preview",
     "astro": "astro",
     "type-check": "tsc --noEmit",
+    "test": "node --test tests/post-card-content.test.ts",
     "new-post": "node scripts/new-post.js",
-    "format": "biome format --write ./src",
-    "lint": "biome check --write ./src",
+    "format": "biome format --write ./src ./scripts",
+    "lint": "biome check --write ./src ./scripts",
     "preinstall": "npx only-allow pnpm",
     "compress-fonts": "node scripts/compress-fonts/index.js"
   },

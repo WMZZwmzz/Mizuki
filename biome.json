@@ -13,8 +13,7 @@
 			"!**/node_modules/**/*",
 			"!**/.astro/**/*",
 			"!**/public/**/*",
-			"!**/demo/**/*",
-			"!**/scripts/**/*"
+			"!**/demo/**/*"
 		]
 	},
 	"formatter": {
