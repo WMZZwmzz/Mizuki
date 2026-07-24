@@ -1,0 +1,1 @@
+const e={wavesEnable:!0},t={siteLang:"zh_CN"},a=t.siteLang,s={lang:a,postListLayout:{defaultMode:"list"},wallpaperMode:{defaultMode:"fullscreen"},banner:{waves:{enable:e.wavesEnable,switchable:!0},homeText:{enable:!0}}};export{s};
