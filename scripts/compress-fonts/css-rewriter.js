@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
-import { ROOT_DIR, readFilesRecursively } from "./utils.js";
 import { getFontConfigs } from "./config-parser.js";
+import { ROOT_DIR, readFilesRecursively } from "./utils.js";
 
 /**
  * 更新 dist 中的 CSS，将 ttf 引用替换为 woff2
@@ -28,16 +28,9 @@ export async function updateCssFontReferences() {
 				const baseName = path.basename(fontFile, ext);
 				const woff2File = `${baseName}.woff2`;
 
-				const distWoff2 = path.join(
-					ROOT_DIR,
-					`dist/assets/font/${woff2File}`,
-				);
-				const publicWoff2 = path.join(
-					publicFontDir,
-					`${baseName}.woff2`,
-				);
-				const hasWoff2 =
-					fs.existsSync(distWoff2) || fs.existsSync(publicWoff2);
+				const distWoff2 = path.join(ROOT_DIR, `dist/assets/font/${woff2File}`);
+				const publicWoff2 = path.join(publicFontDir, `${baseName}.woff2`);
+				const hasWoff2 = fs.existsSync(distWoff2) || fs.existsSync(publicWoff2);
 
 				if (!hasWoff2) {
 					console.log(
@@ -69,9 +62,7 @@ export async function updateCssFontReferences() {
 
 					if (cssContent !== originalContent) {
 						fs.writeFileSync(cssFile, cssContent);
-						console.log(
-							`✓ Updated CSS: ${cssFile} (${baseName})`,
-						);
+						console.log(`✓ Updated CSS: ${cssFile} (${baseName})`);
 					}
 				}
 			}
@@ -88,9 +79,7 @@ export async function updateCssFontReferences() {
 
 			// 检查是否已在配置中处理过
 			const isConfigured = fonts.some((fc) =>
-				fc.files.some(
-					(f) => path.basename(f, path.extname(f)) === baseName,
-				),
+				fc.files.some((f) => path.basename(f, path.extname(f)) === baseName),
 			);
 			if (isConfigured) continue;
 

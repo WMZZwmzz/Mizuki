@@ -69,6 +69,7 @@ async function main() {
 	// 创建 .env 文件
 	const envPath = path.join(rootDir, ".env");
 	// 清理用户输入：移除换行符和控制字符，防止 .env 注入
+	// biome-ignore lint/suspicious/noControlCharactersInRegex: 此处刻意匹配控制字符以清洗用户输入，防止 .env 注入
 	const sanitizedRepoUrl = repoUrl.trim().replace(/[\r\n\x00-\x1f\x7f]/g, "");
 	const envContent = `# Mizuki 内容仓库配置
 # 由初始化脚本自动生成
@@ -92,9 +93,7 @@ CONTENT_DIR=./content
 		});
 		console.log("内容同步成功");
 	} catch (error) {
-		console.error(
-			"内容同步失败。请手动执行：pnpm run sync-content",
-		);
+		console.error("内容同步失败。请手动执行：pnpm run sync-content");
 	}
 
 	// 提示后续步骤

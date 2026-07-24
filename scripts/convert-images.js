@@ -1,9 +1,8 @@
-import sharp from "sharp";
-import { glob } from "glob";
-import { dirname, extname } from "node:path";
-import { fileURLToPath } from "node:url";
 import fs from "node:fs";
-import path from "node:path";
+import path, { dirname, extname } from "node:path";
+import { fileURLToPath } from "node:url";
+import { glob } from "glob";
+import sharp from "sharp";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = path.join(__dirname, "..");

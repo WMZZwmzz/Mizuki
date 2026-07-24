@@ -1,9 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import Fontmin from "fontmin";
-import { ROOT_DIR } from "./utils.js";
 import { getFontConfigs } from "./config-parser.js";
 import { collectText, getAsciiCharset } from "./text-collector.js";
+import { ROOT_DIR } from "./utils.js";
 
 /**
  * 压缩字体并输出到 dist 目录
@@ -45,15 +45,10 @@ export async function compressFonts() {
 		const errors = [];
 
 		for (const fontConfig of fonts) {
-			const text =
-				fontConfig.type === "asciiFont" ? asciiText : cjkText;
+			const text = fontConfig.type === "asciiFont" ? asciiText : cjkText;
 
 			for (const fontFile of fontConfig.files) {
-				const fontSrc = path.join(
-					ROOT_DIR,
-					"public/assets/font",
-					fontFile,
-				);
+				const fontSrc = path.join(ROOT_DIR, "public/assets/font", fontFile);
 				const ext = path.extname(fontFile).toLowerCase();
 				const baseName = path.basename(fontFile, ext);
 
@@ -68,9 +63,7 @@ export async function compressFonts() {
 				totalOriginalSize += originalSize;
 
 				if (ext === ".woff2" || ext === ".woff") {
-					console.log(
-						`⚠ Skipping ${fontFile} (already web-optimized format)`,
-					);
+					console.log(`⚠ Skipping ${fontFile} (already web-optimized format)`);
 					fs.copyFileSync(fontSrc, path.join(distFontDir, fontFile));
 					totalCompressedSize += originalSize;
 				} else if (ext === ".ttf" || ext === ".otf") {
@@ -99,14 +92,10 @@ export async function compressFonts() {
 						});
 					});
 
-					const compressedFile = path.join(
-						distFontDir,
-						`${baseName}.woff2`,
-					);
+					const compressedFile = path.join(distFontDir, `${baseName}.woff2`);
 
 					if (fs.existsSync(compressedFile)) {
-						const compressedSize =
-							fs.statSync(compressedFile).size;
+						const compressedSize = fs.statSync(compressedFile).size;
 						totalCompressedSize += compressedSize;
 						const reduction = (
 							(1 - compressedSize / originalSize) *
@@ -118,9 +107,7 @@ export async function compressFonts() {
 						processedCount++;
 					}
 				} else {
-					console.log(
-						`⚠ Unsupported font format, skipping: ${fontFile}`,
-					);
+					console.log(`⚠ Unsupported font format, skipping: ${fontFile}`);
 				}
 			}
 		}

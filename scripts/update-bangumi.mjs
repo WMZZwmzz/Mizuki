@@ -116,9 +116,7 @@ async function fetchCollection(userId, type) {
 
 			if (data.data && data.data.length > 0) {
 				allData = [...allData, ...data.data];
-				process.stdout.write(
-					`   Fetched ${allData.length} records...\r`,
-				);
+				process.stdout.write(`   Fetched ${allData.length} records...\r`);
 			}
 
 			if (!data.data || data.data.length < limit) {
@@ -150,9 +148,7 @@ async function processData(items, status) {
 		const subjectDetail = await fetchSubjectDetail(item.subject_id);
 		await delay(150);
 
-		const year = item.subject?.date
-			? item.subject.date.slice(0, 4)
-			: "Unknown";
+		const year = item.subject?.date ? item.subject.date.slice(0, 4) : "Unknown";
 
 		const rating = item.rate
 			? Number.parseFloat(item.rate.toFixed(1))
@@ -175,8 +171,7 @@ async function processData(items, status) {
 		).trimStart();
 
 		results.push({
-			title:
-				item.subject?.name_cn || item.subject?.name || "Unknown Title",
+			title: item.subject?.name_cn || item.subject?.name || "Unknown Title",
 			status: status,
 			rating: rating,
 			cover: item.subject?.images?.medium || "/assets/anime/default.webp",

@@ -98,7 +98,8 @@ function generatePosts() {
 		if (p.alias) fm.alias = p.alias;
 
 		const yamlLines = Object.entries(fm).map(([k, v]) => {
-			if (Array.isArray(v)) return `${k}: [${v.map((x) => JSON.stringify(x)).join(", ")}]`;
+			if (Array.isArray(v))
+				return `${k}: [${v.map((x) => JSON.stringify(x)).join(", ")}]`;
 			if (typeof v === "string") return `${k}: ${JSON.stringify(v)}`;
 			return `${k}: ${v}`;
 		});
@@ -138,11 +139,14 @@ function generatePages() {
 }
 
 function generateDiary() {
-	const entries = readJsonDir("diary").sort((a, b) => (a.id || 0) - (b.id || 0));
+	const entries = readJsonDir("diary").sort(
+		(a, b) => (a.id || 0) - (b.id || 0),
+	);
 
 	const items = entries
 		.map((e) => {
-			const images = e.images && e.images.length > 0 ? strArray(e.images) : "undefined";
+			const images =
+				e.images && e.images.length > 0 ? strArray(e.images) : "undefined";
 			const location = e.location ? escapeStr(e.location) : "undefined";
 			const mood = e.mood ? escapeStr(e.mood) : "undefined";
 			const tags = e.tags && e.tags.length > 0 ? strArray(e.tags) : "undefined";
@@ -186,7 +190,9 @@ export function getAllTags(): string[] {
 }
 
 function generateFriends() {
-	const entries = readJsonDir("friends").sort((a, b) => (a.id || 0) - (b.id || 0));
+	const entries = readJsonDir("friends").sort(
+		(a, b) => (a.id || 0) - (b.id || 0),
+	);
 
 	const items = entries
 		.map((e) => {
@@ -305,8 +311,14 @@ function generateSkills() {
 	const items = entries
 		.map((e) => {
 			const slug = e.name || e["name-slug"] || "";
-			const projects = e.projects && e.projects.length > 0 ? strArray(e.projects) : "undefined";
-			const certs = e.certifications && e.certifications.length > 0 ? strArray(e.certifications) : "undefined";
+			const projects =
+				e.projects && e.projects.length > 0
+					? strArray(e.projects)
+					: "undefined";
+			const certs =
+				e.certifications && e.certifications.length > 0
+					? strArray(e.certifications)
+					: "undefined";
 			const color = e.color ? escapeStr(e.color) : "undefined";
 			return `\t{ id: ${escapeStr(slug)}, name: ${escapeStr(e.name)}, description: ${escapeStr(e.description || "")}, icon: ${escapeStr(e.icon || "")}, category: "${e.category || "frontend"}", level: "${e.level || "intermediate"}", experience: { years: ${e.years || 0}, months: ${e.months || 0} }, projects: ${projects}, certifications: ${certs}, color: ${color} }`;
 		})
@@ -347,8 +359,12 @@ function generateTimeline() {
 			const location = e.location ? escapeStr(e.location) : "undefined";
 			const org = e.organization ? escapeStr(e.organization) : "undefined";
 			const position = e.position ? escapeStr(e.position) : "undefined";
-			const skills = e.skills && e.skills.length > 0 ? strArray(e.skills) : "undefined";
-			const achievements = e.achievements && e.achievements.length > 0 ? strArray(e.achievements) : "undefined";
+			const skills =
+				e.skills && e.skills.length > 0 ? strArray(e.skills) : "undefined";
+			const achievements =
+				e.achievements && e.achievements.length > 0
+					? strArray(e.achievements)
+					: "undefined";
 			const icon = e.icon ? escapeStr(e.icon) : "undefined";
 			const color = e.color ? escapeStr(e.color) : "undefined";
 			const featured = e.featured ? "true" : "undefined";
@@ -415,7 +431,10 @@ function generateProfile() {
 	if (!p) return;
 
 	const links = (p.links || [])
-		.map((l) => `\t\t{ name: ${escapeStr(l.name)}, url: ${escapeStr(l.url)}, icon: ${escapeStr(l.icon || "")} }`)
+		.map(
+			(l) =>
+				`\t\t{ name: ${escapeStr(l.name)}, url: ${escapeStr(l.url)}, icon: ${escapeStr(l.icon || "")} }`,
+		)
 		.join(",\n");
 
 	writeDataFile(
@@ -465,7 +484,9 @@ function generateAlbums() {
 	const albumsDir = path.join(ROOT, "public/images/albums");
 	if (!fs.existsSync(albumsDir)) return;
 
-	const jsonFiles = fs.readdirSync(albumsDir).filter((f) => f.endsWith(".json"));
+	const jsonFiles = fs
+		.readdirSync(albumsDir)
+		.filter((f) => f.endsWith(".json"));
 	if (jsonFiles.length === 0) return;
 
 	for (const file of jsonFiles) {
@@ -474,7 +495,9 @@ function generateAlbums() {
 		const infoPath = path.join(albumDir, "info.json");
 
 		// 读取 Keystatic 生成的 JSON
-		const data = JSON.parse(fs.readFileSync(path.join(albumsDir, file), "utf-8"));
+		const data = JSON.parse(
+			fs.readFileSync(path.join(albumsDir, file), "utf-8"),
+		);
 
 		// 确保目录存在
 		if (!fs.existsSync(albumDir)) fs.mkdirSync(albumDir, { recursive: true });
@@ -513,7 +536,13 @@ function generateAlbums() {
 function generateHomepage() {
 	const h = readJsonFile(path.join(KEYSTATIC_DIR, "homepage.json"));
 	if (!h) return;
-	const subtitles = [h.subtitle1, h.subtitle2, h.subtitle3, h.subtitle4, h.subtitle5].filter(Boolean);
+	const subtitles = [
+		h.subtitle1,
+		h.subtitle2,
+		h.subtitle3,
+		h.subtitle4,
+		h.subtitle5,
+	].filter(Boolean);
 	writeDataFile(
 		"keystatic-homepage.ts",
 		`// Auto-generated from Keystatic CMS — DO NOT EDIT MANUALLY
@@ -648,7 +677,10 @@ function generateDevices() {
 	const groupEntries = Object.entries(groups)
 		.map(([cat, devs]) => {
 			const items = devs
-				.map((d) => `\t\t\t{ name: ${escapeStr(d.name)}, image: ${escapeStr(d.image || "")}, specs: ${escapeStr(d.specs || "")}, description: ${escapeStr(d.description || "")}, link: ${escapeStr(d.link || "")} }`)
+				.map(
+					(d) =>
+						`\t\t\t{ name: ${escapeStr(d.name)}, image: ${escapeStr(d.image || "")}, specs: ${escapeStr(d.specs || "")}, description: ${escapeStr(d.description || "")}, link: ${escapeStr(d.link || "")} }`,
+				)
 				.join(",\n");
 			return `\t${escapeStr(cat)}: [\n${items}\n\t\t]`;
 		})
@@ -686,7 +718,8 @@ function syncAll() {
 		// 有 JSON 数据，或已存在对应的生成文件（数据被清空时也要刷新为空数组），才重新生成；
 		// 两者皆无（从未使用的集合）则跳过，避免生成多余文件。
 		return (
-			(fs.existsSync(dir) && fs.readdirSync(dir).some((f) => f.endsWith(".json"))) ||
+			(fs.existsSync(dir) &&
+				fs.readdirSync(dir).some((f) => f.endsWith(".json"))) ||
 			fs.existsSync(path.join(DATA_DIR, `${sub}.ts`))
 		);
 	};
@@ -694,28 +727,82 @@ function syncAll() {
 	const updated = [];
 	const has = (file) => fs.existsSync(path.join(KEYSTATIC_DIR, file));
 
-	if (hasData("posts")) { generatePosts(); updated.push("posts"); }
-	if (hasData("pages")) { generatePages(); updated.push("pages"); }
-	if (hasData("diary")) { generateDiary(); updated.push("diary"); }
-	if (hasData("friends")) { generateFriends(); updated.push("friends"); }
-	if (hasData("projects")) { generateProjects(); updated.push("projects"); }
-	if (hasData("skills")) { generateSkills(); updated.push("skills"); }
-	if (hasData("timeline")) { generateTimeline(); updated.push("timeline"); }
-	if (hasData("devices")) { generateDevices(); updated.push("devices"); }
+	if (hasData("posts")) {
+		generatePosts();
+		updated.push("posts");
+	}
+	if (hasData("pages")) {
+		generatePages();
+		updated.push("pages");
+	}
+	if (hasData("diary")) {
+		generateDiary();
+		updated.push("diary");
+	}
+	if (hasData("friends")) {
+		generateFriends();
+		updated.push("friends");
+	}
+	if (hasData("projects")) {
+		generateProjects();
+		updated.push("projects");
+	}
+	if (hasData("skills")) {
+		generateSkills();
+		updated.push("skills");
+	}
+	if (hasData("timeline")) {
+		generateTimeline();
+		updated.push("timeline");
+	}
+	if (hasData("devices")) {
+		generateDevices();
+		updated.push("devices");
+	}
 
-	if (has("site-settings.json")) { generateSiteSettings(); updated.push("site-settings"); }
-	if (has("profile.json")) { generateProfile(); updated.push("profile"); }
-	if (has("announcement.json")) { generateAnnouncement(); updated.push("announcement"); }
-	if (has("homepage.json")) { generateHomepage(); updated.push("homepage"); }
-	if (has("effects.json")) { generateEffects(); updated.push("effects"); }
-	if (has("nav-links.json")) { generateNavLinks(); updated.push("nav-links"); }
-	if (has("comments.json")) { generateComments(); updated.push("comments"); }
-	if (has("music.json")) { generateMusic(); updated.push("music"); }
-	if (has("license.json")) { generateLicense(); updated.push("license"); }
+	if (has("site-settings.json")) {
+		generateSiteSettings();
+		updated.push("site-settings");
+	}
+	if (has("profile.json")) {
+		generateProfile();
+		updated.push("profile");
+	}
+	if (has("announcement.json")) {
+		generateAnnouncement();
+		updated.push("announcement");
+	}
+	if (has("homepage.json")) {
+		generateHomepage();
+		updated.push("homepage");
+	}
+	if (has("effects.json")) {
+		generateEffects();
+		updated.push("effects");
+	}
+	if (has("nav-links.json")) {
+		generateNavLinks();
+		updated.push("nav-links");
+	}
+	if (has("comments.json")) {
+		generateComments();
+		updated.push("comments");
+	}
+	if (has("music.json")) {
+		generateMusic();
+		updated.push("music");
+	}
+	if (has("license.json")) {
+		generateLicense();
+		updated.push("license");
+	}
 
 	// 相册（从 public/images/albums/*.json 转换）
 	const albumsDir = path.join(ROOT, "public/images/albums");
-	if (fs.existsSync(albumsDir) && fs.readdirSync(albumsDir).some((f) => f.endsWith(".json"))) {
+	if (
+		fs.existsSync(albumsDir) &&
+		fs.readdirSync(albumsDir).some((f) => f.endsWith(".json"))
+	) {
 		generateAlbums();
 		updated.push("albums");
 	}
@@ -734,7 +821,16 @@ function startWatch() {
 	}
 
 	// 为每个子目录创建（如果不存在）
-	for (const sub of ["posts", "pages", "diary", "friends", "projects", "skills", "timeline", "devices"]) {
+	for (const sub of [
+		"posts",
+		"pages",
+		"diary",
+		"friends",
+		"projects",
+		"skills",
+		"timeline",
+		"devices",
+	]) {
 		const dir = path.join(KEYSTATIC_DIR, sub);
 		if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 	}
@@ -764,7 +860,16 @@ function startWatch() {
 	fs.watch(KEYSTATIC_DIR, { persistent: true }, onChange);
 
 	// 监听各子目录
-	for (const sub of ["posts", "pages", "diary", "friends", "projects", "skills", "timeline", "devices"]) {
+	for (const sub of [
+		"posts",
+		"pages",
+		"diary",
+		"friends",
+		"projects",
+		"skills",
+		"timeline",
+		"devices",
+	]) {
 		const dir = path.join(KEYSTATIC_DIR, sub);
 		fs.watch(dir, { persistent: true }, onChange);
 	}

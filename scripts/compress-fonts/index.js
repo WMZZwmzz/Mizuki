@@ -10,7 +10,7 @@
  *   index.js          — 入口（串联 compress → rewrite）
  */
 
-import { compressFonts } from "./font-compressor.js";
 import { updateCssFontReferences } from "./css-rewriter.js";
+import { compressFonts } from "./font-compressor.js";
 
 compressFonts().then(() => updateCssFontReferences());

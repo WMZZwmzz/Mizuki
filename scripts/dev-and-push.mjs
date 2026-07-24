@@ -238,7 +238,11 @@ async function main() {
 		cwd: ROOT,
 		stdio: "ignore",
 	});
-	log(sync.status === 0 ? "        [OK] 同步完成" : "        [WARN] 同步过程中出现警告（通常不影响）");
+	log(
+		sync.status === 0
+			? "        [OK] 同步完成"
+			: "        [WARN] 同步过程中出现警告（通常不影响）",
+	);
 
 	// [2/4] 检测内容改动
 	log(`[2/4] 检测内容改动（${WATCH_PATHS.join(" + ")}）...`);
@@ -255,7 +259,9 @@ async function main() {
 	log(`        共 ${changes.length} 项改动`);
 
 	// [3/4] commit
-	log(`[3/4] 准备 commit + push 到 origin/${MASTER_BRANCH}（会触发 GitHub Pages 构建）`);
+	log(
+		`[3/4] 准备 commit + push 到 origin/${MASTER_BRANCH}（会触发 GitHub Pages 构建）`,
+	);
 	log(`        提交信息: ${opts.commitMsg}`);
 
 	if (opts.dryRun) {
@@ -321,7 +327,9 @@ async function main() {
 		}
 	}
 	log("    [WARN] pages SHA 长时间未变化 - 可能是构建慢或流水线故障");
-	log('           可重试: git commit --allow-empty -m "ci: re-trigger" && git push origin master');
+	log(
+		'           可重试: git commit --allow-empty -m "ci: re-trigger" && git push origin master',
+	);
 }
 
 main().catch((err) => {

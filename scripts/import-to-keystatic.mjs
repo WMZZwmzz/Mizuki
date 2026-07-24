@@ -27,14 +27,20 @@ function ensureDir(sub) {
 }
 
 function writeJson(dir, filename, data) {
-	fs.writeFileSync(path.join(dir, `${filename}.json`), JSON.stringify(data, null, 2), "utf-8");
+	fs.writeFileSync(
+		path.join(dir, `${filename}.json`),
+		JSON.stringify(data, null, 2),
+		"utf-8",
+	);
 }
 
 // ===== 导入函数 =====
 
 async function importFriends() {
 	try {
-		const { friendsData } = await import(pathToFileURL(path.join(ROOT, "src/data/friends.ts")).href);
+		const { friendsData } = await import(
+			pathToFileURL(path.join(ROOT, "src/data/friends.ts")).href
+		);
 		const dir = ensureDir("friends");
 		for (const f of friendsData) {
 			writeJson(dir, `friend-${f.id}`, {
@@ -54,7 +60,9 @@ async function importFriends() {
 
 async function importSkills() {
 	try {
-		const { skillsData } = await import(pathToFileURL(path.join(ROOT, "src/data/skills.ts")).href);
+		const { skillsData } = await import(
+			pathToFileURL(path.join(ROOT, "src/data/skills.ts")).href
+		);
 		const dir = ensureDir("skills");
 		for (const s of skillsData) {
 			const slug = s.id || s.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
@@ -79,7 +87,9 @@ async function importSkills() {
 
 async function importTimeline() {
 	try {
-		const { timelineData } = await import(pathToFileURL(path.join(ROOT, "src/data/timeline.ts")).href);
+		const { timelineData } = await import(
+			pathToFileURL(path.join(ROOT, "src/data/timeline.ts")).href
+		);
 		const dir = ensureDir("timeline");
 		for (const t of timelineData) {
 			const slug = t.id || t.title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
@@ -107,7 +117,9 @@ async function importTimeline() {
 
 async function importProjects() {
 	try {
-		const { projectsData } = await import(pathToFileURL(path.join(ROOT, "src/data/projects.ts")).href);
+		const { projectsData } = await import(
+			pathToFileURL(path.join(ROOT, "src/data/projects.ts")).href
+		);
 		const dir = ensureDir("projects");
 		for (const p of projectsData) {
 			const slug = p.id || p.title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
@@ -136,7 +148,9 @@ async function importProjects() {
 
 async function importDevices() {
 	try {
-		const { devicesData } = await import(pathToFileURL(path.join(ROOT, "src/data/devices.ts")).href);
+		const { devicesData } = await import(
+			pathToFileURL(path.join(ROOT, "src/data/devices.ts")).href
+		);
 		const dir = ensureDir("devices");
 		let count = 0;
 		for (const [category, devices] of Object.entries(devicesData)) {
@@ -161,7 +175,9 @@ async function importDevices() {
 
 async function importDiary() {
 	try {
-		const { diaryData } = await import(pathToFileURL(path.join(ROOT, "src/data/diary.ts")).href);
+		const { diaryData } = await import(
+			pathToFileURL(path.join(ROOT, "src/data/diary.ts")).href
+		);
 		const dir = ensureDir("diary");
 		for (const d of diaryData) {
 			const slug = `diary-${d.id}`;
@@ -195,13 +211,20 @@ function parseFrontmatter(content) {
 		let value = line.slice(colonIdx + 1).trim();
 		// Parse arrays like [a, b, c]
 		if (value.startsWith("[") && value.endsWith("]")) {
-			try { value = JSON.parse(value); } catch { /* keep as string */ }
+			try {
+				value = JSON.parse(value);
+			} catch {
+				/* keep as string */
+			}
 		}
 		// Parse booleans
 		else if (value === "true") value = true;
 		else if (value === "false") value = false;
 		// Strip quotes
-		else if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+		else if (
+			(value.startsWith('"') && value.endsWith('"')) ||
+			(value.startsWith("'") && value.endsWith("'"))
+		) {
 			value = value.slice(1, -1);
 		}
 		fm[key] = value;
@@ -280,7 +303,9 @@ async function main() {
 	await importDevices();
 
 	console.log("\n✅ Import complete!\n");
-	console.log("  现在可以通过 http://localhost:4321/keystatic/ 编辑这些数据了。");
+	console.log(
+		"  现在可以通过 http://localhost:4321/keystatic/ 编辑这些数据了。",
+	);
 	console.log("  注意：导入后需要重新运行 pnpm dev 让 watch 检测到变化。\n");
 }
 

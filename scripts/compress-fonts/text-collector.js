@@ -1,14 +1,20 @@
 import fs from "node:fs";
 import path from "node:path";
 import {
+	getAnimeMode,
+	getBangumiUserId,
+	getLang,
+	getMusicConfig,
+	isAnimePageEnabled,
+} from "./config-parser.js";
+import {
+	CJK_REGEX,
+	extractMarkdownText,
+	extractStringsToSet,
+	mergeSet,
 	ROOT_DIR,
 	readFilesRecursively,
-	extractStringsToSet,
-	extractMarkdownText,
-	CJK_REGEX,
-	mergeSet,
 } from "./utils.js";
-import { getLang, isAnimePageEnabled, getAnimeMode, getBangumiUserId, getMusicConfig } from "./config-parser.js";
 
 /**
  * 获取 ASCII 字符集（用于 asciiFont）
@@ -21,8 +27,7 @@ export function getAsciiCharset() {
 	const common = " !\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
 	for (const char of common) chars.add(char);
 	for (let i = 0; i <= 9; i++) chars.add(String(i));
-	const alphabet =
-		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+	const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 	for (const char of alphabet) chars.add(char);
 	return Array.from(chars).sort().join("");
 }
@@ -89,10 +94,7 @@ function collectFromI18n(textSet) {
  */
 function collectFromContent(textSet) {
 	let contentDir;
-	if (
-		process.env.ENABLE_CONTENT_SYNC === "true" &&
-		process.env.CONTENT_DIR
-	) {
+	if (process.env.ENABLE_CONTENT_SYNC === "true" && process.env.CONTENT_DIR) {
 		contentDir = path.join(ROOT_DIR, process.env.CONTENT_DIR);
 		console.log(
 			`ℹ Using external content directory: ${process.env.CONTENT_DIR}`,
@@ -125,12 +127,10 @@ function collectFromContent(textSet) {
  * 添加常用字符和兜底词汇
  */
 function addCommonChars(textSet) {
-	const commonChars =
-		"0123456789，。！？；：\"\"''（）【】《》、·—…「」『』";
+	const commonChars = "0123456789，。！？；：\"\"''（）【】《》、·—…「」『』";
 	for (const char of commonChars) textSet.add(char);
 
-	const alphabet =
-		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+	const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 	for (const char of alphabet) textSet.add(char);
 
 	const fallbackWords = ["示例", "歌曲", "艺术家"];
@@ -187,9 +187,7 @@ async function fetchMetingPlaylistText() {
 			clearTimeout(timeoutId);
 
 			if (!response.ok) {
-				throw new Error(
-					`HTTP ${response.status}: ${response.statusText}`,
-				);
+				throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 			}
 
 			const playlist = await response.json();
@@ -213,9 +211,7 @@ async function fetchMetingPlaylistText() {
 			}
 
 			if (songCount === 0) {
-				console.log(
-					"⚠ No valid song data found in API response",
-				);
+				console.log("⚠ No valid song data found in API response");
 			}
 		} catch (fetchError) {
 			clearTimeout(timeoutId);
@@ -245,9 +241,7 @@ async function fetchMetingPlaylistText() {
 async function fetchBilibiliAnimeText() {
 	try {
 		if (!isAnimePageEnabled()) {
-			console.log(
-				"ℹ Anime page disabled, skipping Bilibili text collection",
-			);
+			console.log("ℹ Anime page disabled, skipping Bilibili text collection");
 			return new Set();
 		}
 
@@ -272,9 +266,7 @@ async function fetchBilibiliAnimeText() {
 		const animeList = JSON.parse(fs.readFileSync(dataFilePath, "utf-8"));
 
 		if (!Array.isArray(animeList)) {
-			console.log(
-				"⚠ Bilibili data is not an array, skipping text collection",
-			);
+			console.log("⚠ Bilibili data is not an array, skipping text collection");
 			return new Set();
 		}
 
@@ -351,10 +343,7 @@ async function fetchBangumiAnimeText() {
 
 				while (hasMore) {
 					const controller = new AbortController();
-					const timeoutId = setTimeout(
-						() => controller.abort(),
-						10000,
-					);
+					const timeoutId = setTimeout(() => controller.abort(), 10000);
 
 					const response = await fetch(
 						`${BANGUMI_API_BASE}/v0/users/${userId}/collections?subject_type=${subjectType}&type=${type}&limit=${limit}&offset=${offset}`,
@@ -369,9 +358,7 @@ async function fetchBangumiAnimeText() {
 					clearTimeout(timeoutId);
 
 					if (!response.ok) {
-						throw new Error(
-							`HTTP ${response.status}: ${response.statusText}`,
-						);
+						throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 					}
 
 					const data = await response.json();
@@ -430,8 +417,7 @@ async function fetchBangumiAnimeText() {
 				const subject = item.subject || {};
 				for (const char of subject.name_cn || "") textSet.add(char);
 				for (const char of subject.name || "") textSet.add(char);
-				for (const char of subject.short_summary || "")
-					textSet.add(char);
+				for (const char of subject.short_summary || "") textSet.add(char);
 
 				if (Array.isArray(subject.tags)) {
 					for (const tag of subject.tags) {
@@ -442,17 +428,13 @@ async function fetchBangumiAnimeText() {
 				}
 
 				if (item.subject_id && Math.random() < 0.3) {
-					const persons = await fetchSubjectPersons(
-						item.subject_id,
-					);
+					const persons = await fetchSubjectPersons(item.subject_id);
 					for (const person of persons) {
 						if (person.name) {
-							for (const char of person.name)
-								textSet.add(char);
+							for (const char of person.name) textSet.add(char);
 						}
 						if (person.relation) {
-							for (const char of person.relation)
-								textSet.add(char);
+							for (const char of person.relation) textSet.add(char);
 						}
 					}
 					await new Promise((r) => setTimeout(r, 100));
