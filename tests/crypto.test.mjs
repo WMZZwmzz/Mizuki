@@ -1,55 +1,56 @@
 /**
- * 加密系统端到端测试
- * 运行方式: node tests/crypto.test.mjs
- * 无需任何测试框架依赖
+ * 加密系统端到端测试（协议 v3）
+ *
+ * 服务端加密逻辑直接从源文件 src/utils/crypto-utils.ts 导入，因此测试中的
+ * 常量与算法始终与源码保持同步；这里只复刻无法被直接导入的客户端解密逻辑
+ * （PasswordProtection.astro 内联脚本），用于验证服务端加密 → 客户端解密的
+ * 端到端往返。
  */
-import { createCipheriv, createHmac, pbkdf2Sync } from "node:crypto";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 
-// 从源文件复制的常量（必须与 crypto-utils.ts 保持同步）
-const CRYPTO_CONSTANTS = {
-	PBKDF2_ITERATIONS: 100000,
-	SALT_LENGTH: 16,
-	IV_LENGTH: 12,
-	AUTH_TAG_LENGTH: 16,
-	KEY_LENGTH: 32,
-	VERIFY_PREFIX: "MIZUKI-VERIFY:",
-};
+import { CRYPTO_CONSTANTS, encryptContent } from "../src/utils/crypto-utils.ts";
 
-// === 服务端加密（复刻 crypto-utils.ts） ===
-function deriveBytes(key, context, length) {
-	return createHmac("sha256", key).update(context).digest().subarray(0, length);
-}
-
-function encryptContent(html, password, slug) {
-	const { PBKDF2_ITERATIONS, SALT_LENGTH, IV_LENGTH, KEY_LENGTH, VERIFY_PREFIX } = CRYPTO_CONSTANTS;
-	const plaintext = VERIFY_PREFIX + html;
-	const salt = deriveBytes(password, `salt:${slug}`, SALT_LENGTH);
-	const iv = deriveBytes(password, `iv:${slug}`, IV_LENGTH);
-	const key = pbkdf2Sync(password, salt, PBKDF2_ITERATIONS, KEY_LENGTH, "sha256");
-	const cipher = createCipheriv("aes-256-gcm", key, iv);
-	const encrypted = Buffer.concat([cipher.update(plaintext, "utf8"), cipher.final()]);
-	const authTag = cipher.getAuthTag();
-	return Buffer.concat([salt, iv, authTag, encrypted]).toString("base64");
-}
-
-// === 客户端解密（复刻 PasswordProtection.astro inline script） ===
+// === 客户端解密（复刻 PasswordProtection.astro 内联脚本） ===
 async function clientDecrypt(encData, password) {
-	const { PBKDF2_ITERATIONS, SALT_LENGTH, IV_LENGTH, AUTH_TAG_LENGTH, VERIFY_PREFIX } = CRYPTO_CONSTANTS;
+	const {
+		SALT_LENGTH,
+		IV_LENGTH,
+		AUTH_TAG_LENGTH,
+		PBKDF2_ITERATIONS,
+		VERIFY_PREFIX,
+	} = CRYPTO_CONSTANTS;
 	const raw = Buffer.from(encData, "base64");
 	const salt = raw.subarray(0, SALT_LENGTH);
 	const iv = raw.subarray(SALT_LENGTH, SALT_LENGTH + IV_LENGTH);
-	const authTag = raw.subarray(SALT_LENGTH + IV_LENGTH, SALT_LENGTH + IV_LENGTH + AUTH_TAG_LENGTH);
+	const authTag = raw.subarray(
+		SALT_LENGTH + IV_LENGTH,
+		SALT_LENGTH + IV_LENGTH + AUTH_TAG_LENGTH,
+	);
 	const ciphertext = raw.subarray(SALT_LENGTH + IV_LENGTH + AUTH_TAG_LENGTH);
 
 	const combined = Buffer.concat([ciphertext, authTag]);
 
 	const enc = new TextEncoder();
-	const keyMaterial = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveKey"]);
+	const keyMaterial = await crypto.subtle.importKey(
+		"raw",
+		enc.encode(password),
+		"PBKDF2",
+		false,
+		["deriveKey"],
+	);
 	const aesKey = await crypto.subtle.deriveKey(
 		{ name: "PBKDF2", salt, iterations: PBKDF2_ITERATIONS, hash: "SHA-256" },
-		keyMaterial, { name: "AES-GCM", length: 256 }, false, ["decrypt"],
+		keyMaterial,
+		{ name: "AES-GCM", length: 256 },
+		false,
+		["decrypt"],
 	);
-	const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, aesKey, combined);
+	const decrypted = await crypto.subtle.decrypt(
+		{ name: "AES-GCM", iv },
+		aesKey,
+		combined,
+	);
 	const decoded = new TextDecoder().decode(decrypted);
 
 	if (!decoded.startsWith(VERIFY_PREFIX)) {
@@ -58,90 +59,70 @@ async function clientDecrypt(encData, password) {
 	return decoded.substring(VERIFY_PREFIX.length);
 }
 
-// === 测试用例 ===
 const testHtml = "<h1>Hello World</h1><p>这是一篇加密文章的内容</p>";
 const testPassword = "test-password-123";
 const testSlug = "encrypted-test-post";
 
-let passed = 0;
-let failed = 0;
-
-function assert(condition, message) {
-	if (!condition) throw new Error(`Assertion failed: ${message}`);
-}
-
-async function test(name, fn) {
-	try {
-		await fn();
-		console.log(`  ✓ ${name}`);
-		passed++;
-	} catch (err) {
-		console.log(`  ✗ ${name}`);
-		console.log(`    ${err.message}`);
-		failed++;
-	}
-}
-
-console.log("Encryption System Tests\n");
-
-await test("encrypt and decrypt with correct password", async () => {
-	const encrypted = encryptContent(testHtml, testPassword, testSlug);
-	assert(encrypted.length > 0, "ciphertext should not be empty");
-	const decrypted = await clientDecrypt(encrypted, testPassword);
-	assert(decrypted === testHtml, `decrypted content mismatch: got "${decrypted.slice(0, 30)}..."`);
+describe("crypto-utils 常量", () => {
+	it("与协议 v3 源码一致（PBKDF2 迭代次数 = OWASP 2024 建议）", () => {
+		assert.equal(CRYPTO_CONSTANTS.PBKDF2_ITERATIONS, 600000);
+		assert.equal(CRYPTO_CONSTANTS.SALT_LENGTH, 16);
+		assert.equal(CRYPTO_CONSTANTS.IV_LENGTH, 12);
+		assert.equal(CRYPTO_CONSTANTS.AUTH_TAG_LENGTH, 16);
+		assert.equal(CRYPTO_CONSTANTS.KEY_LENGTH, 32);
+		assert.equal(CRYPTO_CONSTANTS.VERIFY_PREFIX, "MIZUKI-VERIFY:");
+	});
 });
 
-await test("deterministic ciphertext for same inputs", () => {
-	const a = encryptContent(testHtml, testPassword, testSlug);
-	const b = encryptContent(testHtml, testPassword, testSlug);
-	assert(a === b, "same inputs should produce same ciphertext");
-});
+describe("加密端到端往返（服务端加密 → 客户端解密）", () => {
+	it("正确密码可解密并还原原文", async () => {
+		const encrypted = encryptContent(testHtml, testPassword, testSlug);
+		assert.ok(encrypted.length > 0, "密文不应为空");
+		assert.equal(await clientDecrypt(encrypted, testPassword), testHtml);
+	});
 
-await test("reject wrong password", async () => {
-	const encrypted = encryptContent(testHtml, testPassword, testSlug);
-	let threw = false;
-	try {
-		await clientDecrypt(encrypted, "wrong-password");
-	} catch {
-		threw = true;
-	}
-	assert(threw, "wrong password should throw");
-});
+	it("协议 v3 使用随机 salt/IV：相同输入产出不同密文", () => {
+		const a = encryptContent(testHtml, testPassword, testSlug);
+		const b = encryptContent(testHtml, testPassword, testSlug);
+		assert.notEqual(a, b, "随机 salt/IV 下相同输入不应产生相同密文");
+	});
 
-await test("different slugs produce different ciphertext", () => {
-	const a = encryptContent(testHtml, testPassword, "slug-a");
-	const b = encryptContent(testHtml, testPassword, "slug-b");
-	assert(a !== b, "different slugs should produce different ciphertext");
-});
+	it("错误密码解密失败", async () => {
+		const encrypted = encryptContent(testHtml, testPassword, testSlug);
+		await assert.rejects(() => clientDecrypt(encrypted, "wrong-password"));
+	});
 
-await test("CJK content round-trip", async () => {
-	const cjk = "<p>日本語テスト 中文测试 한국어 테스트</p>";
-	const encrypted = encryptContent(cjk, testPassword, testSlug);
-	const decrypted = await clientDecrypt(encrypted, testPassword);
-	assert(decrypted === cjk, "CJK content mismatch");
-});
+	it("slug 变化不影响可解密性（v3 不再依赖 slug 派生 salt/IV）", async () => {
+		const encrypted = encryptContent(testHtml, testPassword, "some-other-slug");
+		assert.equal(await clientDecrypt(encrypted, testPassword), testHtml);
+	});
 
-await test("empty content round-trip", async () => {
-	const encrypted = encryptContent("", testPassword, testSlug);
-	const decrypted = await clientDecrypt(encrypted, testPassword);
-	assert(decrypted === "", "empty content mismatch");
-});
+	it("CJK 内容往返", async () => {
+		const cjk = "<p>日本語テスト 中文测试 한국어 테스트</p>";
+		const encrypted = encryptContent(cjk, testPassword, testSlug);
+		assert.equal(await clientDecrypt(encrypted, testPassword), cjk);
+	});
 
-await test("special HTML characters round-trip", async () => {
-	const special = '<div class="test">&amp; &lt; &gt; "quotes" \'single\'</div>';
-	const encrypted = encryptContent(special, testPassword, testSlug);
-	const decrypted = await clientDecrypt(encrypted, testPassword);
-	assert(decrypted === special, "special HTML mismatch");
-});
+	it("空内容往返", async () => {
+		const encrypted = encryptContent("", testPassword, testSlug);
+		assert.equal(await clientDecrypt(encrypted, testPassword), "");
+	});
 
-await test("CRYPTO_CONSTANTS have required fields", () => {
-	assert(CRYPTO_CONSTANTS.PBKDF2_ITERATIONS === 100000, "PBKDF2_ITERATIONS");
-	assert(CRYPTO_CONSTANTS.SALT_LENGTH === 16, "SALT_LENGTH");
-	assert(CRYPTO_CONSTANTS.IV_LENGTH === 12, "IV_LENGTH");
-	assert(CRYPTO_CONSTANTS.AUTH_TAG_LENGTH === 16, "AUTH_TAG_LENGTH");
-	assert(CRYPTO_CONSTANTS.KEY_LENGTH === 32, "KEY_LENGTH");
-	assert(CRYPTO_CONSTANTS.VERIFY_PREFIX === "MIZUKI-VERIFY:", "VERIFY_PREFIX");
-});
+	it("特殊 HTML 字符往返", async () => {
+		const special =
+			'<div class="test">&amp; &lt; &gt; "quotes" \'single\'</div>';
+		const encrypted = encryptContent(special, testPassword, testSlug);
+		assert.equal(await clientDecrypt(encrypted, testPassword), special);
+	});
 
-console.log(`\nResults: ${passed} passed, ${failed} failed`);
-process.exit(failed > 0 ? 1 : 0);
+	it("密文字节布局为 salt | iv | authTag | ciphertext", () => {
+		const { SALT_LENGTH, IV_LENGTH, AUTH_TAG_LENGTH, VERIFY_PREFIX } =
+			CRYPTO_CONSTANTS;
+		const encrypted = encryptContent(testHtml, testPassword, testSlug);
+		const raw = Buffer.from(encrypted, "base64");
+		const overhead = SALT_LENGTH + IV_LENGTH + AUTH_TAG_LENGTH;
+		// AES-GCM 密文长度等于明文（VERIFY_PREFIX + html）的 UTF-8 字节数
+		const plaintextBytes = Buffer.byteLength(VERIFY_PREFIX + testHtml, "utf8");
+		assert.equal(raw.length, overhead + plaintextBytes);
+	});
+});
