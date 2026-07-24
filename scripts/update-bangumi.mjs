@@ -59,6 +59,9 @@ async function getAnimeModeFromConfig() {
 // 模拟延迟防止 API 限制
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// 标记是否发生上游抓取失败，用于决定是否回退到上次可用数据。
+let fetchFailed = false;
+
 async function fetchSubjectDetail(subjectId) {
 	try {
 		const response = await fetch(`${API_BASE}/v0/subjects/${subjectId}`);
@@ -127,6 +130,7 @@ async function fetchCollection(userId, type) {
 			}
 		} catch (e) {
 			console.error(`\nFetch failed (Type ${type}):`, e.message);
+			fetchFailed = true;
 			hasMore = false;
 		}
 	}
@@ -232,6 +236,21 @@ async function main() {
 		await fs.access(dir);
 	} catch {
 		await fs.mkdir(dir, { recursive: true });
+	}
+
+	// 上游失败时回退到上次可用数据：若已有数据文件存在，则不用不完整/为空的结果覆盖它。
+	if (fetchFailed) {
+		try {
+			await fs.access(OUTPUT_FILE);
+			console.warn(
+				"\n⚠ Upstream (Bangumi) fetch failed; keeping last available data and skipping overwrite.",
+			);
+			return;
+		} catch {
+			console.warn(
+				"\n⚠ Upstream (Bangumi) fetch failed and no cached data found; writing best-effort result.",
+			);
+		}
 	}
 
 	await fs.writeFile(OUTPUT_FILE, JSON.stringify(finalAnimeList, null, 2));

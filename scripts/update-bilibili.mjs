@@ -27,6 +27,9 @@ const STATUS_MAP = {
 // 延迟函数
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// 标记是否发生上游抓取失败，用于决定是否回退到上次可用数据。
+let fetchFailed = false;
+
 // 带重试机制的请求
 async function withRetry(apiCall, retries = 3) {
 	for (let i = 0; i < retries; i++) {
@@ -287,6 +290,7 @@ async function processData(
 	const page = await getDataPage(vmid, status, typeNum);
 	if (!page?.success) {
 		console.error("Get bangumi data error:", page?.data);
+		fetchFailed = true;
 		return [];
 	}
 
@@ -337,23 +341,17 @@ async function main() {
 
 	// 获取三种状态的数据 (1=想看, 2=在看, 3=已看)
 	console.log("\nFetching Bilibili bangumi data...");
-	const planned = await processData(VMID, 1, 1, useWebp, coverMirror, SESSDATA);
-	const watching = await processData(
-		VMID,
-		2,
-		1,
-		useWebp,
-		coverMirror,
-		SESSDATA,
-	);
-	const completed = await processData(
-		VMID,
-		3,
-		1,
-		useWebp,
-		coverMirror,
-		SESSDATA,
-	);
+	let planned = [];
+	let watching = [];
+	let completed = [];
+	try {
+		planned = await processData(VMID, 1, 1, useWebp, coverMirror, SESSDATA);
+		watching = await processData(VMID, 2, 1, useWebp, coverMirror, SESSDATA);
+		completed = await processData(VMID, 3, 1, useWebp, coverMirror, SESSDATA);
+	} catch (err) {
+		fetchFailed = true;
+		console.error(`\nBilibili fetch failed: ${err?.message || err}`);
+	}
 
 	const finalAnimeList = [...planned, ...watching, ...completed];
 
@@ -362,6 +360,21 @@ async function main() {
 		await fs.access(dir);
 	} catch {
 		await fs.mkdir(dir, { recursive: true });
+	}
+
+	// 上游失败时回退到上次可用数据：若已有数据文件存在，则不用不完整/为空的结果覆盖它。
+	if (fetchFailed) {
+		try {
+			await fs.access(OUTPUT_FILE);
+			console.warn(
+				"\n⚠ Upstream (Bilibili) fetch failed; keeping last available data and skipping overwrite.",
+			);
+			return;
+		} catch {
+			console.warn(
+				"\n⚠ Upstream (Bilibili) fetch failed and no cached data found; writing best-effort result.",
+			);
+		}
 	}
 
 	await fs.writeFile(OUTPUT_FILE, JSON.stringify(finalAnimeList, null, 2));

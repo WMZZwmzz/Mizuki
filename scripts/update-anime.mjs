@@ -8,6 +8,10 @@ const CONFIG_PATH = path.join(
 	"../src/config/siteConfig.ts",
 );
 
+// 跳过开关（与 ENABLE_CONTENT_SYNC 保持一致的语义）：
+// 默认启用，仅当显式设置为 "false" 时跳过番剧数据抓取。
+const ENABLE_ANIME_SYNC = process.env.ENABLE_ANIME_SYNC !== "false";
+
 async function getAnimeModeFromConfig() {
 	try {
 		const configContent = await fs.readFile(CONFIG_PATH, "utf-8");
@@ -46,6 +50,13 @@ function runScript(scriptPath) {
 }
 
 async function main() {
+	if (!ENABLE_ANIME_SYNC) {
+		console.log(
+			"Anime data sync disabled (ENABLE_ANIME_SYNC=false); skipping and keeping existing data.",
+		);
+		return;
+	}
+
 	const mode = await getAnimeModeFromConfig();
 	const scriptsDir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -61,7 +72,11 @@ async function main() {
 }
 
 main().catch((err) => {
-	console.error("\n✘ Script execution error:");
-	console.error(err);
-	process.exit(1);
+	// 隔离外部数据步骤：上游失败不应让整个部署失败。
+	// 现有的番剧数据文件将保留，构建继续使用上次可用数据。
+	console.warn(
+		"\n⚠ Anime data update failed; deployment continues with last available data.",
+	);
+	console.warn(err?.message || err);
+	process.exit(0);
 });
