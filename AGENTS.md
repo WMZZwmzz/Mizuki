@@ -71,6 +71,20 @@ If the project has no test infrastructure and the task is exploratory, state suc
 - **If any sensitive information needs to be included in the code to function, you must ask me first before committing. Do not decide on your own.**
 - If you discover sensitive data that has already been committed, immediately alert me so I can rotate the key and clean up the Git history.
 
+## 6. Project-Specific Conventions (docs/rule/)
+
+**Before writing or refactoring project code, follow the conventions in [`docs/rule/`](./docs/rule/README.md).** These are Mizuki-specific and take precedence over generic habits.
+
+- [Component architecture](./docs/rule/01-component-architecture.md) - layering (atoms/molecules/organisms), naming, code organization.
+- [Component split guide](./docs/rule/02-component-split-guide.md) - when and how to split oversized components.
+- [File organization](./docs/rule/03-file-organization-architecture.md) - directory structure, file naming, module boundaries.
+- [CSS style guide](./docs/rule/04-css-style-guide.md) - no `!important` (except Twikoo), use CSS variables / Tailwind, dark-theme rules.
+- [Atom component usage](./docs/rule/05-atom-component-usage.md) - prefer existing `atoms/` and `misc/` components; extract when UI repeats.
+- [Sidebar widget dev](./docs/rule/06-sidebar-widget-dev.md) - the 3 required steps to register a sidebar widget (componentMap is easy to miss).
+- [Icon usage](./docs/rule/07-icon-usage-specification.md) - the 3 standard Iconify usages; never use raw `<iconify-icon>` in business code.
+
+See the [code review checklist](./docs/rule/README.md#代码审查检查清单) in the README before submitting changes.
+
 ---
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
