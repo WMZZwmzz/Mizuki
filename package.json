@@ -23,7 +23,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "type-check": "tsc --noEmit",
-    "test": "node --test tests/post-card-content.test.ts",
+    "test": "node --test \"tests/**/*.test.*\"",
     "new-post": "node scripts/new-post.js",
     "format": "biome format --write ./src ./scripts",
     "lint": "biome check --write ./src ./scripts",

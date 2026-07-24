@@ -12,10 +12,10 @@ permissions:
   contents: write
 
 jobs:
-  # 质量门禁：复用 lint.yml 的 biome / typecheck 检查。
+  # 质量门禁：复用 lint.yml 的 biome / typecheck / 单测检查。
   # build-and-deploy 通过 `needs` 依赖此任务，任一检查失败都会使部署任务被跳过。
   quality-gate:
-    name: Quality Gate (biome + typecheck)
+    name: Quality Gate (biome + typecheck + test)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -40,6 +40,9 @@ jobs:
         env:
           ENABLE_CONTENT_SYNC: false
 
+      - name: Run Unit Tests
+        run: pnpm test
+
   build-and-deploy:
     needs: quality-gate  # 门禁未通过则不执行构建与部署
     runs-on: ubuntu-latest
@@ -62,7 +65,7 @@ jobs:
           node-version: "22"  # 当前 LTS，避免已弃用的 Node 20
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       # 以下把原来一整条 `pnpm run build` 拆成独立步骤，
       # 这样哪一步失败会在 Actions 列表里直接显示红色 ❌，便于定位。
