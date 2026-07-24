@@ -28,7 +28,7 @@ jobs:
           node-version: "22"  # 与 deploy.yml 对齐；项目 pnpm/node:sqlite 要求 Node 22
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -49,7 +49,7 @@ jobs:
           node-version: "22"  # 与 deploy.yml 对齐；项目 pnpm/node:sqlite 要求 Node 22
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -72,7 +72,7 @@ jobs:
           node-version: "22"  # 与 deploy.yml 对齐；项目 pnpm/node:sqlite 要求 Node 22
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -93,7 +93,7 @@ jobs:
           node-version: "22"  # 与 deploy.yml 对齐；项目 pnpm/node:sqlite 要求 Node 22
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
