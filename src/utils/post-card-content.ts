@@ -1,5 +1,4 @@
-import I18nKey from "@/i18n/i18nKey";
-import { i18n } from "@/i18n/translation";
+export const ENCRYPTED_POST_HOME_CONTENT = "该文章已加密";
 
 export interface PostHomeContentData {
 	description?: string;
@@ -27,7 +26,7 @@ export function getPostPublicDescription(
 	fallback = "",
 ): string {
 	if (shouldHidePostHomeContent(data)) {
-		return i18n(I18nKey.postEncryptedMessage);
+		return ENCRYPTED_POST_HOME_CONTENT;
 	}
 
 	return data.description || fallback;
