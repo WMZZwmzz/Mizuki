@@ -21,8 +21,7 @@ export interface Project {
 
 export const projectsData: Project[] = [
 	{ id: "MAA Watchdog", title: "MAA Watchdog", description: "MAA (MaaAssistantArknights) 右侧日志实时监控器：截图失败自动恢复看门狗 + 一键挂机，使用系统自带 csc.exe 零 SDK 编译", image: "", category: "desktop", techStack: ["C#", ".NET Framework", "UI Automation"], status: "in-progress", liveDemo: undefined, sourceCode: "https://github.com/WMZZwmzz/maa-watchdog", visitUrl: undefined, startDate: "2026-07-24", endDate: undefined, featured: undefined, tags: ["MAA", "明日方舟", "自动化"], showImage: false },
-	{ id: "Mizuki", title: "Mizuki", description: "基于 Astro 构建的個人博客主题，集成 Keystatic 内容管理、追番、日记、项目展示、相册等模块，支持明暗主题与丰富特效", image: "", category: "web", techStack: ["Astro", "TypeScript", "Tailwind CSS", "Keystatic"], status: "in-progress", liveDemo: undefined, sourceCode: "https://github.com/WMZZwmzz/Mizuki", visitUrl: "https://wmzzwmzz.github.io/Mizuki/", startDate: "2026-07-05", endDate: undefined, featured: true, tags: ["博客", "Astro"], showImage: false },
-	{ id: "Todo App", title: "Todo App", description: "功能丰富的 Flutter 待办清单应用 - 子任务、番茄钟、四象限、日历视图、应用锁、彩蛋，支持多视图与数据备份", image: "", category: "mobile", techStack: ["Flutter", "Dart", "Material 3"], status: "completed", liveDemo: undefined, sourceCode: "https://github.com/WMZZwmzz/todo-app", visitUrl: undefined, startDate: "2026-05-21", endDate: undefined, featured: undefined, tags: ["Flutter", "待办", "效率"], showImage: false }
+	{ id: "Mizuki", title: "Mizuki", description: "基于 Astro 构建的個人博客主题，集成 Keystatic 内容管理、追番、日记、项目展示、相册等模块，支持明暗主题与丰富特效", image: "", category: "web", techStack: ["Astro", "TypeScript", "Tailwind CSS", "Keystatic"], status: "in-progress", liveDemo: undefined, sourceCode: "https://github.com/WMZZwmzz/Mizuki", visitUrl: "https://wmzzwmzz.github.io/Mizuki/", startDate: "2026-07-05", endDate: undefined, featured: true, tags: ["博客", "Astro"], showImage: false }
 ];
 
 export function getProjectStats() {

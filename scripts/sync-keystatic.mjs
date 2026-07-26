@@ -478,59 +478,6 @@ export const keystaticAnnouncement = {
 	);
 }
 
-// ===== 相册 =====
-
-function generateAlbums() {
-	const albumsDir = path.join(ROOT, "public/images/albums");
-	if (!fs.existsSync(albumsDir)) return;
-
-	const jsonFiles = fs
-		.readdirSync(albumsDir)
-		.filter((f) => f.endsWith(".json"));
-	if (jsonFiles.length === 0) return;
-
-	for (const file of jsonFiles) {
-		const albumName = file.replace(".json", "");
-		const albumDir = path.join(albumsDir, albumName);
-		const infoPath = path.join(albumDir, "info.json");
-
-		// 读取 Keystatic 生成的 JSON
-		const data = JSON.parse(
-			fs.readFileSync(path.join(albumsDir, file), "utf-8"),
-		);
-
-		// 确保目录存在
-		if (!fs.existsSync(albumDir)) fs.mkdirSync(albumDir, { recursive: true });
-
-		// 写入 info.json（album-scanner.ts 需要的格式）
-		const info = {
-			title: data.title || albumName,
-			description: data.description || "",
-			date: data.date || new Date().toISOString().split("T")[0],
-			location: data.location || "",
-			tags: data.tags || [],
-			hidden: data.hidden || false,
-		};
-
-		if (data.mode === "external") {
-			info.mode = "external";
-			if (data.cover) info.cover = data.cover;
-			if (data.photos && data.photos.length > 0) info.photos = data.photos;
-		}
-
-		if (data.password) {
-			info.password = data.password;
-			if (data.passwordHint) info.passwordHint = data.passwordHint;
-		}
-
-		fs.writeFileSync(infoPath, JSON.stringify(info, null, 2), "utf-8");
-
-		// 删除 Keystatic 的 JSON 文件（已经转换为 info.json）
-		fs.unlinkSync(path.join(albumsDir, file));
-		console.log(`  ✓ albums/${albumName}/info.json`);
-	}
-}
-
 // ===== 首页设置 =====
 
 function generateHomepage() {
@@ -797,16 +744,6 @@ function syncAll() {
 		updated.push("license");
 	}
 
-	// 相册（从 public/images/albums/*.json 转换）
-	const albumsDir = path.join(ROOT, "public/images/albums");
-	if (
-		fs.existsSync(albumsDir) &&
-		fs.readdirSync(albumsDir).some((f) => f.endsWith(".json"))
-	) {
-		generateAlbums();
-		updated.push("albums");
-	}
-
 	return updated;
 }
 
@@ -834,8 +771,6 @@ function startWatch() {
 		const dir = path.join(KEYSTATIC_DIR, sub);
 		if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 	}
-	const albumsDir = path.join(ROOT, "public/images/albums");
-	if (!fs.existsSync(albumsDir)) fs.mkdirSync(albumsDir, { recursive: true });
 
 	let debounceTimer = null;
 
@@ -873,8 +808,6 @@ function startWatch() {
 		const dir = path.join(KEYSTATIC_DIR, sub);
 		fs.watch(dir, { persistent: true }, onChange);
 	}
-	// 监听相册目录
-	fs.watch(albumsDir, { persistent: true }, onChange);
 
 	// 初始同步一次
 	const updated = syncAll();

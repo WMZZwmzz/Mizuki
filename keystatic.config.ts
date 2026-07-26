@@ -273,7 +273,10 @@ export default config({
 		albums: collection({
 			label: "相册",
 			slugField: "title",
-			path: "public/images/albums/*",
+			// path 以 */info 结尾：keystatic 直接写 public/images/albums/{slug}/info.json，
+			// 与 album-scanner.ts 期望的目录结构一致（文件夹内放 info.json + cover + 照片），
+			// 不再需要 sync-keystatic.mjs 做转换+删除顶层 json 的中间步骤。
+			path: "public/images/albums/*/info",
 			format: { data: "json" },
 			columns: ["title", "date", "location"],
 			schema: {
