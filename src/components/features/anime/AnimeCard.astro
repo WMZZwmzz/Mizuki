@@ -33,6 +33,7 @@ const progressPercent =
 <div
 	class="group relative bg-[var(--card-bg)] border border-[var(--line-divider)] rounded-[var(--radius-large)] overflow-hidden hover:shadow-lg"
 	data-anime-status={anime.status}
+	data-genres={anime.genre.join(",")}
 >
 	<div class="relative anime-cover-container aspect-[2/3] overflow-hidden">
 		<a
@@ -66,13 +67,6 @@ const progressPercent =
 				</div>
 			</div>
 		</a>
-
-		<div
-			class={`absolute top-2 left-2 px-2 py-1 rounded-md text-xs font-medium ${statusInfo.class}`}
-		>
-			<span class="mr-1">{statusInfo.icon}</span>
-			<span>{statusInfo.text}</span>
-		</div>
 
 		<div
 			class="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1"

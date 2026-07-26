@@ -1,0 +1,16 @@
+{
+	"title": "MAA Watchdog",
+	"description": "MAA (MaaAssistantArknights) 右侧日志实时监控器：截图失败自动恢复看门狗 + 一键挂机，使用系统自带 csc.exe 零 SDK 编译",
+	"image": "",
+	"category": "desktop",
+	"techStack": ["C#", ".NET Framework", "UI Automation"],
+	"status": "in-progress",
+	"liveDemo": "",
+	"sourceCode": "https://github.com/WMZZwmzz/maa-watchdog",
+	"visitUrl": "",
+	"startDate": "2026-07-24",
+	"endDate": "",
+	"featured": false,
+	"tags": ["MAA", "明日方舟", "自动化"],
+	"showImage": false
+}

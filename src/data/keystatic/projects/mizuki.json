@@ -1,0 +1,16 @@
+{
+	"title": "Mizuki",
+	"description": "基于 Astro 构建的個人博客主题，集成 Keystatic 内容管理、追番、日记、项目展示、相册等模块，支持明暗主题与丰富特效",
+	"image": "",
+	"category": "web",
+	"techStack": ["Astro", "TypeScript", "Tailwind CSS", "Keystatic"],
+	"status": "in-progress",
+	"liveDemo": "",
+	"sourceCode": "https://github.com/WMZZwmzz/Mizuki",
+	"visitUrl": "https://wmzzwmzz.github.io/Mizuki/",
+	"startDate": "2026-07-05",
+	"endDate": "",
+	"featured": true,
+	"tags": ["博客", "Astro"],
+	"showImage": false
+}

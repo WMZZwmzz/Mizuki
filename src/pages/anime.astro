@@ -61,9 +61,43 @@ if (
 
 const statusMap = getStatusMap();
 const INITIAL_DISPLAY_COUNT = 24;
-const visibleAnimeList = animeList.slice(0, INITIAL_DISPLAY_COUNT);
-const hiddenAnimeList = animeList.slice(INITIAL_DISPLAY_COUNT);
-const showExtendedFilters = ANIME_MODE === "bangumi";
+// 打乱番剧顺序（确定性 Fisher-Yates：每次刷新/构建顺序一致；改 SHUFFLE_SEED 重新洗牌）
+const SHUFFLE_SEED = 1;
+const shuffledList = [...animeList];
+let seedState = SHUFFLE_SEED;
+const nextRand = () => {
+	seedState = (seedState * 1103515245 + 12345) & 0x7fffffff;
+	return seedState / 0x7fffffff;
+};
+for (let i = shuffledList.length - 1; i > 0; i--) {
+	const j = Math.floor(nextRand() * (i + 1));
+	[shuffledList[i], shuffledList[j]] = [shuffledList[j], shuffledList[i]];
+}
+const visibleAnimeList = shuffledList.slice(0, INITIAL_DISPLAY_COUNT);
+const hiddenAnimeList = shuffledList.slice(INITIAL_DISPLAY_COUNT);
+const TOP_GENRE_COUNT = 12;
+const EXTRA_GENRES = ["穿越", "萌系"];
+const EXCLUDED_GENRES = ["漫画改", "小说改", "原创"];
+const genreCounts = new Map<string, number>();
+for (const anime of animeList) {
+	for (const g of anime.genre || []) {
+		genreCounts.set(g, (genreCounts.get(g) || 0) + 1);
+	}
+}
+const genres = Array.from(genreCounts.entries())
+	.sort((a, b) => b[1] - a[1])
+	.slice(0, TOP_GENRE_COUNT)
+	.map(([g]) => g);
+for (const g of EXTRA_GENRES) {
+	if (genreCounts.has(g) && !genres.includes(g)) {
+		genres.push(g);
+	}
+}
+for (let i = genres.length - 1; i >= 0; i--) {
+	if (EXCLUDED_GENRES.includes(genres[i])) {
+		genres.splice(i, 1);
+	}
+}
 const emptyMessage = i18n(I18nKey.animeEmpty);
 ---
 
@@ -84,14 +118,7 @@ const emptyMessage = i18n(I18nKey.animeEmpty);
 				<div class="mb-6">
 					<AnimeFilters
 						filterAllLabel={i18n(I18nKey.animeFilterAll)}
-						statusWatchingLabel={i18n(I18nKey.animeStatusWatching)}
-						statusPlannedLabel={i18n(I18nKey.animeStatusPlanned)}
-						statusCompletedLabel={i18n(
-							I18nKey.animeStatusCompleted,
-						)}
-						statusOnHoldLabel={i18n(I18nKey.animeStatusOnHold)}
-						statusDroppedLabel={i18n(I18nKey.animeStatusDropped)}
-						showExtendedFilters={showExtendedFilters}
+						genres={genres}
 					/>
 				</div>
 			</div>
@@ -381,10 +408,11 @@ const emptyMessage = i18n(I18nKey.animeEmpty);
 					const itemsToShow = [];
 					const itemsToKeep = [];
 					animeItems.forEach((item) => {
-						const itemStatus =
-							item.getAttribute("data-anime-status");
+						const itemGenres = (
+							item.getAttribute("data-genres") || ""
+						).split(",");
 						const shouldShow =
-							status === "all" || itemStatus === status;
+							status === "all" || itemGenres.includes(status);
 						const isCurrentlyVisible =
 							!item.classList.contains("anime-hidden");
 

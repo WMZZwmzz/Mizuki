@@ -18,9 +18,12 @@ const OUTPUT_FILE = path.join(
 );
 
 // 状态映射: 1=想看, 2=在看, 3=已看
+// 注：未配置 BILI_SESSDATA 时接口会把整个追番列表都归到"在看"(2)，
+// 这里把 2 一并映射为 completed，使列表在博客上显示为"看过"。
+// 若后续配置了 SESSDATA 并希望区分在看/已看，把 2 改回 "watching" 即可。
 const STATUS_MAP = {
 	1: "planned",
-	2: "watching",
+	2: "completed",
 	3: "completed",
 };
 
