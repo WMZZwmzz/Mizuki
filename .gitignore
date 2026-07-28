@@ -65,3 +65,8 @@ src/data/bilibili-data.json
 *.psd~
 *.cmo3
 *.vtube.json
+
+# review / temp artifacts
+.tmp-review*
+__review_diff*
+.uploads/
