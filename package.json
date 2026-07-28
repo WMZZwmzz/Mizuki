@@ -27,6 +27,8 @@
     "new-post": "node scripts/new-post.js",
     "format": "biome format --write ./src ./scripts",
     "lint": "biome check --write ./src ./scripts",
+    "lint:ci": "biome check ./src ./scripts",
+    "check:important": "node scripts/check-important.mjs",
     "preinstall": "npx only-allow pnpm",
     "compress-fonts": "node scripts/compress-fonts/index.js"
   },

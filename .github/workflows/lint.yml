@@ -6,6 +6,8 @@ on:
   pull_request:
     branches: [ master ]
   workflow_dispatch:
+  # 供 deploy.yml 的 quality-gate 以可复用工作流方式调用，消除门禁步骤复制漂移
+  workflow_call:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -34,7 +36,13 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run Biome Check
-        run: pnpm lint
+        # 只读检查（不带 --write），避免 CI 中改写文件
+        run: pnpm lint:ci
+
+      - name: Check CSS !important
+        # docs/rule/04-css-style-guide.md 的机械化门禁：src/ 样式文件禁止新增
+        # !important（twikoo 文件豁免，存量记录在 scripts/check-important.baseline.json）
+        run: pnpm check:important
 
   typecheck:
     name: Type Check

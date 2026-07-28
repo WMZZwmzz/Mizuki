@@ -12,43 +12,21 @@ permissions:
   contents: write
 
 jobs:
-  # 质量门禁：复用 lint.yml 的 biome / typecheck / 单测检查。
-  # build-and-deploy 通过 `needs` 依赖此任务，任一检查失败都会使部署任务被跳过。
+  # 质量门禁：以可复用工作流方式直接调用 lint.yml（biome / typecheck / 单测 / 构建），
+  # 避免步骤复制漂移。build-and-deploy 通过 `needs` 依赖此任务，
+  # 任一检查失败都会使部署任务被跳过。
   quality-gate:
-    name: Quality Gate (biome + typecheck + test)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-
-      - name: Setup Node.js
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
-        with:
-          node-version: "22"  # 与 lint.yml / deploy.yml 对齐
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run Biome Check
-        run: pnpm lint
-
-      - name: Run Astro Check
-        run: pnpm astro check
-        env:
-          ENABLE_CONTENT_SYNC: false
-
-      - name: Run Unit Tests
-        run: pnpm test
+    name: Quality Gate
+    uses: ./.github/workflows/lint.yml
+    permissions:
+      contents: read
 
   build-and-deploy:
     needs: quality-gate  # 门禁未通过则不执行构建与部署
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           submodules: true  # 支持 Git Submodule 模式
           token: ${{ secrets.GITHUB_TOKEN }}  # 自动访问同账号下的私有仓库
@@ -60,7 +38,7 @@ jobs:
           run_install: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: "22"  # 当前 LTS，避免已弃用的 Node 20
 

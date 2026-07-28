@@ -4,6 +4,18 @@ Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-s
 
 **Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
+## 项目事实与命令
+
+- 包管理器：**pnpm**（`preinstall` 通过 `npx only-allow pnpm` 强制，禁用 npm/yarn）；Node 要求 **22**（`.node-version`，CI 同版本）。
+- 验证命令（提交前按需运行）：
+  - `pnpm lint` - Biome 检查并自动修复 `src/`、`scripts/`（CI 用只读的 `pnpm lint:ci`）。
+  - `pnpm type-check` - `tsc --noEmit` 类型检查。
+  - `pnpm test` - `node --test` 运行 `tests/**/*.test.*`。
+  - `pnpm build` - 完整构建（番剧数据 → keystatic 同步 → astro build → pagefind → 字体压缩）。
+- 环境开关：
+  - `ENABLE_CONTENT_SYNC=false` - 跳过外部内容仓库同步，使用本地内容（CI 中即如此设置）。
+  - `DEPLOY_TARGET=pages` - 纯静态构建（去掉 SSR adapter / keystatic 管理后台），用于 GitHub Pages。
+
 ## 1. Think Before Coding
 
 **Don't assume. Don't hide confusion. Surface tradeoffs.**
