@@ -5,11 +5,11 @@
  * 帮助用户快速设置代码内容分离
  */
 
-import { execSync } from "child_process";
-import fs from "fs";
-import path from "path";
-import readline from "readline";
-import { fileURLToPath } from "url";
+import { execSync } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
+import readline from "node:readline";
+import { fileURLToPath } from "node:url";
 import { loadEnv } from "./load-env.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -92,7 +92,7 @@ CONTENT_DIR=./content
 			},
 		});
 		console.log("内容同步成功");
-	} catch (error) {
+	} catch (_error) {
 		console.error("内容同步失败。请手动执行：pnpm run sync-content");
 	}
 

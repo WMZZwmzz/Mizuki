@@ -20,7 +20,7 @@ const targets = [
 ];
 
 async function convertToWebP(inputPath, quality = 85) {
-	const ext = extname(inputPath);
+	const _ext = extname(inputPath);
 	const outputPath = inputPath.replace(/\.(png|jpg|jpeg)$/i, ".webp");
 
 	if (fs.existsSync(outputPath)) {

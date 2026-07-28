@@ -41,7 +41,10 @@ process.on("SIGTERM", shutdown);
 console.log("🚀 Mizuki — watch + dev server\n   Ctrl+C to stop\n");
 
 // 启动 watch（后台运行）
-const watch = start("watch", "node", ["scripts/sync-keystatic.mjs", "--watch"]);
+const _watch = start("watch", "node", [
+	"scripts/sync-keystatic.mjs",
+	"--watch",
+]);
 
 // 等 watch 初始化后再启动 astro
 setTimeout(() => {

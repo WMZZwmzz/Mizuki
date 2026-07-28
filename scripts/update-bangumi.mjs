@@ -1,6 +1,6 @@
-import fs from "fs/promises";
-import path from "path";
-import { fileURLToPath } from "url";
+import fs from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const API_BASE = "https://api.bgm.tv";
 const CONFIG_PATH = path.join(
@@ -19,7 +19,7 @@ async function getUserIdFromConfig() {
 			/bangumi:\s*\{[\s\S]*?userId:\s*["']([^"']+)["']/,
 		);
 
-		if (match && match[1]) {
+		if (match?.[1]) {
 			const userId = match[1];
 			if (
 				userId === "your-bangumi-id" ||
@@ -47,11 +47,11 @@ async function getAnimeModeFromConfig() {
 			/anime:\s*\{[\s\S]*?mode:\s*["']([^"']+)["']/,
 		);
 
-		if (match && match[1]) {
+		if (match?.[1]) {
 			return match[1];
 		}
 		return "bangumi";
-	} catch (error) {
+	} catch (_error) {
 		return "bangumi";
 	}
 }
@@ -67,7 +67,7 @@ async function fetchSubjectDetail(subjectId) {
 		const response = await fetch(`${API_BASE}/v0/subjects/${subjectId}`);
 		if (!response.ok) return null;
 		return await response.json();
-	} catch (error) {
+	} catch (_error) {
 		return null;
 	}
 }

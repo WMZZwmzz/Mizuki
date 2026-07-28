@@ -1,7 +1,7 @@
+import fs from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import axios from "axios";
-import fs from "fs/promises";
-import path from "path";
-import { fileURLToPath } from "url";
 import { loadEnv } from "./load-env.js";
 
 loadEnv();
@@ -53,7 +53,7 @@ async function getUserIdFromConfig() {
 			/bilibili:\s*\{[\s\S]*?vmid:\s*["']([^"']+)["']/,
 		);
 
-		if (match && match[1]) {
+		if (match?.[1]) {
 			const vmid = match[1];
 			if (!vmid || vmid.trim() === "") {
 				console.warn("Warning: vmid in src/config/siteConfig.ts is empty.");
@@ -98,11 +98,11 @@ async function getAnimeModeFromConfig() {
 			/anime:\s*\{[\s\S]*?mode:\s*["']([^"']+)["']/,
 		);
 
-		if (match && match[1]) {
+		if (match?.[1]) {
 			return match[1];
 		}
 		return "bangumi";
-	} catch (error) {
+	} catch (_error) {
 		return "bangumi";
 	}
 }
