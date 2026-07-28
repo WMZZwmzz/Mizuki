@@ -7,12 +7,13 @@ import { i18n } from "../../../i18n/translation";
 interface Props {
 	id: string;
 	name?: string;
+	nameHref?: string;
 	isCollapsed?: boolean;
 	collapsedHeight?: string;
 	class?: string;
 	style?: string;
 }
-const { id, name, isCollapsed, collapsedHeight, style } = Astro.props;
+const { id, name, nameHref, isCollapsed, collapsedHeight, style } = Astro.props;
 const className = Astro.props.class;
 ---
 
@@ -29,7 +30,18 @@ const className = Astro.props.class;
         before:w-1 before:h-4 before:rounded-md before:bg-[var(--primary)]
         before:absolute before:left-[-16px] before:top-[5.5px]"
 			>
-				{name}
+				{
+					nameHref ? (
+						<a
+							href={nameHref}
+							class="transition hover:text-[var(--primary)]"
+						>
+							{name}
+						</a>
+					) : (
+						name
+					)
+				}
 				<slot name="title-icon" />
 			</div>
 		)

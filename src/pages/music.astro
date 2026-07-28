@@ -34,6 +34,9 @@ const subtitle = i18n(I18nKey.musicPageSubtitle);
 		</div>
 	</div>
 
+	<!-- 使用全局脚本，确保 swup 切换后仍能重新初始化 -->
+	<script is:inline src="/js/music-scroll-limit.js"></script>
+
 	<style is:global>
 		/* 音乐页面隐藏悬浮播放器 */
 		.music-player,

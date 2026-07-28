@@ -1,6 +1,7 @@
 <script lang="ts">
 import Icon from "@iconify/svelte";
 
+import { url } from "@/utils/url-utils";
 import type { Song } from "../../music-player/types";
 
 interface Props {
@@ -77,7 +78,7 @@ function handleVolumeKeyDown(event: KeyboardEvent) {
 
 <div class="flex flex-col min-w-0 flex-1 overflow-hidden">
 	<div class="title-row">
-		<span class="title-text truncate">{currentSong.title}</span>
+		<a href={url("/music/")} class="title-text truncate">{currentSong.title}</a>
 	</div>
 	<div class="artist-row">
 		<span class="artist-text truncate">{currentSong.artist}</span>
@@ -136,10 +137,20 @@ function handleVolumeKeyDown(event: KeyboardEvent) {
 		font-weight: 600;
 		color: var(--content-main);
 		line-height: 1.1;
+		display: block;
+		transition: color 150ms ease;
+	}
+
+	.title-text:hover {
+		color: var(--primary);
 	}
 
 	:global(.dark) .title-text {
 		color: rgb(245 245 245);
+	}
+
+	:global(.dark) .title-text:hover {
+		color: var(--primary);
 	}
 
 	.artist-text {
