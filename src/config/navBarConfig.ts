@@ -230,6 +230,11 @@ export const navBarConfig: NavBarConfig = {
 					url: "/timeline/",
 					icon: "material-symbols:timeline",
 				},
+				{
+					name: "Music",
+					url: "/music/",
+					icon: "material-symbols:music-note-rounded",
+				},
 			],
 		},
 	],

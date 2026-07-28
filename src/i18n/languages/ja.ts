@@ -125,6 +125,10 @@ export const ja: Translation = {
 	[Key.unknownSong]: "不明な曲",
 	[Key.unknownArtist]: "不明なアーティスト",
 
+	// 音楽ページ
+	[Key.musicPage]: "音楽",
+	[Key.musicPageSubtitle]: "",
+
 	// アルバムページ
 	[Key.albums]: "アルバム",
 	[Key.albumsSubtitle]: "人生の美しい瞬間の記録です",

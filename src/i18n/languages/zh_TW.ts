@@ -125,6 +125,10 @@ export const zh_TW: Translation = {
 	[Key.unknownSong]: "未知歌曲",
 	[Key.unknownArtist]: "未知藝術家",
 
+	// 音樂頁面
+	[Key.musicPage]: "音樂",
+	[Key.musicPageSubtitle]: "",
+
 	// 相冊頁面
 	[Key.albums]: "相冊",
 	[Key.albumsSubtitle]: "記錄生活中的美好瞬間",

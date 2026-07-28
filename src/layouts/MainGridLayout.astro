@@ -219,10 +219,12 @@ const defaultPostListLayout = siteConfig.postListLayout?.defaultMode || "list";
 						(mobileShowSidebar ||
 							tabletShowSidebar ||
 							desktopShowSidebar) && (
-							<SideBar
-								class={`${sidebarClass} ${transparentClass}`}
-								headings={headings}
-							/>
+							<div id="music-sidebar-left">
+								<SideBar
+									class={`${sidebarClass} ${transparentClass}`}
+									headings={headings}
+								/>
+							</div>
 						)
 					}
 

@@ -16,6 +16,27 @@ interface MetingSong {
 	duration?: number | string;
 	pic?: string;
 	url?: string;
+	lrc?: string;
+}
+
+/**
+ * Extract song ID from Meting API URL query param (e.g. ?id=460628799).
+ * The Meting API playlist response does NOT include a top-level `id` field;
+ * the song ID is embedded in the `url` / `lrc` URLs.
+ */
+function extractIdFromUrl(url: string | undefined): number {
+	if (!url) return 0;
+	try {
+		const u = new URL(url, "https://placeholder");
+		const idParam = u.searchParams.get("id");
+		if (idParam) {
+			const parsed = Number.parseInt(idParam, 10);
+			if (Number.isFinite(parsed) && parsed > 0) return parsed;
+		}
+	} catch {
+		// ignore parse errors
+	}
+	return 0;
 }
 
 /**
@@ -35,16 +56,22 @@ function convertMetingSong(song: MetingSong): Song {
 		dur = 0;
 	}
 
-	return {
-		id:
-			typeof song.id === "string"
+	const songId =
+		typeof song.id === "number"
+			? song.id
+			: typeof song.id === "string"
 				? Number.parseInt(song.id, 10)
-				: (song.id ?? 0),
+				: extractIdFromUrl(song.url) || extractIdFromUrl(song.lrc);
+
+	return {
+		id: songId || 0,
 		title,
 		artist,
 		cover: song.pic ?? "",
 		url: song.url ?? "",
 		duration: dur,
+		...(songId > 0 ? { lid: String(songId) } : {}),
+		...(song.lrc ? { lrc: song.lrc } : {}),
 	};
 }
 

@@ -7,7 +7,11 @@ import {
 	SKIP_ERROR_DELAY,
 	STORAGE_KEY_VOLUME,
 } from "@/components/widgets/music-player/constants";
-import type { RepeatMode, Song } from "@/components/widgets/music-player/types";
+import type {
+	LyricLine,
+	RepeatMode,
+	Song,
+} from "@/components/widgets/music-player/types";
 import { musicPlayerConfig } from "@/config";
 import { getAssetPath } from "@/utils/url-utils";
 
@@ -30,12 +34,16 @@ export interface MusicPlayerState {
 	isHidden: boolean;
 	autoplayFailed: boolean;
 	willAutoPlay: boolean;
+	lyrics: LyricLine[];
+	currentLyricIndex: number;
+	lyricsLoading: boolean;
 }
 
 class MusicPlayerStore {
 	private audio: HTMLAudioElement | null = null;
 	private state: MusicPlayerState;
 	private isInitialized = false;
+	private lyricRequestId = 0;
 	private unregisterInteraction: (() => void) | undefined;
 	private listeners = new Set<(state: MusicPlayerState) => void>();
 
@@ -63,6 +71,9 @@ class MusicPlayerStore {
 			isHidden: false,
 			autoplayFailed: false,
 			willAutoPlay: false,
+			lyrics: [],
+			currentLyricIndex: -1,
+			lyricsLoading: false,
 		};
 	}
 
@@ -128,6 +139,7 @@ class MusicPlayerStore {
 		this.audio.addEventListener("timeupdate", () => {
 			if (this.audio) {
 				this.state.currentTime = this.audio.currentTime;
+				this.updateCurrentLyricIndex(this.audio.currentTime);
 				this.broadcastState();
 			}
 		});
@@ -293,6 +305,21 @@ class MusicPlayerStore {
 		this.broadcastState();
 	}
 
+	private extractIdFromUrl(url: string | undefined): number {
+		if (!url) return 0;
+		try {
+			const u = new URL(url, "https://placeholder");
+			const idParam = u.searchParams.get("id");
+			if (idParam) {
+				const parsed = Number.parseInt(idParam, 10);
+				if (Number.isFinite(parsed) && parsed > 0) return parsed;
+			}
+		} catch {
+			// ignore parse errors
+		}
+		return 0;
+	}
+
 	private convertMetingSong(song: Record<string, unknown>): Song {
 		const name = typeof song.name === "string" ? song.name : undefined;
 		const songTitle = typeof song.title === "string" ? song.title : undefined;
@@ -312,16 +339,27 @@ class MusicPlayerStore {
 			dur = 0;
 		}
 
-		return {
-			id:
-				typeof song.id === "string"
+		// Meting API playlist response does NOT include a top-level `id` field.
+		// The song ID is embedded in the `url` / `lrc` query params (e.g. ?id=460628799).
+		const songId =
+			typeof song.id === "number"
+				? song.id
+				: typeof song.id === "string"
 					? Number.parseInt(song.id, 10)
-					: ((song.id as number | undefined) ?? 0),
+					: this.extractIdFromUrl(song.url as string | undefined) ||
+						this.extractIdFromUrl(song.lrc as string | undefined);
+
+		const lid = songId > 0 ? String(songId) : undefined;
+
+		return {
+			id: songId,
 			title,
 			artist,
 			cover: (song.pic as string | undefined) ?? "",
 			url: (song.url as string | undefined) ?? "",
 			duration: dur,
+			...(lid ? { lid } : {}),
+			...((song.lrc as string | undefined) ? { lrc: song.lrc as string } : {}),
 		};
 	}
 
@@ -360,7 +398,10 @@ class MusicPlayerStore {
 			this.audio.src = getAssetPath(song.url);
 			this.audio.load();
 		}
+		this.state.lyrics = [];
+		this.state.currentLyricIndex = -1;
 		this.broadcastState();
+		this.fetchLyrics(song);
 	}
 
 	private showError(message: string): void {
@@ -549,6 +590,144 @@ class MusicPlayerStore {
 		this.audio.currentTime = newTime;
 		this.state.currentTime = newTime;
 		this.broadcastState();
+	}
+
+	parseLRC(lrcString: string): LyricLine[] {
+		const lines = lrcString.split("\n");
+		const result: LyricLine[] = [];
+		const timeRegex = /\[(\d{1,2}):(\d{1,2})(?:\.(\d{1,3}))?\]/g;
+
+		for (const line of lines) {
+			const times: number[] = [];
+			let lastEnd = 0;
+			const matches = [...line.matchAll(timeRegex)];
+			for (const match of matches) {
+				const minutes = Number.parseInt(match[1], 10);
+				const seconds = Number.parseInt(match[2], 10);
+				const ms = match[3] ? Number.parseInt(match[3].padEnd(3, "0"), 10) : 0;
+				times.push(minutes * 60 + seconds + ms / 1000);
+				lastEnd = (match.index ?? 0) + match[0].length;
+			}
+			const text = line.slice(lastEnd).trim();
+			if (!text) {
+				continue;
+			}
+			for (const time of times) {
+				result.push({ time, text });
+			}
+		}
+
+		result.sort((a, b) => a.time - b.time);
+		return result;
+	}
+
+	private async fetchLyrics(song: Song): Promise<void> {
+		if (!musicPlayerConfig.meting_api) {
+			return;
+		}
+
+		const thisRequestId = ++this.lyricRequestId;
+		this.state.lyricsLoading = true;
+		this.broadcastState();
+
+		try {
+			let lrcText = "";
+
+			// 优先使用 song.lrc URL（Meting API 播放列表响应中的歌词 URL）
+			if (song.lrc) {
+				try {
+					const lrcRes = await fetch(song.lrc);
+					if (lrcRes.ok) {
+						const ct = lrcRes.headers.get("content-type") ?? "";
+						if (ct.includes("application/json")) {
+							const json = await lrcRes.json();
+							lrcText = typeof json.lyric === "string" ? json.lyric : "";
+						} else {
+							lrcText = await lrcRes.text();
+						}
+					}
+				} catch {
+					// ignore, fall through to Meting API
+				}
+			}
+
+			// 回退到 Meting API type=lyric 端点
+			if (!lrcText) {
+				const lyricId = song.lid ?? String(song.id);
+				if (lyricId) {
+					const meting_server = musicPlayerConfig.server ?? "netease";
+					const apiUrl = musicPlayerConfig.meting_api
+						.replace(":server", meting_server)
+						.replace(":type", "lyric")
+						.replace(":id", lyricId)
+						.replace(":auth", "")
+						.replace(":r", Date.now().toString());
+
+					try {
+						const res = await fetch(apiUrl);
+						if (res.ok) {
+							const ct = res.headers.get("content-type") ?? "";
+							if (ct.includes("application/json")) {
+								const json = await res.json();
+								lrcText = typeof json.lyric === "string" ? json.lyric : "";
+							} else {
+								const rawText = await res.text();
+								try {
+									const json = JSON.parse(rawText);
+									lrcText = typeof json.lyric === "string" ? json.lyric : "";
+								} catch {
+									lrcText = rawText;
+								}
+							}
+						}
+					} catch {
+						// ignore
+					}
+				}
+			}
+
+			if (!lrcText) {
+				throw new Error("no lyric content");
+			}
+
+			const parsed = this.parseLRC(lrcText);
+			if (this.lyricRequestId !== thisRequestId) return;
+			this.state.lyrics = parsed;
+			this.state.currentLyricIndex = -1;
+		} catch (_e) {
+			if (this.lyricRequestId !== thisRequestId) return;
+			this.state.lyrics = [];
+			this.state.currentLyricIndex = -1;
+		} finally {
+			if (this.lyricRequestId === thisRequestId) {
+				this.state.lyricsLoading = false;
+				this.broadcastState();
+			}
+		}
+	}
+
+	private updateCurrentLyricIndex(currentTime: number): void {
+		const { lyrics } = this.state;
+		if (lyrics.length === 0) {
+			return;
+		}
+
+		let lo = 0;
+		let hi = lyrics.length - 1;
+		let idx = -1;
+		while (lo <= hi) {
+			const mid = (lo + hi) >>> 1;
+			if (lyrics[mid].time <= currentTime) {
+				idx = mid;
+				lo = mid + 1;
+			} else {
+				hi = mid - 1;
+			}
+		}
+
+		if (idx !== this.state.currentLyricIndex) {
+			this.state.currentLyricIndex = idx;
+		}
 	}
 
 	private broadcastState(): void {

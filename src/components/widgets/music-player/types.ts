@@ -5,6 +5,13 @@ export interface Song {
 	cover: string;
 	url: string;
 	duration: number;
+	lid?: string;
+	lrc?: string;
+}
+
+export interface LyricLine {
+	time: number;
+	text: string;
 }
 
 export type PlayerMode = "local" | "meting";

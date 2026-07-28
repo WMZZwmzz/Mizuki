@@ -124,6 +124,10 @@ export const en: Translation = {
 	[Key.unknownSong]: "Unknown Song",
 	[Key.unknownArtist]: "Unknown Artist",
 
+	// Music Page
+	[Key.musicPage]: "Music",
+	[Key.musicPageSubtitle]: "",
+
 	// Albums Page
 	[Key.albums]: "Albums",
 	[Key.albumsSubtitle]: "Record beautiful moments in life",

@@ -1,0 +1,56 @@
+---
+import MusicPage from "@components/features/music-page/MusicPage.svelte";
+import { PageHeader } from "@components/features/page-header";
+import MainGridLayout from "@layouts/MainGridLayout.astro";
+
+import { musicPlayerConfig } from "../config";
+import I18nKey from "../i18n/i18nKey";
+import { i18n } from "../i18n/translation";
+
+if (!musicPlayerConfig.enable) {
+	return Astro.redirect("/404/");
+}
+
+const title = i18n(I18nKey.musicPage);
+const subtitle = i18n(I18nKey.musicPageSubtitle);
+---
+
+<MainGridLayout title={title} description={subtitle}>
+	<script>
+		import { loadIconify } from "../utils/icon-loader";
+
+		loadIconify().catch((error) => {
+			console.error("Failed to load Iconify:", error);
+		});
+	</script>
+
+	<div
+		class="music-page flex w-full rounded-[var(--radius-large)] overflow-hidden relative min-h-32"
+	>
+		<div class="card-base z-10 px-6 sm:px-9 py-6 relative w-full">
+			<PageHeader title={title} subtitle={subtitle} />
+
+			<MusicPage client:only="svelte" />
+		</div>
+	</div>
+
+	<style is:global>
+		/* 音乐页面隐藏悬浮播放器 */
+		.music-player,
+		.music-player-fab-anchor {
+			display: none;
+		}
+
+		/* 仅在音乐页面隐藏左右侧边栏 */
+		body:has(.music-page) #music-sidebar-left {
+			display: none;
+		}
+		body:has(.music-page) .right-sidebar-container {
+			display: none;
+		}
+		/* 让主内容区域占满全宽 */
+		body:has(.music-page) #swup-container {
+			grid-column: 1 / -1;
+		}
+	</style>
+</MainGridLayout>
