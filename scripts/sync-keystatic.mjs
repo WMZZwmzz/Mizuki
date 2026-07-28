@@ -53,6 +53,44 @@ function writeDataFile(filename, content) {
 
 // ===== 生成器 =====
 
+/**
+ * 将 Keystatic 文章 JSON 转换为带 YAML frontmatter 的 Markdown 内容（纯函数，供测试复用）
+ */
+export function buildPostMarkdown(slug, p) {
+	// 构建 YAML frontmatter
+	const fm = {};
+	fm.title = p.title || slug;
+	if (p.published) fm.published = p.published;
+	if (p.updated) fm.updated = p.updated;
+	if (p.draft) fm.draft = true;
+	if (p.pinned) fm.pinned = true;
+	if (p.description) fm.description = p.description;
+	if (p.image) fm.image = p.image;
+	if (p.tags?.length) fm.tags = p.tags;
+	if (p.category) fm.category = p.category;
+	if (p.lang) fm.lang = p.lang;
+	if (p.comment === false) fm.comment = false;
+	if (p.hideHomeContent) fm.hideHomeContent = true;
+	if (p.author) fm.author = p.author;
+	if (p.sourceLink) fm.sourceLink = p.sourceLink;
+	if (p.licenseName) fm.licenseName = p.licenseName;
+	if (p.licenseUrl) fm.licenseUrl = p.licenseUrl;
+	if (p.encrypted) fm.encrypted = true;
+	if (p.password) fm.password = p.password;
+	if (p.passwordHint) fm.passwordHint = p.passwordHint;
+	if (p.alias) fm.alias = p.alias;
+
+	const yamlLines = Object.entries(fm).map(([k, v]) => {
+		if (Array.isArray(v))
+			return `${k}: [${v.map((x) => JSON.stringify(x)).join(", ")}]`;
+		if (typeof v === "string") return `${k}: ${JSON.stringify(v)}`;
+		return `${k}: ${v}`;
+	});
+
+	const content = p.content || "";
+	return `---\n${yamlLines.join("\n")}\n---\n\n${content}\n`;
+}
+
 function generatePosts() {
 	const dir = path.join(KEYSTATIC_DIR, "posts");
 	if (!fs.existsSync(dir)) return;
@@ -73,39 +111,7 @@ function generatePosts() {
 	for (const file of jsonFiles) {
 		const slug = file.replace(/\.json$/, "");
 		const p = JSON.parse(fs.readFileSync(path.join(dir, file), "utf-8"));
-
-		// 构建 YAML frontmatter
-		const fm = {};
-		fm.title = p.title || slug;
-		if (p.published) fm.published = p.published;
-		if (p.updated) fm.updated = p.updated;
-		if (p.draft) fm.draft = true;
-		if (p.pinned) fm.pinned = true;
-		if (p.description) fm.description = p.description;
-		if (p.image) fm.image = p.image;
-		if (p.tags && p.tags.length) fm.tags = p.tags;
-		if (p.category) fm.category = p.category;
-		if (p.lang) fm.lang = p.lang;
-		if (p.comment === false) fm.comment = false;
-		if (p.hideHomeContent) fm.hideHomeContent = true;
-		if (p.author) fm.author = p.author;
-		if (p.sourceLink) fm.sourceLink = p.sourceLink;
-		if (p.licenseName) fm.licenseName = p.licenseName;
-		if (p.licenseUrl) fm.licenseUrl = p.licenseUrl;
-		if (p.encrypted) fm.encrypted = true;
-		if (p.password) fm.password = p.password;
-		if (p.passwordHint) fm.passwordHint = p.passwordHint;
-		if (p.alias) fm.alias = p.alias;
-
-		const yamlLines = Object.entries(fm).map(([k, v]) => {
-			if (Array.isArray(v))
-				return `${k}: [${v.map((x) => JSON.stringify(x)).join(", ")}]`;
-			if (typeof v === "string") return `${k}: ${JSON.stringify(v)}`;
-			return `${k}: ${v}`;
-		});
-
-		const content = p.content || "";
-		const mdContent = `---\n${yamlLines.join("\n")}\n---\n\n${content}\n`;
+		const mdContent = buildPostMarkdown(slug, p);
 
 		fs.writeFileSync(path.join(postsDir, `${slug}.md`), mdContent, "utf-8");
 	}
@@ -774,8 +780,8 @@ function startWatch() {
 
 	let debounceTimer = null;
 
-	const onChange = (eventType, filename) => {
-		if (!filename || !filename.endsWith(".json")) return;
+	const onChange = (_eventType, filename) => {
+		if (!filename?.endsWith(".json")) return;
 		clearTimeout(debounceTimer);
 		debounceTimer = setTimeout(() => {
 			const ts = new Date().toLocaleTimeString("zh-CN", { hour12: false });
@@ -819,25 +825,38 @@ function startWatch() {
 
 // ===== 主流程 =====
 
-const isWatch = process.argv.includes("--watch");
+// 仅在作为 CLI 入口执行时运行同步；被测试 import 时不触发副作用
+const isMain =
+	process.argv[1] &&
+	path.resolve(process.argv[1]).toLowerCase() ===
+		fileURLToPath(import.meta.url).toLowerCase();
 
-if (isWatch) {
-	// 初始同步
-	console.log("\n🔄 Initial Keystatic sync...\n");
-	syncAll();
-	console.log("✅ Initial sync complete!\n");
-	// 启动 watch
-	startWatch();
-} else {
-	console.log("\n🔄 Syncing Keystatic CMS data → Mizuki...\n");
-	if (!fs.existsSync(KEYSTATIC_DIR)) {
-		console.log("  ℹ No Keystatic data directory found, skipping sync");
-		console.log("  (Data will appear after editing via /keystatic/ admin)\n");
+if (isMain) {
+	const isWatch = process.argv.includes("--watch");
+
+	if (isWatch) {
+		// 初始同步
+		console.log("\n🔄 Initial Keystatic sync...\n");
+		syncAll();
+		console.log("✅ Initial sync complete!\n");
+		// 启动 watch
+		startWatch();
+	} else if (process.env.ENABLE_CONTENT_SYNC === "false") {
+		// 离线/CI 构建快速跳过：不重新生成，直接使用仓库中已有的数据文件。
+		console.log(
+			"\n⏭ Keystatic sync skipped (ENABLE_CONTENT_SYNC=false); keeping existing data files.\n",
+		);
 	} else {
-		const updated = syncAll();
-		if (updated.length === 0) {
-			console.log("  ℹ No Keystatic data to sync yet\n");
+		console.log("\n🔄 Syncing Keystatic CMS data → Mizuki...\n");
+		if (!fs.existsSync(KEYSTATIC_DIR)) {
+			console.log("  ℹ No Keystatic data directory found, skipping sync");
+			console.log("  (Data will appear after editing via /keystatic/ admin)\n");
+		} else {
+			const updated = syncAll();
+			if (updated.length === 0) {
+				console.log("  ℹ No Keystatic data to sync yet\n");
+			}
 		}
+		console.log("✅ Keystatic sync complete!\n");
 	}
-	console.log("✅ Keystatic sync complete!\n");
 }

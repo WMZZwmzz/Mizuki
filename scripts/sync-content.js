@@ -1,12 +1,20 @@
-import { execFileSync, execSync } from "child_process";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import { execFileSync, execSync } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { loadEnv } from "./load-env.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, "..");
+
+// 兜底：内容同步属于外部数据步骤，任何异常都不应阻断 dev/build。
+// 原先靠 package.json 里的 `|| true` 容错，但该写法在 Windows cmd/pwsh
+// 下不可用（cmd 无 true 命令，反而使 prebuild 失败），改为脚本内部捕获。
+process.on("uncaughtException", (err) => {
+	console.warn("内容同步出现异常，跳过并继续：", err.message);
+	process.exit(0);
+});
 
 loadEnv();
 console.log("已加载 .env 配置文件\n");
@@ -51,8 +59,10 @@ if (!fs.existsSync(CONTENT_DIR)) {
 		);
 		console.log("内容仓库克隆成功");
 	} catch (error) {
-		console.error("克隆失败：", error.message);
-		process.exit(1);
+		// 克隆失败不阻断构建：继续使用本地已有内容（与外部数据步骤隔离策略一致）
+		console.warn("克隆失败：", error.message);
+		console.warn("将继续使用本地内容");
+		process.exit(0);
 	}
 } else {
 	console.log(`内容目录已存在：${CONTENT_DIR}`);
@@ -133,7 +143,7 @@ for (const mapping of contentMappings) {
 		const relPath = path.relative(path.dirname(destPath), srcPath);
 		fs.symlinkSync(relPath, destPath, "junction");
 		console.log(`已创建符号链接：${mapping.dest} -> ${mapping.src}`);
-	} catch (error) {
+	} catch (_error) {
 		console.log(
 			`符号链接失败，改为复制内容：${mapping.src} -> ${mapping.dest}`,
 		);
