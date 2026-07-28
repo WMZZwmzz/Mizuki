@@ -88,12 +88,12 @@ export class ScrollHandler {
 	 * 节流函数
 	 * 限制函数调用频率
 	 */
-	static throttle<T extends (...args: any[]) => any>(
+	static throttle<T extends (...args: never[]) => unknown>(
 		func: T,
 		limit: number,
 	): (...args: Parameters<T>) => void {
 		let inThrottle = false;
-		return function (this: any, ...args: Parameters<T>) {
+		return function (this: unknown, ...args: Parameters<T>) {
 			if (!inThrottle) {
 				func.apply(this, args);
 				inThrottle = true;

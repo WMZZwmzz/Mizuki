@@ -6,6 +6,9 @@
 import type { SakuraConfig } from "../../types/config";
 import { initSakura, stopSakura } from "../../utils/sakura-manager";
 
+/** 含 sakura 配置的 Widget 配置聚合对象 */
+type SakuraWidgetConfigs = { sakura?: SakuraConfig };
+
 /**
  * Sakura 特效处理器类
  * 负责樱花飘落特效的初始化和状态管理
@@ -17,21 +20,21 @@ export class SakuraEffectHandler {
 	/**
 	 * 初始化 Sakura 特效
 	 */
-	init(widgetConfigs: any): void {
+	init(widgetConfigs: SakuraWidgetConfigs): void {
 		const sakuraConfig = widgetConfigs?.sakura;
-		if (!sakuraConfig || !sakuraConfig.enable) {
+		if (!sakuraConfig?.enable) {
 			return;
 		}
 
 		// 避免重复初始化
-		if ((window as any).sakuraInitialized) {
+		if (window.sakuraInitialized) {
 			return;
 		}
 
 		this.config = sakuraConfig;
 		initSakura(sakuraConfig);
 		this.initialized = true;
-		(window as any).sakuraInitialized = true;
+		window.sakuraInitialized = true;
 	}
 
 	/**
@@ -65,7 +68,7 @@ export function getSakuraEffectHandler(): SakuraEffectHandler {
 /**
  * 初始化 Sakura 特效（便捷函数）
  */
-export function setupSakura(widgetConfigs: any): void {
+export function setupSakura(widgetConfigs: SakuraWidgetConfigs): void {
 	const handler = getSakuraEffectHandler();
 	handler.init(widgetConfigs);
 }
@@ -73,7 +76,9 @@ export function setupSakura(widgetConfigs: any): void {
 /**
  * 设置 Sakura 特效初始化的 DOM 监听
  */
-export function setupSakuraOnDOMReady(widgetConfigs: any): void {
+export function setupSakuraOnDOMReady(
+	widgetConfigs: SakuraWidgetConfigs,
+): void {
 	const handler = getSakuraEffectHandler();
 
 	const init = () => {
@@ -86,19 +91,19 @@ export function setupSakuraOnDOMReady(widgetConfigs: any): void {
 		init();
 	}
 
-	if (!(window as any).__sakuraToggleListenerAdded) {
-		(window as any).__sakuraToggleListenerAdded = true;
+	if (!window.__sakuraToggleListenerAdded) {
+		window.__sakuraToggleListenerAdded = true;
 		window.addEventListener("sakura-toggle", (e: Event) => {
 			const detail = (e as CustomEvent).detail;
 			if (detail.enabled) {
 				const config = handler.getConfig() || widgetConfigs?.sakura;
-				if (config && config.enable) {
+				if (config?.enable) {
 					initSakura({ ...config, enable: true });
-					(window as any).sakuraInitialized = true;
+					window.sakuraInitialized = true;
 				}
 			} else {
 				stopSakura();
-				(window as any).sakuraInitialized = false;
+				window.sakuraInitialized = false;
 			}
 		});
 	}

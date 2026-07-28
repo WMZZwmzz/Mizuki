@@ -193,7 +193,7 @@ export class BackToTopHandler {
 
 	private updatePageOverlayScroll(scrollTop: number): void {
 		const overlay = document.getElementById("banner-page-overlay");
-		if (!overlay || !overlay.style.opacity) {
+		if (!overlay?.style.opacity) {
 			return;
 		}
 

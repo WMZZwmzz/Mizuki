@@ -86,6 +86,10 @@ declare global {
 		__mizukiRightSidebarSwupHooked?: boolean;
 		__mizukiRightSidebarManagerInitialized?: boolean;
 
+		// Sakura effect flags
+		sakuraInitialized?: boolean;
+		__sakuraToggleListenerAdded?: boolean;
+
 		// Panel manager
 		panelManager?: unknown;
 	}

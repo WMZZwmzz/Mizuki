@@ -45,14 +45,14 @@ export function initFilterHandler() {
 					sentinel.style.display = "none";
 				}
 				const initialHidden =
-					listContainer!.querySelectorAll(".initial-hidden");
-				initialHidden.forEach((el) => {
+					listContainer?.querySelectorAll(".initial-hidden");
+				initialHidden?.forEach((el) => {
 					el.classList.remove("hidden", "initial-hidden");
 				});
 
 				const status = this.getAttribute("data-status");
-				const animeItems = Array.from(listContainer!.children).filter((item) =>
-					item.hasAttribute("data-anime-status"),
+				const animeItems = Array.from(listContainer?.children ?? []).filter(
+					(item) => item.hasAttribute("data-anime-status"),
 				);
 				const itemsToHide: HTMLElement[] = [];
 				const itemsToShow: HTMLElement[] = [];

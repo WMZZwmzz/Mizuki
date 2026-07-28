@@ -25,7 +25,7 @@ export function initLastModifiedHandler(options: LastModifiedOptions) {
 		const months = Math.floor((days % 365) / 30);
 		const remainingDays = days % 30;
 
-		let result = prefix + " ";
+		let result = `${prefix} `;
 		if (years > 0) {
 			result += `${years} ${year} `;
 		}

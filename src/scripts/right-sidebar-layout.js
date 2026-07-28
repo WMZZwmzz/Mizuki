@@ -18,7 +18,7 @@ function getPostListLayout() {
 		: "list";
 }
 
-function initPageLayout(pageType) {
+function initPageLayout(_pageType) {
 	// 获取布局配置
 	const defaultPostListLayout = getPostListLayout();
 

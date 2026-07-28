@@ -166,7 +166,7 @@ class ThemeOptimizer {
 				this.hideCodeBlocksDuringTransition =
 					configCarrier.dataset.hideCodeBlocksDuringTransition === "true";
 			}
-		} catch (error) {
+		} catch (_error) {
 			this.hideCodeBlocksDuringTransition = true; // 默认启用隐藏
 		}
 	}
@@ -210,7 +210,7 @@ class ThemeOptimizer {
 
 			// 检查是否已存在这些规则，如果不存在则添加
 			if (!content.includes(".is-theme-transitioning .expressive-code")) {
-				content += "\n" + hideRule + "\n" + showRule;
+				content += `\n${hideRule}\n${showRule}`;
 				this.tempStyleSheet.textContent = content;
 			}
 		}
@@ -497,7 +497,7 @@ class ThemeOptimizer {
 		requestAnimationFrame(() => {
 			requestAnimationFrame(() => {
 				// 移除临时样式表
-				if (this.tempStyleSheet && this.tempStyleSheet.parentNode) {
+				if (this.tempStyleSheet?.parentNode) {
 					this.tempStyleSheet.remove();
 					this.tempStyleSheet = null;
 				}

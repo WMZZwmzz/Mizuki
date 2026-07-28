@@ -12,6 +12,15 @@ interface PanelConfig {
 }
 
 /**
+ * 面板管理器实例类型（来自动态导入的 panel-manager 模块）
+ */
+type PanelManagerInstance =
+	typeof import("../../utils/panel-manager.js").panelManager;
+
+/** closePanel 接受的面板 ID 类型 */
+type PanelId = Parameters<PanelManagerInstance["closePanel"]>[0];
+
+/**
  * 面板处理器类
  * 负责初始化面板的点击外部关闭功能
  */
@@ -39,7 +48,7 @@ export class PanelHandler {
 		},
 	];
 
-	private panelManager: any = null;
+	private panelManager: PanelManagerInstance | null = null;
 	private boundClickHandlers = new Map<string, (event: MouseEvent) => void>();
 
 	/**
@@ -84,7 +93,7 @@ export class PanelHandler {
 
 			// 关闭面板
 			if (this.panelManager) {
-				await this.panelManager.closePanel(panel.id);
+				await this.panelManager.closePanel(panel.id as PanelId);
 			}
 		};
 
@@ -133,7 +142,7 @@ export class PanelHandler {
 	/**
 	 * 获取面板管理器实例
 	 */
-	getPanelManager(): any {
+	getPanelManager(): PanelManagerInstance | null {
 		return this.panelManager;
 	}
 }

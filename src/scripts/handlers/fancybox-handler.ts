@@ -9,8 +9,11 @@ import {
 	getDefaultFancyboxConfig,
 } from "../core/swup-config";
 
-// Fancybox 模块类型
-type FancyboxType = any;
+// Fancybox 模块类型（仅声明本模块用到的静态方法）
+type FancyboxType = {
+	bind: (selector: string, options: object) => void;
+	unbind: (selector: string) => void;
+};
 
 /**
  * Fancybox 处理器类
@@ -86,7 +89,7 @@ export class FancyboxHandler {
 		// 绑定相册链接
 		this.Fancybox.bind(FANCYBOX_SELECTORS.albumLinks, {
 			...commonConfig,
-			source: (el: any) => {
+			source: (el: HTMLElement) => {
 				return el.getAttribute("data-src") || el.getAttribute("href");
 			},
 		});
@@ -126,12 +129,13 @@ export class FancyboxHandler {
 	 * 在页面切换前调用
 	 */
 	cleanup(): void {
-		if (!this.Fancybox) {
+		const fancybox = this.Fancybox;
+		if (!fancybox) {
 			return;
 		}
 
 		this.boundSelectors.forEach((selector) => {
-			this.Fancybox.unbind(selector);
+			fancybox.unbind(selector);
 		});
 		this.boundSelectors = [];
 	}
