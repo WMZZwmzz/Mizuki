@@ -12,6 +12,7 @@ import {
 	SWUP_SELECTORS,
 	THEME_CONFIG,
 } from "./swup-config";
+import { resolveTargetPathname } from "./swup-hooks-utils";
 
 // 钩子处理器接口
 export interface SwupHookHandlers {
@@ -79,7 +80,7 @@ export class SwupHooksManager {
 	}
 
 	private registerScrollTopHook(): void {
-		const hooks = window.swup!.hooks as {
+		const hooks = window.swup?.hooks as {
 			on: (event: string, handler: (...args: unknown[]) => void) => void;
 			off: (event: string, handler: (...args: unknown[]) => void) => void;
 			replace?: (
@@ -127,16 +128,10 @@ export class SwupHooksManager {
 	 * 处理链接点击时的初始状态
 	 */
 	private registerLinkClickHook(): void {
-		window.swup!.hooks.on("link:click", ((...args: unknown[]) => {
+		window.swup?.hooks.on("link:click", ((...args: unknown[]) => {
 			const hookArgs = args[1] as { el?: HTMLAnchorElement } | undefined;
 			const href = hookArgs?.el?.getAttribute("href") || "";
-			const targetPathname = (() => {
-				try {
-					return new URL(href, window.location.href).pathname;
-				} catch {
-					return href;
-				}
-			})();
+			const targetPathname = resolveTargetPathname(href, window.location.href);
 			const isSamePage = pathsEqual(targetPathname, window.location.pathname);
 
 			// 移除首次页面加载的延迟
@@ -160,7 +155,7 @@ export class SwupHooksManager {
 	 * 处理内容替换后的初始化
 	 */
 	private registerContentReplaceHook(): void {
-		window.swup!.hooks.on("content:replace", () => {
+		window.swup?.hooks.on("content:replace", () => {
 			this.clearCache();
 			this.syncMainContentPosition(
 				pathsEqual(window.location.pathname, url("/")),
@@ -186,7 +181,7 @@ export class SwupHooksManager {
 	 * 处理页面访问开始时的状态
 	 */
 	private registerVisitStartHook(): void {
-		window.swup!.hooks.on("visit:start", ((...args: unknown[]) => {
+		window.swup?.hooks.on("visit:start", ((...args: unknown[]) => {
 			const visit = args[0] as VisitObject;
 			// 清理上一页的 Fancybox
 			this.handlers.cleanupFancybox?.();
@@ -212,7 +207,7 @@ export class SwupHooksManager {
 	 * 处理页面视图显示
 	 */
 	private registerPageViewHook(): void {
-		window.swup!.hooks.on("page:view", () => {
+		window.swup?.hooks.on("page:view", () => {
 			this.syncMainContentPosition(
 				pathsEqual(window.location.pathname, url("/")),
 			);
@@ -235,7 +230,7 @@ export class SwupHooksManager {
 	 * 处理页面访问结束时的清理
 	 */
 	private registerVisitEndHook(): void {
-		window.swup!.hooks.on("visit:end", (() => {
+		window.swup?.hooks.on("visit:end", (() => {
 			setTimeout(() => {
 				// 隐藏高度扩展元素
 				this.extendPageHeight(true);
@@ -270,15 +265,17 @@ export class SwupHooksManager {
 		const isArticlePage = tocWrapper !== null;
 
 		if (isArticlePage) {
-			const tocElement = this.getCachedElement(SWUP_SELECTORS.tableOfContents);
-			const hasDesktopTOC =
-				tocElement && typeof (tocElement as any).init === "function";
+			// 自定义元素类型已在 global.d.ts 的 HTMLElementTagNameMap 中声明
+			const tocElement = this.getCachedElement(
+				SWUP_SELECTORS.tableOfContents,
+			) as HTMLElementTagNameMap["table-of-contents"] | null;
+			const hasDesktopTOC = tocElement && typeof tocElement.init === "function";
 			const hasMobileTOC = typeof window.mobileTOCInit === "function";
 
 			if (hasDesktopTOC || hasMobileTOC) {
 				setTimeout(() => {
 					if (hasDesktopTOC) {
-						(tocElement as any).init();
+						tocElement.init?.();
 					}
 					if (hasMobileTOC) {
 						window.mobileTOCInit?.();
