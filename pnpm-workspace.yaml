@@ -37,3 +37,10 @@ minimumReleaseAgeExclude:
   - '@img/sharp-win32-ia32@0.35.0'
   - '@img/sharp-win32-x64@0.35.0'
   - sharp@0.35.0
+
+# Keystatic CMS 后台管理界面中文翻译补丁
+# 修正 zh-CN/zh-TW 机翻词条（如「分支机构」→「分支」「节省」→「保存」）
+# 并将硬编码的英文 UI 文字翻译为中文（工具栏按钮、菜单项、对话框等约 100 处）
+# 生成方式：pnpm patch @keystatic/core → 修改 dist/ 中的翻译 → pnpm patch-commit
+patchedDependencies:
+  '@keystatic/core': patches/@keystatic__core.patch

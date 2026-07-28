@@ -1,0 +1,1093 @@
+diff --git a/dist/index-6e442145.js b/dist/index-6e442145.js
+index 0c8454da7dba2dcd68173629ef3bd924c2796753..5148f02d5f1cc32ca05b9b9cc48ed5b89eb8befb 100644
+--- a/dist/index-6e442145.js
++++ b/dist/index-6e442145.js
+@@ -1068,13 +1068,13 @@ const strings = {
+   "zh-CN": {
+     "add": `添加`,
+     "basedOn": `基于`,
+-    "branches": `分支机构`,
+-    "branchName": `分店名称`,
++    "branches": `分支`,
++    "branchName": `分支名称`,
+     "cancel": `取消`,
+-    "clear": `透明`,
+-    "collection": `收藏`,
+-    "collections": `收藏品`,
+-    "create": `创造`,
++    "clear": `清除`,
++    "collection": `集合`,
++    "collections": `集合`,
++    "create": `创建`,
+     "createPullRequest": `创建拉取请求`,
+     "dashboard": `仪表板`,
+     "currentBranch": `当前分支`,
+@@ -1083,10 +1083,10 @@ const strings = {
+     "deleteBranch": `删除分支`,
+     "edit": `编辑`,
+     "loading": `正在加载`,
+-    "newBranch": `新分行`,
++    "newBranch": `新建分支`,
+     "pullRequests": `拉取请求`,
+-    "otherBranches": `其他分行`,
+-    "save": `节省`,
++    "otherBranches": `其他分支`,
++    "save": `保存`,
+     "search": `搜索`,
+     "singletons": `单例`,
+     "singleton": `单例`,
+@@ -1100,9 +1100,9 @@ const strings = {
+     "branchName": `分店名稱`,
+     "basedOn": `基於`,
+     "cancel": `取消`,
+-    "collection": `收藏`,
++    "collection": `集合`,
+     "clear": `清除`,
+-    "collections": `收藏品`,
++    "collections": `集合`,
+     "createPullRequest": `創建拉取請求`,
+     "currentBranch": `當前分支`,
+     "create": `創造`,
+@@ -1112,8 +1112,8 @@ const strings = {
+     "delete": `刪除`,
+     "loading": `正在載入`,
+     "edit": `編輯`,
+-    "newBranch": `新分行`,
+-    "otherBranches": `其他分行`,
++    "newBranch": `新建分支`,
++    "otherBranches": `其他分支`,
+     "pullRequests": `拉取請求`,
+     "search": `搜尋`,
+     "save": `節省`,
+@@ -2754,7 +2754,7 @@ function GitMenu() {
+     t10 = deleteBranchDialogVisible && /*#__PURE__*/jsxs(AlertDialog, {
+       title: "Delete branch",
+       tone: "critical",
+-      cancelLabel: "Cancel",
++      cancelLabel: "取消",
+       primaryActionLabel: "Yes, delete",
+       autoFocusButton: "cancel",
+       onPrimaryAction: async () => {
+@@ -4923,7 +4923,7 @@ function ArrayFieldInput(props) {
+           form: formId,
+           prominence: "high",
+           type: "submit",
+-          children: "Done"
++          children: "完成"
+         })
+       });
+       $[36] = formId;
+@@ -11146,7 +11146,7 @@ const LinkElement = ({
+                 src: unlinkIcon
+               })
+             }), /*#__PURE__*/jsx(Tooltip, {
+-              children: "Unlink"
++              children: "取消链接"
+             })]
+           })]
+         })
+@@ -11198,23 +11198,23 @@ function LinkDialog$1({
+         }
+       },
+       children: [/*#__PURE__*/jsxs(Heading, {
+-        children: [props.href ? 'Edit' : 'Add', " link"]
++        children: [props.href ? '编辑' : '添加', '链接']
+       }), /*#__PURE__*/jsx(Content, {
+         children: /*#__PURE__*/jsxs(Flex, {
+           gap: "large",
+           direction: "column",
+           children: [/*#__PURE__*/jsx(TextField, {
+-            label: "Text",
++            label: "文本",
+             value: props.text,
+             isReadOnly: true
+           }), /*#__PURE__*/jsx(TextField, {
+             autoFocus: true,
+             isRequired: true,
+             onBlur: () => setTouched(true),
+-            label: "Link",
++            label: "链接",
+             onChange: setHref,
+             value: href,
+-            errorMessage: showInvalidState && 'Please provide a valid URL.'
++            errorMessage: showInvalidState && '请输入有效的 URL。'
+           })]
+         })
+       }), /*#__PURE__*/jsxs(ButtonGroup, {
+@@ -11255,7 +11255,7 @@ function LinkButton$1() {
+ const linkButton = /*#__PURE__*/jsxs(TooltipTrigger, {
+   children: [/*#__PURE__*/jsx(LinkButton$1, {}), /*#__PURE__*/jsx(Tooltip, {
+     children: /*#__PURE__*/jsx(Text, {
+-      children: "Link"
++      children: "链接"
+     })
+   })]
+ });
+@@ -11367,7 +11367,7 @@ const BlockquoteButton = () => {
+ const blockquoteButton = /*#__PURE__*/jsxs(TooltipTrigger, {
+   children: [/*#__PURE__*/jsx(BlockquoteButton, {}), /*#__PURE__*/jsxs(Tooltip, {
+     children: [/*#__PURE__*/jsx(Text, {
+-      children: "Quote"
++      children: "引用"
+     }), /*#__PURE__*/jsx(Kbd, {
+       children: '>⎵'
+     })]
+@@ -11614,7 +11614,7 @@ function CodeButton() {
+ const codeButton = /*#__PURE__*/jsxs(TooltipTrigger, {
+   children: [/*#__PURE__*/jsx(CodeButton, {}), /*#__PURE__*/jsxs(Tooltip, {
+     children: [/*#__PURE__*/jsx(Text, {
+-      children: "Code block"
++      children: "代码块"
+     }), /*#__PURE__*/jsx(Kbd, {
+       children: "```"
+     })]
+@@ -11650,7 +11650,7 @@ function CodeElement({
+             gap: "regular",
+             padding: "regular",
+             children: [/*#__PURE__*/jsx(Combobox, {
+-              "aria-label": "Language",
++              "aria-label": "语言",
+               width: "scale.2000",
+               allowsCustomValue: true // allow consumers to support other languages
+               ,
+@@ -11762,7 +11762,7 @@ function CodeElement({
+                 })
+               }), /*#__PURE__*/jsx(Tooltip, {
+                 tone: "critical",
+-                children: "Remove"
++                children: "移除"
+               })]
+             })]
+           })
+@@ -12320,7 +12320,7 @@ function FormValue$1({
+         form: formId,
+         prominence: "high",
+         type: "submit",
+-        children: "Done"
++        children: "完成"
+       })]
+     })]
+   });
+@@ -12360,7 +12360,7 @@ function DefaultToolbarWithoutChrome({
+       })
+     }), /*#__PURE__*/jsx(Tooltip, {
+       tone: "critical",
+-      children: "Remove"
++      children: "移除"
+     })]
+   });
+ }
+@@ -13049,7 +13049,7 @@ const dividerButton = /*#__PURE__*/jsxs(TooltipTrigger, {
+   delay: 200,
+   children: [/*#__PURE__*/jsx(DividerButton, {}), /*#__PURE__*/jsxs(Tooltip, {
+     children: [/*#__PURE__*/jsx(Text, {
+-      children: "Divider"
++      children: "分割线"
+     }), /*#__PURE__*/jsx(Kbd, {
+       children: "---"
+     })]
+@@ -13133,7 +13133,7 @@ const LayoutContainer = ({
+               })
+             }), /*#__PURE__*/jsx(Tooltip, {
+               tone: "critical",
+-              children: "Remove"
++              children: "移除"
+             })]
+           })]
+         })
+@@ -13270,7 +13270,7 @@ function ListButtons$1(props) {
+     if (lists.unordered.isSelected) selectedKeys.push('unordered');
+     return /*#__PURE__*/jsx(ActionGroup, {
+       flexShrink: 0,
+-      "aria-label": "Lists",
++      "aria-label": "列表",
+       selectionMode: "single",
+       buttonLabelBehavior: "hide",
+       density: "compact"
+@@ -13483,7 +13483,7 @@ function ImageFieldInput(props) {
+           }
+         }
+       },
+-      children: "Choose file"
++      children: "选择文件"
+     });
+     $[8] = props;
+     $[9] = t5;
+@@ -13498,7 +13498,7 @@ function ImageFieldInput(props) {
+         props.onChange(null);
+         onBlur();
+       },
+-      children: "Remove"
++      children: "移除"
+     });
+     $[10] = value;
+     $[11] = props;
+@@ -13544,7 +13544,7 @@ function ImageFieldInput(props) {
+   let t9;
+   if ($[19] !== isInEditor || $[20] !== value || $[21] !== props) {
+     t9 = isInEditor && value !== null && /*#__PURE__*/jsx(TextField, {
+-      label: "Filename",
++      label: "文件名",
+       onChange: filename => {
+         props.onChange({
+           ...value,
+@@ -13677,7 +13677,7 @@ const ImageElement = ({
+                     src: fileUpIcon
+                   })
+                 }), /*#__PURE__*/jsx(Tooltip, {
+-                  children: "Choose file"
++                  children: "选择文件"
+                 })]
+               })]
+             }), /*#__PURE__*/jsx(Divider, {
+@@ -13695,7 +13695,7 @@ const ImageElement = ({
+                 })
+               }), /*#__PURE__*/jsx(Tooltip, {
+                 tone: "critical",
+-                children: "Remove"
++                children: "移除"
+               })]
+             })]
+           })
+@@ -13845,7 +13845,7 @@ function ImageButton() {
+ const imageButton = /*#__PURE__*/jsxs(TooltipTrigger, {
+   children: [/*#__PURE__*/jsx(ImageButton, {}), /*#__PURE__*/jsx(Tooltip, {
+     children: /*#__PURE__*/jsx(Text, {
+-      children: "Image"
++      children: "图片"
+     })
+   })]
+ });
+@@ -14409,7 +14409,7 @@ const TableElement = ({
+                   })
+                 }), /*#__PURE__*/jsx(Tooltip, {
+                   tone: "critical",
+-                  children: "Remove"
++                  children: "移除"
+                 })]
+               })]
+             })
+@@ -14807,7 +14807,7 @@ const TableButton = () => {
+ const tableButton = /*#__PURE__*/jsxs(TooltipTrigger, {
+   children: [/*#__PURE__*/jsx(TableButton, {}), /*#__PURE__*/jsx(Tooltip, {
+     children: /*#__PURE__*/jsx(Text, {
+-      children: "Table"
++      children: "表格"
+     })
+   })]
+ });
+@@ -14998,12 +14998,12 @@ const HeadingMenu$1 = ({
+   const isDisabled = textStyles.allowedHeadingLevels.length === 0;
+   const items = useMemo(() => {
+     let resolvedItems = [{
+-      name: 'Paragraph',
++      name: '正文',
+       id: 'normal'
+     }];
+     headingLevels.forEach(level => {
+       resolvedItems.push({
+-        name: `Heading ${level}`,
++        name: `标题 ${level}`,
+         id: level.toString()
+       });
+     });
+@@ -15014,7 +15014,7 @@ const HeadingMenu$1 = ({
+     flexShrink: 0,
+     width: "scale.1700",
+     prominence: "low",
+-    "aria-label": "Text block",
++    "aria-label": "文本块",
+     items: items,
+     isDisabled: isDisabled,
+     selectedKey: selected,
+@@ -15084,7 +15084,7 @@ function InsertBlockMenu$1() {
+         })]
+       }), /*#__PURE__*/jsxs(Tooltip, {
+         children: [/*#__PURE__*/jsx(Text, {
+-          children: "Insert"
++          children: "插入"
+         }), /*#__PURE__*/jsx(Kbd, {
+           children: "/"
+         })]
+@@ -15102,38 +15102,38 @@ function InsertBlockMenu$1() {
+ }
+ const inlineMarks = [{
+   key: 'bold',
+-  label: 'Bold',
++  label: '加粗',
+   icon: boldIcon,
+   shortcut: `B`
+ }, {
+   key: 'italic',
+-  label: 'Italic',
++  label: '斜体',
+   icon: italicIcon,
+   shortcut: `I`
+ }, {
+   key: 'underline',
+-  label: 'Underline',
++  label: '下划线',
+   icon: underlineIcon,
+   shortcut: `U`
+ }, {
+   key: 'strikethrough',
+-  label: 'Strikethrough',
++  label: '删除线',
+   icon: strikethroughIcon
+ }, {
+   key: 'code',
+-  label: 'Code',
++  label: '行内代码',
+   icon: codeIcon
+ }, {
+   key: 'superscript',
+-  label: 'Superscript',
++  label: '上标',
+   icon: superscriptIcon
+ }, {
+   key: 'subscript',
+-  label: 'Subscript',
++  label: '下标',
+   icon: subscriptIcon
+ }, {
+   key: 'clearFormatting',
+-  label: 'Clear formatting',
++  label: '清除格式',
+   icon: removeFormattingIcon
+ }];
+ function InlineMarks$1({
+@@ -15249,7 +15249,7 @@ const HeadingElement = ({
+                 })
+               }), /*#__PURE__*/jsx(Tooltip, {
+                 tone: "critical",
+-                children: "Remove"
++                children: "移除"
+               })]
+             })]
+           })
+@@ -15259,7 +15259,7 @@ const HeadingElement = ({
+       element: element,
+       schema: documentFeatures.formatting.headings.schema,
+       isOpen: dialogOpen,
+-      nodeLabel: "Heading",
++      nodeLabel: "标题",
+       onDismiss: () => setDialogOpen(false)
+     })]
+   });
+@@ -15394,7 +15394,7 @@ function getOptions(toolbarState, componentBlocks) {
+       insertComponentBlock(editor, componentBlocks, key);
+     }
+   })), ...toolbarState.textStyles.allowedHeadingLevels.filter(a => toolbarState.editorDocumentFeatures.formatting.headings.levels.includes(a)).map(level => ({
+-    label: `Heading ${level}`,
++    label: `标题 ${level}`,
+     insert(editor) {
+       insertNodesButReplaceIfSelectionIsAtEmptyParagraphOrHeading(editor, {
+         type: 'heading',
+@@ -15405,7 +15405,7 @@ function getOptions(toolbarState, componentBlocks) {
+       });
+     }
+   })), !toolbarState.blockquote.isDisabled && toolbarState.editorDocumentFeatures.formatting.blockTypes.blockquote && {
+-    label: 'Blockquote',
++    label: '引用块',
+     insert(editor) {
+       insertNodesButReplaceIfSelectionIsAtEmptyParagraphOrHeading(editor, {
+         type: 'blockquote',
+@@ -15415,7 +15415,7 @@ function getOptions(toolbarState, componentBlocks) {
+       });
+     }
+   }, !toolbarState.code.isDisabled && toolbarState.editorDocumentFeatures.formatting.blockTypes.code && {
+-    label: 'Code block',
++    label: '代码块',
+     insert(editor) {
+       insertNodesButReplaceIfSelectionIsAtEmptyParagraphOrHeading(editor, {
+         type: 'code',
+@@ -15425,7 +15425,7 @@ function getOptions(toolbarState, componentBlocks) {
+       });
+     }
+   }, !!toolbarState.editorDocumentFeatures.images && {
+-    label: 'Image',
++    label: '图片',
+     async insert(editor) {
+       const image = await getUploadedImage();
+       if (image) {
+@@ -15441,10 +15441,10 @@ function getOptions(toolbarState, componentBlocks) {
+       }
+     }
+   }, !!toolbarState.editorDocumentFeatures.tables && {
+-    label: 'Table',
++    label: '表格',
+     insert: insertTable$1
+   }, !toolbarState.dividers.isDisabled && toolbarState.editorDocumentFeatures.dividers && {
+-    label: 'Divider',
++    label: '分割线',
+     insert(editor) {
+       insertNodesButReplaceIfSelectionIsAtEmptyParagraphOrHeading(editor, {
+         type: 'divider',
+@@ -19066,7 +19066,7 @@ function DocumentFieldInput$1(props) {
+ 
+ const textDecoder$1 = new TextDecoder();
+ const defaultAltField$1 = text({
+-  label: 'Alt text',
++  label: '替代文本',
+   description: 'This text will be used by screen readers and search engines.'
+ });
+ const emptyTitleField$1 = basicFormFieldWithSimpleReaderParse({
+@@ -19091,7 +19091,7 @@ const emptyTitleField$1 = basicFormFieldWithSimpleReaderParse({
+       value
+     };
+   },
+-  label: 'Title'
++  label: '标题'
+ });
+ function normaliseDocumentFeatures(config) {
+   var _config$formatting, _formatting$alignment, _formatting$alignment2, _formatting$blockType, _formatting$inlineMar, _formatting$inlineMar2, _formatting$inlineMar3, _formatting$inlineMar4, _formatting$inlineMar5, _formatting$inlineMar6, _formatting$inlineMar7, _formatting$inlineMar8, _formatting$listTypes, _formatting$listTypes2, _imagesConfig$schema$, _imagesConfig$schema, _imagesConfig$schema$2, _imagesConfig$schema2;
+@@ -19872,7 +19872,7 @@ function FormValue(props) {
+         form: formId,
+         prominence: "high",
+         type: "submit",
+-        children: "Done"
++        children: "完成"
+       })]
+     })]
+   });
+@@ -20231,7 +20231,7 @@ function BlockWrapper(props) {
+       UNSAFE_className: css({
+         borderBottomRightRadius: 0
+       }),
+-      children: "Edit"
++      children: "编辑"
+     });
+     $[11] = props.component.schema;
+     $[12] = t9;
+@@ -20616,10 +20616,10 @@ function getCustomNodeSpecs(components) {
+                     return true;
+                   });
+                 },
+-                children: "Insert"
++                children: "插入"
+               }) : /*#__PURE__*/jsxs(MenuTrigger, {
+                 children: [/*#__PURE__*/jsx(Button, {
+-                  children: "Insert"
++                  children: "插入"
+                 }), /*#__PURE__*/jsx(Menu, {
+                   onAction: key => {
+                     runCommand((state, dispatch) => {
+@@ -20833,8 +20833,8 @@ const nodeSpecs = {
+       return blockquoteDOM;
+     },
+     insertMenu: {
+-      label: 'Blockquote',
+-      description: 'Insert a quote or citation',
++      label: '引用块',
++      description: '插入引用或引文',
+       icon: quoteIcon,
+       command: wrapIn
+     }
+@@ -20848,8 +20848,8 @@ const nodeSpecs = {
+       return dividerDOM;
+     },
+     insertMenu: {
+-      label: 'Divider',
+-      description: 'A horizontal line to separate content',
++      label: '分割线',
++      description: '用于分隔内容的水平分割线',
+       icon: separatorHorizontalIcon,
+       command: insertNode
+     }
+@@ -20865,8 +20865,8 @@ const nodeSpecs = {
+       }
+     },
+     insertMenu: {
+-      label: 'Code block',
+-      description: 'Display code with syntax highlighting',
++      label: '代码块',
++      description: '以语法高亮展示代码',
+       icon: fileCodeIcon,
+       command: setBlockType
+     },
+@@ -20910,8 +20910,8 @@ const nodeSpecs = {
+       return ulDOM;
+     },
+     insertMenu: {
+-      label: 'Bullet list',
+-      description: 'Insert an unordered list',
++      label: '无序列表',
++      description: '插入无序列表',
+       icon: listIcon,
+       command: toggleList
+     }
+@@ -20947,8 +20947,8 @@ const nodeSpecs = {
+       }, 0];
+     },
+     insertMenu: {
+-      label: 'Ordered list',
+-      description: 'Insert an ordered list',
++      label: '有序列表',
++      description: '插入有序列表',
+       icon: listOrderedIcon,
+       command: toggleList
+     }
+@@ -20967,8 +20967,8 @@ const nodeSpecs = {
+   table: {
+     content: 'table_row+',
+     insertMenu: {
+-      label: 'Table',
+-      description: 'Insert a table',
++      label: '表格',
++      description: '插入表格',
+       icon: tableIcon,
+       command: insertTable
+     },
+@@ -21052,8 +21052,8 @@ const nodeSpecs = {
+       }
+     },
+     insertMenu: {
+-      label: 'Image',
+-      description: 'Insert an image',
++      label: '图片',
++      description: '插入图片',
+       icon: imageIcon,
+       command: nodeType => {
+         return (state, dispatch, view) => {
+@@ -21607,7 +21607,7 @@ function ImageToolbarButton() {
+   let t1;
+   if ($[1] === Symbol.for("react.memo_cache_sentinel")) {
+     t1 = /*#__PURE__*/jsx(ToolbarButton, {
+-      "aria-label": "Image",
++      "aria-label": "图片",
+       command: t0,
+       children: /*#__PURE__*/jsx(Icon, {
+         src: imageIcon
+@@ -21622,7 +21622,7 @@ function ImageToolbarButton() {
+     t2 = /*#__PURE__*/jsxs(TooltipTrigger, {
+       children: [t1, /*#__PURE__*/jsx(Tooltip, {
+         children: /*#__PURE__*/jsx(Text, {
+-          children: "Image"
++          children: "图片"
+         })
+       })]
+     });
+@@ -22387,7 +22387,7 @@ function LinkToolbar(props) {
+   let t11;
+   if ($[19] === Symbol.for("react.memo_cache_sentinel")) {
+     t11 = /*#__PURE__*/jsx(Tooltip, {
+-      children: "Unlink"
++      children: "取消链接"
+     });
+     $[19] = t11;
+   } else {
+@@ -22521,11 +22521,11 @@ function LinkDialog(t0) {
+   } else {
+     t3 = $[11];
+   }
+-  const t4 = props.href ? "Edit" : "Add";
++  const t4 = props.href ? "编辑" : "添加";
+   let t5;
+   if ($[12] !== t4) {
+     t5 = /*#__PURE__*/jsxs(Heading, {
+-      children: [t4, " link"]
++      children: [t4, "链接"]
+     });
+     $[12] = t4;
+     $[13] = t5;
+@@ -22535,7 +22535,7 @@ function LinkDialog(t0) {
+   let t6;
+   if ($[14] !== props.text) {
+     t6 = /*#__PURE__*/jsx(TextField, {
+-      label: "Text",
++      label: "文本",
+       value: props.text,
+       isReadOnly: true
+     });
+@@ -22551,14 +22551,14 @@ function LinkDialog(t0) {
+   } else {
+     t7 = $[16];
+   }
+-  const t8 = showInvalidState && "Please provide a valid URL.";
++  const t8 = showInvalidState && "请输入有效的 URL。";
+   let t9;
+   if ($[17] !== href || $[18] !== t8) {
+     t9 = /*#__PURE__*/jsx(TextField, {
+       autoFocus: true,
+       isRequired: true,
+       onBlur: t7,
+-      label: "Link",
++      label: "链接",
+       onChange: setHref,
+       value: href,
+       errorMessage: t8
+@@ -22752,7 +22752,7 @@ function ImagePopover(props) {
+   let t7;
+   if ($[12] === Symbol.for("react.memo_cache_sentinel")) {
+     t7 = /*#__PURE__*/jsx(Tooltip, {
+-      children: "Choose file"
++      children: "选择文件"
+     });
+     $[12] = t7;
+   } else {
+@@ -22831,7 +22831,7 @@ function ImagePopover(props) {
+   if ($[26] === Symbol.for("react.memo_cache_sentinel")) {
+     t14 = /*#__PURE__*/jsx(Tooltip, {
+       tone: "critical",
+-      children: "Remove"
++      children: "移除"
+     });
+     $[26] = t14;
+   } else {
+@@ -23057,7 +23057,7 @@ function ExtraAttributesMenuItem(props) {
+   if ($[4] === Symbol.for("react.memo_cache_sentinel")) {
+     t4 = /*#__PURE__*/jsxs(TooltipTrigger, {
+       children: [t3, /*#__PURE__*/jsx(Tooltip, {
+-        children: "Edit"
++        children: "编辑"
+       })]
+     });
+     $[4] = t4;
+@@ -23158,7 +23158,7 @@ const popoverComponents = {
+           })
+         }), /*#__PURE__*/jsx(Tooltip, {
+           tone: "critical",
+-          children: "Remove"
++          children: "移除"
+         })]
+       })]
+     });
+@@ -23204,7 +23204,7 @@ const popoverComponents = {
+           })
+         }), /*#__PURE__*/jsx(Tooltip, {
+           tone: "critical",
+-          children: "Remove"
++          children: "移除"
+         })]
+       })]
+     });
+@@ -23216,7 +23216,7 @@ const popoverComponents = {
+       gap: "regular",
+       padding: "regular",
+       children: [/*#__PURE__*/jsx(ExtraAttributesMenuItem, {
+-        name: "Heading",
++        name: "标题",
+         schema: schema.config.heading.schema,
+         pos: props.pos,
+         serialized: props.node.attrs.props
+@@ -23238,7 +23238,7 @@ const popoverComponents = {
+           })
+         }), /*#__PURE__*/jsx(Tooltip, {
+           tone: "critical",
+-          children: "Remove"
++          children: "移除"
+         })]
+       })]
+     });
+@@ -23440,7 +23440,7 @@ function InlineComponentPopover(props) {
+   if ($[19] === Symbol.for("react.memo_cache_sentinel")) {
+     t5 = /*#__PURE__*/jsxs(TooltipTrigger, {
+       children: [t4, /*#__PURE__*/jsx(Tooltip, {
+-        children: "Edit"
++        children: "编辑"
+       })]
+     });
+     $[19] = t5;
+@@ -23489,7 +23489,7 @@ function InlineComponentPopover(props) {
+   if ($[27] === Symbol.for("react.memo_cache_sentinel")) {
+     t9 = /*#__PURE__*/jsx(Tooltip, {
+       tone: "critical",
+-      children: "Remove"
++      children: "移除"
+     });
+     $[27] = t9;
+   } else {
+@@ -23625,7 +23625,7 @@ const CustomMarkPopover = props => {
+   if ($[6] === Symbol.for("react.memo_cache_sentinel")) {
+     t5 = /*#__PURE__*/jsxs(TooltipTrigger, {
+       children: [t4, /*#__PURE__*/jsx(Tooltip, {
+-        children: "Edit"
++        children: "编辑"
+       })]
+     });
+     $[6] = t5;
+@@ -23675,7 +23675,7 @@ const CustomMarkPopover = props => {
+   if ($[15] === Symbol.for("react.memo_cache_sentinel")) {
+     t9 = /*#__PURE__*/jsx(Tooltip, {
+       tone: "critical",
+-      children: "Remove"
++      children: "移除"
+     });
+     $[15] = t9;
+   } else {
+@@ -23943,7 +23943,7 @@ function LinkButton(props) {
+   return useMemo(() => /*#__PURE__*/jsxs(Fragment, {
+     children: [/*#__PURE__*/jsxs(TooltipTrigger, {
+       children: [/*#__PURE__*/jsx(ToolbarButton, {
+-        "aria-label": "Divider",
++        "aria-label": "链接",
+         command: (state_0, dispatch) => {
+           const aroundFrom = markAround(state_0.selection.$from, props.link);
+           const aroundTo = markAround(state_0.selection.$to, props.link);
+@@ -23969,7 +23969,7 @@ function LinkButton(props) {
+         })
+       }), /*#__PURE__*/jsxs(Tooltip, {
+         children: [/*#__PURE__*/jsx(Text, {
+-          children: "Link"
++          children: "链接"
+         }), /*#__PURE__*/jsx(Kbd, {
+           meta: true,
+           children: "K"
+@@ -24002,12 +24002,12 @@ const Toolbar = /*#__PURE__*/memo(function Toolbar(props) {
+       children: [nodes.heading && /*#__PURE__*/jsx(HeadingMenu, {
+         headingType: nodes.heading
+       }), /*#__PURE__*/jsxs(EditorToolbar, {
+-        "aria-label": "Formatting options",
++        "aria-label": "格式选项",
+         children: [/*#__PURE__*/jsx(EditorToolbarSeparator, {}), /*#__PURE__*/jsx(InlineMarks, {}), /*#__PURE__*/jsx(EditorToolbarSeparator, {}), /*#__PURE__*/jsx(ListButtons, {}), /*#__PURE__*/jsx(EditorToolbarSeparator, {}), /*#__PURE__*/jsxs(EditorToolbarGroup, {
+-          "aria-label": "Blocks",
++          "aria-label": "块级元素",
+           children: [nodes.divider && /*#__PURE__*/jsxs(TooltipTrigger, {
+             children: [/*#__PURE__*/jsx(ToolbarButton, {
+-              "aria-label": "Divider",
++              "aria-label": "分割线",
+               command: insertNode(nodes.divider),
+               isSelected: typeInSelection(nodes.divider),
+               children: /*#__PURE__*/jsx(Icon, {
+@@ -24015,7 +24015,7 @@ const Toolbar = /*#__PURE__*/memo(function Toolbar(props) {
+               })
+             }), /*#__PURE__*/jsxs(Tooltip, {
+               children: [/*#__PURE__*/jsx(Text, {
+-                children: "Divider"
++                children: "分割线"
+               }), /*#__PURE__*/jsx(Kbd, {
+                 children: "---"
+               })]
+@@ -24024,7 +24024,7 @@ const Toolbar = /*#__PURE__*/memo(function Toolbar(props) {
+             link: marks.link
+           }), nodes.blockquote && /*#__PURE__*/jsxs(TooltipTrigger, {
+             children: [/*#__PURE__*/jsx(ToolbarButton, {
+-              "aria-label": "Quote",
++              "aria-label": "引用",
+               command: (state, dispatch) => {
+                 const hasQuote = typeInSelection(nodes.blockquote)(state);
+                 if (hasQuote) {
+@@ -24050,14 +24050,14 @@ const Toolbar = /*#__PURE__*/memo(function Toolbar(props) {
+               })
+             }), /*#__PURE__*/jsxs(Tooltip, {
+               children: [/*#__PURE__*/jsx(Text, {
+-                children: "Quote"
++                children: "引用"
+               }), /*#__PURE__*/jsx(Kbd, {
+                 children: '>⎵'
+               })]
+             })]
+           }), nodes.code_block && /*#__PURE__*/jsxs(TooltipTrigger, {
+             children: [/*#__PURE__*/jsx(ToolbarButton, {
+-              "aria-label": "Code block",
++              "aria-label": "代码块",
+               command: toggleCodeBlock(nodes.code_block, nodes.paragraph),
+               isSelected: typeInSelection(nodes.code_block),
+               children: /*#__PURE__*/jsx(Icon, {
+@@ -24065,21 +24065,21 @@ const Toolbar = /*#__PURE__*/memo(function Toolbar(props) {
+               })
+             }), /*#__PURE__*/jsxs(Tooltip, {
+               children: [/*#__PURE__*/jsx(Text, {
+-                children: "Code block"
++                children: "代码块"
+               }), /*#__PURE__*/jsx(Kbd, {
+                 children: "```"
+               })]
+             })]
+           }), nodes.table && /*#__PURE__*/jsxs(TooltipTrigger, {
+             children: [/*#__PURE__*/jsx(ToolbarButton, {
+-              "aria-label": "Table",
++              "aria-label": "表格",
+               command: insertTable(nodes.table),
+               children: /*#__PURE__*/jsx(Icon, {
+                 src: tableIcon
+               })
+             }), /*#__PURE__*/jsx(Tooltip, {
+               children: /*#__PURE__*/jsx(Text, {
+-                children: "Table"
++                children: "表格"
+               })
+             })]
+           }), nodes.image && /*#__PURE__*/jsx(ImageToolbarButton, {})]
+@@ -24210,12 +24210,12 @@ const HeadingMenu = props => {
+   } = useEditorSchema();
+   const items = useMemo(() => {
+     let resolvedItems = [{
+-      name: 'Paragraph',
++      name: '正文',
+       id: 'normal'
+     }];
+     config.heading.levels.forEach(level => {
+       resolvedItems.push({
+-        name: `Heading ${level}`,
++        name: `标题 ${level}`,
+         id: level.toString()
+       });
+     });
+@@ -24228,7 +24228,7 @@ const HeadingMenu = props => {
+     flexShrink: 0,
+     width: "scale.1700",
+     prominence: "low",
+-    "aria-label": "Text block",
++    "aria-label": "文本块",
+     items: items,
+     isDisabled: menuState === 'disabled',
+     selectedKey: menuState === 'disabled' ? 'normal' : menuState.toString(),
+@@ -24268,7 +24268,7 @@ function InsertBlockMenu() {
+         })]
+       }), /*#__PURE__*/jsxs(Tooltip, {
+         children: [/*#__PURE__*/jsx(Text, {
+-          children: "Insert"
++          children: "插入"
+         }), /*#__PURE__*/jsx(Kbd, {
+           children: "/"
+         })]
+@@ -24307,7 +24307,7 @@ function InlineMarks() {
+     if (schema.marks.bold) {
+       marks.push({
+         key: 'bold',
+-        label: 'Bold',
++        label: '加粗',
+         icon: boldIcon,
+         shortcut: `B`,
+         command: toggleMark(schema.marks.bold),
+@@ -24317,7 +24317,7 @@ function InlineMarks() {
+     if (schema.marks.italic) {
+       marks.push({
+         key: 'italic',
+-        label: 'Italic',
++        label: '斜体',
+         icon: italicIcon,
+         shortcut: `I`,
+         command: toggleMark(schema.marks.italic),
+@@ -24327,7 +24327,7 @@ function InlineMarks() {
+     if (schema.marks.strikethrough) {
+       marks.push({
+         key: 'strikethrough',
+-        label: 'Strikethrough',
++        label: '删除线',
+         icon: strikethroughIcon,
+         command: toggleMark(schema.marks.strikethrough),
+         isSelected: isMarkActive(schema.marks.strikethrough)
+@@ -24336,7 +24336,7 @@ function InlineMarks() {
+     if (schema.marks.code) {
+       marks.push({
+         key: 'code',
+-        label: 'Code',
++        label: '行内代码',
+         icon: codeIcon,
+         command: toggleMark(schema.marks.code),
+         isSelected: isMarkActive(schema.marks.code)
+@@ -24354,7 +24354,7 @@ function InlineMarks() {
+     }
+     marks.push({
+       key: 'clearFormatting',
+-      label: 'Clear formatting',
++      label: '清除格式',
+       icon: removeFormattingIcon,
+       command: removeAllMarks(),
+       isSelected: () => false
+@@ -24365,7 +24365,7 @@ function InlineMarks() {
+   const disabledKeys = useMemoStringified(inlineMarks.filter(val_1 => !val_1.command(state)).map(val_2 => val_2.key));
+   return useMemo(() => {
+     return /*#__PURE__*/jsx(EditorToolbarGroup, {
+-      "aria-label": "Text formatting",
++      "aria-label": "文本格式",
+       value: selectedKeys,
+       onChange: key => {
+         const mark_0 = inlineMarks.find(mark => mark.key === key);
+@@ -24419,12 +24419,12 @@ function ListButtons() {
+   const activeListType = getActiveListType(state, schema);
+   const items = useMemo(() => {
+     return [!!schema.nodes.unordered_list && {
+-      label: 'Bullet list',
++      label: '无序列表',
+       key: 'unordered_list',
+       shortcut: '-',
+       icon: listIcon
+     }, !!schema.nodes.ordered_list && {
+-      label: 'Numbered list',
++      label: '有序列表',
+       key: 'ordered_list',
+       shortcut: '1.',
+       icon: listOrderedIcon
+@@ -24438,7 +24438,7 @@ function ListButtons() {
+       return null;
+     }
+     return /*#__PURE__*/jsx(EditorToolbarGroup, {
+-      "aria-label": "Lists",
++      "aria-label": "列表",
+       value: activeListType,
+       onChange: key => {
+         const format = key;
+@@ -27497,7 +27497,7 @@ function createEditorStateFromYJS(schema, yXmlFragment, awareness) {
+ }
+ 
+ const defaultAltField = text({
+-  label: 'Alt text',
++  label: '替代文本',
+   description: 'This text will be used by screen readers and search engines.'
+ });
+ const emptyTitleField = basicFormFieldWithSimpleReaderParse({
+@@ -27522,7 +27522,7 @@ const emptyTitleField = basicFormFieldWithSimpleReaderParse({
+       value
+     };
+   },
+-  label: 'Title'
++  label: '标题'
+ });
+ function editorOptionsToConfig(options) {
+   var _options$bold, _options$italic, _options$strikethroug, _options$code, _options$blockquote, _options$orderedList, _options$unorderedLis, _options$table, _options$link, _options$divider;
+diff --git a/dist/keystatic-core-ui.js b/dist/keystatic-core-ui.js
+index 6e5329abc87cf12cde7fa54b7035add20bd53499..73d9738d456b3f03fe3f5dc9c1aef1235ec0906d 100644
+--- a/dist/keystatic-core-ui.js
++++ b/dist/keystatic-core-ui.js
+@@ -3710,7 +3710,7 @@ function HeaderActions(props) {
+   if ($[0] === Symbol.for("react.memo_cache_sentinel")) {
+     t1 = {
+       key: "reset",
+-      label: "Reset changes",
++      label: "重置更改",
+       icon: historyIcon
+     };
+     $[0] = t1;
+@@ -3721,7 +3721,7 @@ function HeaderActions(props) {
+   if ($[1] === Symbol.for("react.memo_cache_sentinel")) {
+     t2 = {
+       key: "delete",
+-      label: "Delete entry\u2026",
++      label: "删除条目\u2026",
+       icon: trash2Icon
+     };
+     $[1] = t2;
+@@ -3732,7 +3732,7 @@ function HeaderActions(props) {
+   if ($[2] === Symbol.for("react.memo_cache_sentinel")) {
+     t3 = {
+       key: "copy",
+-      label: "Copy entry",
++      label: "复制条目",
+       icon: clipboardCopyIcon
+     };
+     $[2] = t3;
+@@ -3743,7 +3743,7 @@ function HeaderActions(props) {
+   if ($[3] === Symbol.for("react.memo_cache_sentinel")) {
+     t4 = {
+       key: "paste",
+-      label: "Paste entry",
++      label: "粘贴条目",
+       icon: clipboardPasteIcon
+     };
+     $[3] = t4;
+@@ -3754,7 +3754,7 @@ function HeaderActions(props) {
+   if ($[4] === Symbol.for("react.memo_cache_sentinel")) {
+     t5 = {
+       key: "duplicate",
+-      label: "Duplicate entry\u2026",
++      label: "创建副本\u2026",
+       icon: copyPlusIcon
+     };
+     $[4] = t5;
+@@ -3836,11 +3836,11 @@ function HeaderActions(props) {
+           borderRadius: "full",
+           children: /*#__PURE__*/jsx(Text, {
+             visuallyHidden: true,
+-            children: "Unsaved"
++            children: "未保存"
+           })
+         }) : /*#__PURE__*/jsx(Badge, {
+           tone: "pending",
+-          children: "Unsaved"
++          children: "未保存"
+         });
+         $[13] = isBelowDesktop;
+         $[14] = t7;
+@@ -3994,13 +3994,13 @@ function HeaderActions(props) {
+   let t17;
+   if ($[38] !== deleteAlertIsOpen || $[39] !== onDelete) {
+     t17 = deleteAlertIsOpen && /*#__PURE__*/jsx(AlertDialog, {
+-      title: "Delete entry",
++      title: "删除条目",
+       tone: "critical",
+-      cancelLabel: "Cancel",
+-      primaryActionLabel: "Yes, delete",
++      cancelLabel: "取消",
++      primaryActionLabel: "确认删除",
+       autoFocusButton: "cancel",
+       onPrimaryAction: onDelete,
+-      children: "Are you sure? This action cannot be undone."
++      children: "确定要删除吗？此操作无法撤销。"
+     });
+     $[38] = deleteAlertIsOpen;
+     $[39] = onDelete;
+@@ -4031,7 +4031,7 @@ function HeaderActions(props) {
+     t20 = duplicateAlertIsOpen && /*#__PURE__*/jsx(AlertDialog, {
+       title: "Save and duplicate entry",
+       tone: "neutral",
+-      cancelLabel: "Cancel",
++      cancelLabel: "取消",
+       primaryActionLabel: "Save and duplicate",
+       autoFocusButton: "primary",
+       onPrimaryAction: onDuplicate,
+@@ -5613,11 +5613,11 @@ const menuActions = [{
+   icon: historyIcon
+ }, {
+   key: 'copy',
+-  label: 'Copy entry',
++  label: '复制条目',
+   icon: clipboardCopyIcon
+ }, {
+   key: 'paste',
+-  label: 'Paste entry',
++  label: '粘贴条目',
+   icon: clipboardPasteIcon
+ }];
+ 
+@@ -6519,7 +6519,7 @@ function SingletonPageInner(props) {
+   if ($[14] === Symbol.for("react.memo_cache_sentinel")) {
+     t5 = {
+       key: "copy",
+-      label: "Copy entry",
++      label: "复制条目",
+       icon: clipboardCopyIcon
+     };
+     $[14] = t5;
+@@ -6530,7 +6530,7 @@ function SingletonPageInner(props) {
+   if ($[15] === Symbol.for("react.memo_cache_sentinel")) {
+     t6 = {
+       key: "paste",
+-      label: "Paste entry",
++      label: "粘贴条目",
+       icon: clipboardPasteIcon
+     };
+     $[15] = t6;
+@@ -6672,7 +6672,7 @@ function SingletonPageInner(props) {
+       alignSelf: "center"
+     }) : props.hasChanged && /*#__PURE__*/jsx(Badge, {
+       tone: "pending",
+-      children: "Unsaved"
++      children: "未保存"
+     });
+     $[39] = props;
+     $[40] = singletonConfig;
+diff --git a/dist/keystatic-core.js b/dist/keystatic-core.js
+index 589c4aba6d3e869e42e24d9a5c2c57844ed0e9e9..8aad6a6da94dab42a5a4064d92b78f396150deef 100644
+--- a/dist/keystatic-core.js
++++ b/dist/keystatic-core.js
+@@ -2908,7 +2908,7 @@ function SlugFieldInput(props) {
+         gap: "regular",
+         direction: "column",
+         children: [/*#__PURE__*/jsxs(ActionButton, {
+-          "aria-label": "regenerate",
++          "aria-label": "重新生成",
+           onPress: () => {
+             props.onChange({
+               name: props.value.name,
+@@ -2928,7 +2928,7 @@ function SlugFieldInput(props) {
+                 display: 'none'
+               }
+             }),
+-            children: "Regenerate"
++            children: "重新生成"
+           })]
+         }), slugErrorMessage !== undefined && /*#__PURE__*/jsx(Box, {
+           height: "element.xsmall"

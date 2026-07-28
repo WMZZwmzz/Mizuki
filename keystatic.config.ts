@@ -55,6 +55,8 @@ const TIMELINE_TYPES = [
 // ===== 配置 =====
 
 export default config({
+	// 后台界面中文化（Save 按钮、编辑器工具栏提示、对话框等系统文案）
+	locale: "zh-CN",
 	storage:
 		process.env.NODE_ENV === "production"
 			? {
@@ -106,7 +108,18 @@ export default config({
 				password: fields.text({ label: "密码" }),
 				passwordHint: fields.text({ label: "密码提示" }),
 				alias: fields.text({ label: "别名路径" }),
-				content: fields.text({ label: "正文（Markdown）", multiline: true }),
+				// 可视化 Markdown 编辑器：序列化后仍以 Markdown 字符串存入 JSON 的 content 字段，
+				// sync-keystatic.mjs 的生成链路无需变动。
+				content: fields.mdx.inline({
+					label: "正文",
+					description: "可视化 Markdown 编辑，支持标题、表格、代码块、图片等",
+					options: {
+						image: {
+							directory: "public/images/posts",
+							publicPath: "/images/posts/",
+						},
+					},
+				}),
 			},
 		}),
 
