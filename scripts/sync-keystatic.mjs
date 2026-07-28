@@ -7,6 +7,7 @@
  * 数据流: Keystatic UI → JSON 文件 → 本脚本 → .ts 数据文件 → Mizuki 页面
  */
 
+import { execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -45,10 +46,32 @@ function strArray(arr) {
 	return `[${arr.map((v) => escapeStr(v)).join(", ")}]`;
 }
 
+const writtenDataFiles = [];
+
 function writeDataFile(filename, content) {
 	const filePath = path.join(DATA_DIR, filename);
 	fs.writeFileSync(filePath, content, "utf-8");
+	writtenDataFiles.push(filePath);
 	console.log(`  ✓ ${filename}`);
+}
+
+/**
+ * 用 Biome 格式化本次生成的 .ts 数据文件，保证输出与 lint / lint:ci 完全一致，
+ * 避免「脚本生成 2 空格 → Biome 改回 tab」的反复 diff。
+ */
+function formatWrittenFiles() {
+	const files = writtenDataFiles.splice(0);
+	if (files.length === 0) return;
+	try {
+		const args = files.map((f) => JSON.stringify(f)).join(" ");
+		execSync(`pnpm exec biome format --write ${args}`, {
+			cwd: ROOT,
+			stdio: "pipe",
+		});
+		console.log(`  ✓ biome format: ${files.length} generated files`);
+	} catch (err) {
+		console.warn("  ⚠ Biome format skipped:", err.message);
+	}
 }
 
 // ===== 生成器 =====
@@ -749,6 +772,8 @@ function syncAll() {
 		generateLicense();
 		updated.push("license");
 	}
+
+	formatWrittenFiles();
 
 	return updated;
 }
