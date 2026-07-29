@@ -9,72 +9,46 @@ Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-s
 - 包管理器：**pnpm**（`preinstall` 通过 `npx only-allow pnpm` 强制，禁用 npm/yarn）；Node 要求 **22**（`.node-version`，CI 同版本）。
 - 验证命令（提交前按需运行）：
   - `pnpm lint` - Biome 检查并自动修复 `src/`、`scripts/`（CI 用只读的 `pnpm lint:ci`）。
-  - `pnpm type-check` - `tsc --noEmit` 类型检查。
+  - `pnpm check:important` - 检查 `src/` 样式文件禁止新增 `!important`（存量记录在 `scripts/check-important.baseline.json`，twikoo 文件豁免）；CI 的 biome 作业中同样执行。
+  - `pnpm type-check` - `tsc --noEmit` 类型检查。⚠ CI 的 typecheck 作业执行的是 `pnpm astro check`（含 `.astro` 文件的类型检查），检查面比本地 `tsc --noEmit` 更广，本地通过不保证 CI 通过；涉及 `.astro` 文件的类型改动建议本地补跑 `pnpm check`。
   - `pnpm test` - `node --test` 运行 `tests/**/*.test.*`。
-  - `pnpm build` - 完整构建（番剧数据 → keystatic 同步 → astro build → pagefind → 字体压缩）。
+  - `pnpm verify` - 聚合入口：依次执行 `pnpm lint:ci` → `pnpm check:important` → `pnpm type-check` → `pnpm test`（不含 build，任一失败即退出非零）。与 `lint.yml` 门禁的差异：CI 用 `astro check` 替代 `tsc --noEmit`，且 CI 另有 build 作业。
+  - `pnpm build` - 完整构建（番剧数据 → keystatic 同步 → astro build → pagefind → 字体压缩）；执行前 `prebuild` 钩子会先跑 `sync-content` + `sync-keystatic`（受 `ENABLE_CONTENT_SYNC` 控制，为 `false` 时跳过同步、沿用本地数据）。⚠ 修改 package.json 构建链（`prebuild`/`build` 脚本）时，必须同步核对 `.github/workflows/deploy.yml` 的构建段与 `lint.yml` 的 build 作业（三处均应保持同一条 `pnpm build`，仅 env 不同）。
+- 本地启动/预览：
+  - `pnpm dev` - 自定义脚本 `scripts/start-dev.mjs`：并行启动 keystatic 同步监听（`sync-keystatic.mjs --watch`）与 Astro dev server（端口 4321）；`predev` 钩子会先跑一次 `sync-content`。
+  - `pnpm preview` - `astro preview`，预览 `pnpm build` 产出的 `dist/`。
 - 环境开关：
   - `ENABLE_CONTENT_SYNC=false` - 跳过外部内容仓库同步，使用本地内容（CI 中即如此设置）。
   - `DEPLOY_TARGET=pages` - 纯静态构建（去掉 SSR adapter / keystatic 管理后台），用于 GitHub Pages。
 
+## 分支与发布约定
+
+- **每次推送 `master` 都会触发部署**：`deploy.yml` 在 push 到 `master` 时先跑质量门禁（复用 `lint.yml`：biome / typecheck / 单测 / 构建），门禁通过后构建并发布到 `pages` 分支。门禁失败则部署被跳过，但 `master` 上仍会留下失败提交。
+- **可直推 `master` 的改动**：内容/数据更新（`src/content/`、`src/data/`）、文档（`docs/`、README、AGENTS.md）、样式微调等低风险改动，前提是本地已按需跑过验证命令。
+- **应先经分支验证的改动**：核心行为变更（构建脚本 `scripts/`、`astro.config.mjs`、workflow 文件、播放器/导航等核心组件逻辑、依赖升级或补丁变更）。在特性分支上提交并向 `master` 发起 PR——`lint.yml` 对 PR 也会跑同一套门禁——通过后再合并；合并进 `master` 时才会触发部署。
+- **发布失败的回滚步骤**（在 `master` 上执行）：
+  1. `git revert <坏提交>`（多个提交用 `git revert <老提交>^..<新提交>`），不要用 force push 重写历史。
+  2. `git push origin master` —— 推送 revert 提交会重新触发 `deploy.yml`，用回滚后的代码重新部署。
+  3. 若需紧急重发上一版，也可在 GitHub Actions 中对 `deploy.yml` 手动 `workflow_dispatch`（仅重跑当前 `master` 内容）。
+- 配置 GitHub 分支保护属外部写操作，需另行授权后再执行，不在本文档约定范围内。
+
 ## 1. Think Before Coding
 
-**Don't assume. Don't hide confusion. Surface tradeoffs.**
-
-Before implementing:
-- State your assumptions explicitly. If uncertain, ask.
-- If multiple interpretations exist, present them - don't pick silently.
-- If a simpler approach exists, say so. Push back when warranted.
-- If something is unclear, stop. Name what's confusing. Ask.
+State assumptions explicitly; if multiple interpretations exist, present them instead of picking silently. If something is unclear, stop and ask before implementing.
 
 ## 2. Simplicity First
 
-**Minimum code that solves the problem. Nothing speculative.**
-
-- No features beyond what was asked.
-- No abstractions for single-use code.
-- No "flexibility" or "configurability" that wasn't requested.
-- No error handling for impossible scenarios.
-- If you write 200 lines and it could be 50, rewrite it.
-
-Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
+Minimum code that solves the problem — no speculative features, abstractions, or configurability beyond what was asked.
 
 ## 3. Surgical Changes
 
-**Touch only what you must. Clean up only your own mess.**
-
-When editing existing code:
-- Don't "improve" adjacent code, comments, or formatting.
-- Don't refactor things that aren't broken.
-- Match existing style, even if you'd do it differently.
-- If you notice unrelated dead code, mention it - don't delete it.
-
-When your changes create orphans:
-- Remove imports/variables/functions that YOUR changes made unused.
-- Don't remove pre-existing dead code unless asked.
-
-The test: Every changed line should trace directly to the user's request.
+Touch only what the request requires; match existing style and don't refactor or "improve" adjacent code. Remove only orphans created by your own changes.
 
 ## 4. Goal-Driven Execution
 
-**Define success criteria. Loop until verified.**
+Define verifiable success criteria before starting (e.g., a failing test that the fix makes pass), then verify with the project commands above — `pnpm verify`, or individually `pnpm lint` / `pnpm type-check` / `pnpm test` — before committing.
 
-Transform tasks into verifiable goals:
-- "Add validation" → "Write tests for invalid inputs, then make them pass"
-- "Fix the bug" → "Write a test that reproduces it, then make it pass"
-- "Refactor X" → "Ensure tests pass before and after"
-
-For multi-step tasks, state a brief plan:
-```
-1. [Step] → verify: [check]
-2. [Step] → verify: [check]
-3. [Step] → verify: [check]
-```
-
-Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
-
-If the project has no test infrastructure and the task is exploratory, state success criteria in plain language instead (e.g., "verify: running curl /api/users returns 200 with expected JSON").
-
-### 5. Security Baseline
+## 5. Security Baseline
 
 **Never commit keys or sensitive credentials to the repository.**
 

@@ -309,6 +309,9 @@ enum I18nKey {
 	settingsBanner = "settingsBanner",
 	settingsEffects = "settingsEffects",
 	settingsLayout = "settingsLayout",
+	settingsMusicPlaylistId = "settingsMusicPlaylistId",
+	settingsMusicPlaylistIdPlaceholder = "settingsMusicPlaylistIdPlaceholder",
+	settingsMusicPlaylistIdHint = "settingsMusicPlaylistIdHint",
 
 	// 站点统计
 	siteStats = "siteStats",

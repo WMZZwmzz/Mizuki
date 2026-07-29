@@ -317,6 +317,9 @@ export const zh_CN: Translation = {
 	[Key.settingsBanner]: "横幅选项",
 	[Key.settingsEffects]: "特效",
 	[Key.settingsLayout]: "布局",
+	[Key.settingsMusicPlaylistId]: "歌单ID",
+	[Key.settingsMusicPlaylistIdPlaceholder]: "输入网易云歌单ID",
+	[Key.settingsMusicPlaylistIdHint]: "支持粘贴歌单分享链接，自动提取歌单ID",
 
 	// 站点统计
 	[Key.siteStats]: "站点统计",

@@ -246,6 +246,10 @@ export const en: Translation = {
 	[Key.settingsBanner]: "Banner Options",
 	[Key.settingsEffects]: "Effects",
 	[Key.settingsLayout]: "Layout",
+	[Key.settingsMusicPlaylistId]: "Playlist ID",
+	[Key.settingsMusicPlaylistIdPlaceholder]: "Enter NetEase playlist ID",
+	[Key.settingsMusicPlaylistIdHint]:
+		"Paste a share link to auto-extract the playlist ID",
 
 	// Skills Page
 	[Key.skills]: "Skills",

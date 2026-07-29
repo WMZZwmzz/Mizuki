@@ -319,6 +319,9 @@ export const zh_TW: Translation = {
 	[Key.settingsBanner]: "橫幅選項",
 	[Key.settingsEffects]: "特效",
 	[Key.settingsLayout]: "佈局",
+	[Key.settingsMusicPlaylistId]: "歌單ID",
+	[Key.settingsMusicPlaylistIdPlaceholder]: "輸入網易雲歌單ID",
+	[Key.settingsMusicPlaylistIdHint]: "支援貼上歌單分享連結，自動擷取歌單ID",
 
 	// 站點統計
 	[Key.siteStats]: "站點統計",

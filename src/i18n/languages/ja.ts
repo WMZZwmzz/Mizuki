@@ -248,6 +248,10 @@ export const ja: Translation = {
 	[Key.settingsBanner]: "バナーオプション",
 	[Key.settingsEffects]: "エフェクト",
 	[Key.settingsLayout]: "レイアウト",
+	[Key.settingsMusicPlaylistId]: "プレイリストID",
+	[Key.settingsMusicPlaylistIdPlaceholder]: "NetEaseプレイリストIDを入力",
+	[Key.settingsMusicPlaylistIdHint]:
+		"共有リンクを貼り付けるとIDを自動抽出します",
 
 	// スキルページ
 	[Key.skills]: "スキル",
