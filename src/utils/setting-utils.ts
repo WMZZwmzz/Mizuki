@@ -1,6 +1,11 @@
 import { DARK_MODE, DEFAULT_THEME, LIGHT_MODE } from "@constants/constants";
 
-import { fullscreenWallpaperConfig, sakuraConfig, siteConfig } from "@/config";
+import {
+	fullscreenWallpaperConfig,
+	musicPlayerConfig,
+	sakuraConfig,
+	siteConfig,
+} from "@/config";
 import type { LIGHT_DARK_MODE, WALLPAPER_MODE } from "@/types/config";
 
 export function getDefaultHue(): number {
@@ -414,4 +419,34 @@ export function setSakuraEnabled(enabled: boolean): void {
 	window.dispatchEvent(
 		new CustomEvent("sakura-toggle", { detail: { enabled } }),
 	);
+}
+
+// ─── Music Playlist ──────────────────────────────────────────
+
+export function getDefaultMusicPlaylistId(): string {
+	return musicPlayerConfig.id ?? "";
+}
+
+// 仅返回 localStorage 中实际存储的歌单 ID（不含默认回退），供失败回退判断使用
+export function getRawStoredMusicPlaylistId(): string {
+	const stored = localStorage.getItem("musicPlaylistId");
+	return stored?.trim() ?? "";
+}
+
+export function getStoredMusicPlaylistId(): string {
+	return getRawStoredMusicPlaylistId() || getDefaultMusicPlaylistId();
+}
+
+// 清除无效的存储歌单 ID（回退默认歌单成功后调用）
+export function clearStoredMusicPlaylistId(): void {
+	localStorage.removeItem("musicPlaylistId");
+}
+
+export function setMusicPlaylistId(id: string): void {
+	const trimmed = id.trim();
+	if (!trimmed || trimmed === getDefaultMusicPlaylistId()) {
+		localStorage.removeItem("musicPlaylistId");
+	} else {
+		localStorage.setItem("musicPlaylistId", trimmed);
+	}
 }

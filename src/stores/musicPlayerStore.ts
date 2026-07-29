@@ -13,6 +13,12 @@ import type {
 	Song,
 } from "@/components/widgets/music-player/types";
 import { musicPlayerConfig } from "@/config";
+import { resolveMetingPlaylistId } from "@/utils/playlist-id-utils";
+import {
+	clearStoredMusicPlaylistId,
+	getDefaultMusicPlaylistId,
+	getRawStoredMusicPlaylistId,
+} from "@/utils/setting-utils";
 import { getAssetPath } from "@/utils/url-utils";
 
 export interface MusicPlayerState {
@@ -250,7 +256,11 @@ class MusicPlayerStore {
 		const meting_api =
 			musicPlayerConfig.meting_api ??
 			"https://www.bilibili.uno/api?server=:server&type=:type&id=:id&auth=:auth&r=:r";
-		const meting_id = musicPlayerConfig.id ?? "14164869977";
+		const storedPlaylistId = getRawStoredMusicPlaylistId();
+		const { id: meting_id, fromStoredId } = resolveMetingPlaylistId(
+			storedPlaylistId,
+			getDefaultMusicPlaylistId(),
+		);
 		const meting_server = musicPlayerConfig.server ?? "netease";
 		const meting_type = musicPlayerConfig.type ?? "playlist";
 
@@ -260,10 +270,16 @@ class MusicPlayerStore {
 				meting_server,
 				meting_type,
 				meting_id,
+				fromStoredId,
 			);
 		} else {
 			this.loadLocalPlaylist();
 		}
+	}
+
+	// 失败回退时使用的默认歌单 ID（配置默认 ID > 兜底 ID）
+	private getDefaultMetingId(): string {
+		return resolveMetingPlaylistId("", getDefaultMusicPlaylistId()).id;
 	}
 
 	private async fetchMetingPlaylist(
@@ -271,6 +287,7 @@ class MusicPlayerStore {
 		server: string,
 		type: string,
 		id: string,
+		fromStoredId: boolean,
 	): Promise<void> {
 		if (!api || !id) {
 			return;
@@ -286,21 +303,66 @@ class MusicPlayerStore {
 			.replace(":auth", "")
 			.replace(":r", Date.now().toString());
 
+		// 日志上下文：使用存储歌单 ID 时一并写入该 ID，便于排查设置面板输入的无效 ID
+		const idInfo = fromStoredId ? `存储歌单 ID: ${id}` : `默认歌单 ID: ${id}`;
+
 		try {
-			const res = await fetch(apiUrl);
+			let res: Response;
+			try {
+				res = await fetch(apiUrl);
+			} catch (fetchError) {
+				console.error(
+					`[MusicPlayer] 歌单请求失败（网络错误，${idInfo}）:`,
+					fetchError,
+				);
+				throw fetchError;
+			}
 			if (!res.ok) {
+				console.error(
+					`[MusicPlayer] 歌单请求失败（HTTP ${res.status}，${idInfo}）`,
+				);
 				throw new Error("meting api error");
 			}
-			const list: Record<string, unknown>[] = await res.json();
+			let list: Record<string, unknown>[];
+			try {
+				list = await res.json();
+			} catch (parseError) {
+				console.error(
+					`[MusicPlayer] 歌单响应解析失败（${idInfo}）:`,
+					parseError,
+				);
+				throw parseError;
+			}
+			if (!Array.isArray(list)) {
+				console.error(
+					`[MusicPlayer] 歌单响应解析失败（返回内容不是歌曲列表，${idInfo}）:`,
+					list,
+				);
+				throw new Error("meting api response is not a list");
+			}
 			this.state.playlist = list.map((song) => this.convertMetingSong(song));
 			this.state.isLoading = false;
 
 			if (this.state.playlist.length > 0) {
 				this.loadInitialRandomSong();
+			} else {
+				console.error(`[MusicPlayer] 歌单为空（API 返回 0 首歌曲，${idInfo}）`);
 			}
 		} catch (_e) {
-			this.showError(i18n(Key.musicPlayerErrorPlaylist));
 			this.state.isLoading = false;
+			// 存储歌单 ID 请求失败时，一次性回退默认歌单 ID 重试；
+			// 重试分支 fromStoredId=false，失败只会走下方 else，不会循环
+			const fallbackId = this.getDefaultMetingId();
+			if (fromStoredId && fallbackId !== id) {
+				await this.fetchMetingPlaylist(api, server, type, fallbackId, false);
+				if (this.state.playlist.length > 0) {
+					// 回退成功：清除无效的存储 ID，避免下次刷新重复失败
+					clearStoredMusicPlaylistId();
+					this.showError("自定义歌单加载失败，已回退默认歌单");
+				}
+			} else {
+				this.showError(i18n(Key.musicPlayerErrorPlaylist));
+			}
 		}
 		this.broadcastState();
 	}
@@ -581,6 +643,18 @@ class MusicPlayerStore {
 		return this.state.playlist.length > 1;
 	}
 
+	// 重新拉取播放列表（用于设置面板修改歌单 ID 后即时生效）
+	async reloadPlaylist(): Promise<void> {
+		if (!this.isInitialized || !musicPlayerConfig.enable) {
+			return;
+		}
+		this.audio?.pause();
+		this.state.playlist = [];
+		this.state.currentIndex = 0;
+		this.broadcastState();
+		await this.loadPlaylist();
+	}
+
 	setProgress(percent: number): void {
 		if (!this.audio) {
 			return;
@@ -630,6 +704,9 @@ class MusicPlayerStore {
 		this.state.lyricsLoading = true;
 		this.broadcastState();
 
+		// 日志上下文：标识当前歌曲，便于区分不同歌曲的歌词加载失败
+		const songInfo = `歌曲: ${song.title} (id: ${song.lid ?? song.id})`;
+
 		try {
 			let lrcText = "";
 
@@ -640,14 +717,29 @@ class MusicPlayerStore {
 					if (lrcRes.ok) {
 						const ct = lrcRes.headers.get("content-type") ?? "";
 						if (ct.includes("application/json")) {
-							const json = await lrcRes.json();
-							lrcText = typeof json.lyric === "string" ? json.lyric : "";
+							try {
+								const json = await lrcRes.json();
+								lrcText = typeof json.lyric === "string" ? json.lyric : "";
+							} catch (parseError) {
+								console.error(
+									`[MusicPlayer] 歌词响应解析失败（lrc URL，${songInfo}）:`,
+									parseError,
+								);
+							}
 						} else {
 							lrcText = await lrcRes.text();
 						}
+					} else {
+						console.error(
+							`[MusicPlayer] 歌词请求失败（HTTP ${lrcRes.status}，lrc URL，${songInfo}）`,
+						);
 					}
-				} catch {
-					// ignore, fall through to Meting API
+				} catch (fetchError) {
+					// 记录后回退到 Meting API
+					console.error(
+						`[MusicPlayer] 歌词请求失败（网络错误，lrc URL，${songInfo}）:`,
+						fetchError,
+					);
 				}
 			}
 
@@ -668,8 +760,15 @@ class MusicPlayerStore {
 						if (res.ok) {
 							const ct = res.headers.get("content-type") ?? "";
 							if (ct.includes("application/json")) {
-								const json = await res.json();
-								lrcText = typeof json.lyric === "string" ? json.lyric : "";
+								try {
+									const json = await res.json();
+									lrcText = typeof json.lyric === "string" ? json.lyric : "";
+								} catch (parseError) {
+									console.error(
+										`[MusicPlayer] 歌词响应解析失败（Meting API，${songInfo}）:`,
+										parseError,
+									);
+								}
 							} else {
 								const rawText = await res.text();
 								try {
@@ -679,14 +778,24 @@ class MusicPlayerStore {
 									lrcText = rawText;
 								}
 							}
+						} else {
+							console.error(
+								`[MusicPlayer] 歌词请求失败（HTTP ${res.status}，Meting API，${songInfo}）`,
+							);
 						}
-					} catch {
-						// ignore
+					} catch (fetchError) {
+						console.error(
+							`[MusicPlayer] 歌词请求失败（网络错误，Meting API，${songInfo}）:`,
+							fetchError,
+						);
 					}
 				}
 			}
 
 			if (!lrcText) {
+				console.error(
+					`[MusicPlayer] 歌词为空（未获取到歌词内容，${songInfo}）`,
+				);
 				throw new Error("no lyric content");
 			}
 
