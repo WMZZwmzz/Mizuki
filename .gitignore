@@ -42,6 +42,8 @@ yarn.lock
 .trae/
 .workbuddy/
 .qoder/
+.devin/
+.vscode/
 
 # dev server logs
 .codex-dev-server.*.log
