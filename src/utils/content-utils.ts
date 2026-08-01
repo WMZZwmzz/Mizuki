@@ -301,7 +301,7 @@ export async function getRelatedPosts(
 
 	// 排除自身和加密文章
 	const candidates = allPosts.filter(
-		(p) => p.id !== currentPost.id && !p.data.password,
+		(p) => p.id !== currentPost.id && !p.data.encrypted,
 	);
 
 	if (candidates.length === 0) return [];

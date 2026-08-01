@@ -5,7 +5,7 @@ export async function GET() {
 	const posts = await getSortedPosts();
 
 	const allPostsData = posts
-		.filter((post) => !post.data.password && !post.data.encrypted)
+		.filter((post) => !post.data.encrypted)
 		.map((post) => ({
 			id: post.id,
 			title: post.data.title,

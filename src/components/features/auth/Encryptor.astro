@@ -9,16 +9,37 @@ import { encryptContent } from "@utils/crypto-utils";
 import PasswordProtection from "./PasswordProtection.astro";
 
 export interface Props {
-	password: string | number;
+	password?: string | number;
 	slug: string;
 	hint?: string;
+	// 预加密密文（base64）。存在时直接透传给 PasswordProtection，跳过构建期加密，
+	// 仓库中无需保留明文正文与密码。由 scripts/encrypt-content.mjs 本地生成。
+	encryptedContent?: string;
+	// 解密后内容类型：markdown 需客户端 marked 渲染，html 直接注入。
+	contentType?: "markdown" | "html";
 }
 
-const { password, slug, hint = "" } = Astro.props;
+const {
+	password,
+	slug,
+	hint = "",
+	encryptedContent: preEncrypted,
+	contentType = "html",
+} = Astro.props;
 
-const htmlContent = await Astro.slots.render("default");
-
-const encryptedContent = encryptContent(htmlContent, String(password), slug);
+let encryptedContent: string;
+if (preEncrypted) {
+	// 预加密形态：直接使用密文，不渲染 slot、不调用 encryptContent
+	encryptedContent = preEncrypted;
+} else {
+	// 兼容旧形态：构建期用明文密码加密渲染后的 slot HTML
+	const htmlContent = await Astro.slots.render("default");
+	encryptedContent = encryptContent(htmlContent, String(password), slug);
+}
 ---
 
-<PasswordProtection encryptedContent={encryptedContent} hint={hint} />
+<PasswordProtection
+	encryptedContent={encryptedContent}
+	hint={hint}
+	contentType={contentType}
+/>

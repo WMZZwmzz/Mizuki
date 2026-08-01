@@ -4,7 +4,7 @@ export async function GET() {
 	const posts = await getSortedPosts();
 
 	const allPostsData = posts
-		.filter((post) => !post.data.password && !post.data.encrypted)
+		.filter((post) => !post.data.encrypted)
 		.map((post) => {
 			const date = new Date(post.data.published);
 			const year = date.getFullYear();

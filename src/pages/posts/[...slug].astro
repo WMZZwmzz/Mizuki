@@ -179,8 +179,12 @@ if (profileConfig.avatar) {
 	}
 }
 
-// 判断是否为加密文章
-const isEncrypted = !!(entry.data.encrypted && entry.data.password);
+// 判断是否为加密文章：预加密形态（encryptedContent）优先，兼容旧明文 password 形态
+const hasEncryptedContent = !!entry.data.encryptedContent;
+const isEncrypted = !!(
+	entry.data.encrypted &&
+	(entry.data.encryptedContent || entry.data.password)
+);
 const publicDescription = getPostPublicDescription(
 	entry.data,
 	entry.data.title,
@@ -311,22 +315,24 @@ const jsonLd = {
 			}
 
 			{
-				isEncrypted ? (
-					<Encryptor
-						password={entry.data.password}
-						slug={entry.id}
-						hint={entry.data.passwordHint}
-					>
-						<Markdown class="mb-6 markdown-content onload-animation">
-							<Content />
-						</Markdown>
-					</Encryptor>
-				) : (
+			isEncrypted ? (
+				<Encryptor
+					encryptedContent={hasEncryptedContent ? entry.data.encryptedContent : undefined}
+					password={entry.data.password}
+					slug={entry.id}
+					hint={entry.data.passwordHint}
+					contentType={hasEncryptedContent ? "markdown" : "html"}
+				>
 					<Markdown class="mb-6 markdown-content onload-animation">
 						<Content />
 					</Markdown>
-				)
-			}
+				</Encryptor>
+			) : (
+				<Markdown class="mb-6 markdown-content onload-animation">
+					<Content />
+				</Markdown>
+			)
+		}
 
 			{
 				shareConfig.enable && (

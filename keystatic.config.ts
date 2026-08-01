@@ -87,25 +87,60 @@ export default config({
 					multiline: true,
 					description: "文章简介，显示在列表和 SEO 中",
 				}),
-				published: fields.date({ label: "发布日期", validation: { isRequired: true } }),
-				updated: fields.date({ label: "更新日期", description: "内容最后修改时间" }),
+				published: fields.date({
+					label: "发布日期",
+					validation: { isRequired: true },
+				}),
+				updated: fields.date({
+					label: "更新日期",
+					description: "内容最后修改时间",
+				}),
 				draft: fields.checkbox({ label: "草稿", defaultValue: false }),
 				pinned: fields.checkbox({ label: "置顶", defaultValue: false }),
-				tags: fields.array(fields.text({ label: "标签名", validation: { length: { min: 1 } } }), {
-					label: "标签",
-					itemLabel: (props) => props.value,
+				tags: fields.array(
+					fields.text({ label: "标签名", validation: { length: { min: 1 } } }),
+					{
+						label: "标签",
+						itemLabel: (props) => props.value,
+					},
+				),
+				category: fields.select({
+					label: "分类",
+					options: POST_CATEGORIES,
+					defaultValue: "Technology",
 				}),
-				category: fields.select({ label: "分类", options: POST_CATEGORIES, defaultValue: "Technology" }),
-				image: fields.text({ label: "封面图片", description: "封面图片路径或 URL" }),
+				image: fields.text({
+					label: "封面图片",
+					description: "封面图片路径或 URL",
+				}),
 				comment: fields.checkbox({ label: "允许评论", defaultValue: true }),
-				hideHomeContent: fields.checkbox({ label: "首页隐藏内容", defaultValue: false }),
-				lang: fields.select({ label: "语言", options: LANG_OPTIONS, defaultValue: "" }),
+				hideHomeContent: fields.checkbox({
+					label: "首页隐藏内容",
+					defaultValue: false,
+				}),
+				lang: fields.select({
+					label: "语言",
+					options: LANG_OPTIONS,
+					defaultValue: "",
+				}),
 				author: fields.text({ label: "作者" }),
 				sourceLink: fields.url({ label: "原文链接" }),
 				licenseName: fields.text({ label: "授权名称" }),
 				licenseUrl: fields.url({ label: "授权链接" }),
 				encrypted: fields.checkbox({ label: "启用加密", defaultValue: false }),
-				password: fields.text({ label: "密码" }),
+				// 预加密密文（base64），由 sync-keystatic 自动生成，请勿手动编辑。
+				// 存在此字段即视为加密文章，仓库中不再保留明文正文与密码。
+				encryptedContent: fields.text({
+					label: "加密正文密文",
+					description: "自动生成，请勿手动编辑",
+					multiline: true,
+				}),
+				// 临时加密密码：勾选「启用加密」后填写，保存时 sync 自动用它加密正文并清除本字段。
+				// 加密完成后此字段为空，仓库不留明文密码。修改已加密文章请用 scripts/encrypt-content.mjs decrypt。
+				password: fields.text({
+					label: "加密密码",
+					description: "勾选启用加密后填写，保存后自动清除（仅留密文）",
+				}),
 				passwordHint: fields.text({ label: "密码提示" }),
 				alias: fields.text({ label: "别名路径" }),
 				// 可视化 Markdown 编辑器：序列化后仍以 Markdown 字符串存入 JSON 的 content 字段，
@@ -147,13 +182,31 @@ export default config({
 			columns: ["title", "date", "mood"],
 			schema: {
 				title: fields.slug({
-					name: { label: "标题", description: "简短标题（用于文件名）", validation: { length: { min: 1 } } },
+					name: {
+						label: "标题",
+						description: "简短标题（用于文件名）",
+						validation: { length: { min: 1 } },
+					},
 				}),
-				id: fields.integer({ label: "ID", description: "唯一数字编号（如 1, 2, 3...）", validation: { min: 1 } }),
-				content: fields.text({ label: "内容", multiline: true, validation: { length: { min: 1 } } }),
-				date: fields.datetime({ label: "日期时间", validation: { isRequired: true } }),
+				id: fields.integer({
+					label: "ID",
+					description: "唯一数字编号（如 1, 2, 3...）",
+					validation: { min: 1 },
+				}),
+				content: fields.text({
+					label: "内容",
+					multiline: true,
+					validation: { length: { min: 1 } },
+				}),
+				date: fields.datetime({
+					label: "日期时间",
+					validation: { isRequired: true },
+				}),
 				location: fields.text({ label: "地点" }),
-				mood: fields.text({ label: "心情", description: "如：开心、平静、兴奋..." }),
+				mood: fields.text({
+					label: "心情",
+					description: "如：开心、平静、兴奋...",
+				}),
 				tags: fields.array(fields.text({ label: "标签名" }), {
 					label: "标签",
 					itemLabel: (props) => props.value,
@@ -176,10 +229,20 @@ export default config({
 				title: fields.slug({
 					name: { label: "站点名称", validation: { length: { min: 1 } } },
 				}),
-				id: fields.integer({ label: "ID", description: "唯一数字编号", validation: { min: 1 } }),
-				imgurl: fields.text({ label: "头像 URL", validation: { length: { min: 1 } } }),
+				id: fields.integer({
+					label: "ID",
+					description: "唯一数字编号",
+					validation: { min: 1 },
+				}),
+				imgurl: fields.text({
+					label: "头像 URL",
+					validation: { length: { min: 1 } },
+				}),
 				desc: fields.text({ label: "描述", multiline: true }),
-				siteurl: fields.url({ label: "网站地址", validation: { isRequired: true } }),
+				siteurl: fields.url({
+					label: "网站地址",
+					validation: { isRequired: true },
+				}),
 				tags: fields.array(fields.text({ label: "标签名" }), {
 					label: "标签",
 					itemLabel: (props) => props.value,
@@ -200,16 +263,27 @@ export default config({
 				}),
 				description: fields.text({ label: "描述", multiline: true }),
 				image: fields.text({ label: "封面图片 URL" }),
-				category: fields.select({ label: "分类", options: PROJECT_CATEGORIES, defaultValue: "web" }),
+				category: fields.select({
+					label: "分类",
+					options: PROJECT_CATEGORIES,
+					defaultValue: "web",
+				}),
 				techStack: fields.array(fields.text({ label: "技术名称" }), {
 					label: "技术栈",
 					itemLabel: (props) => props.value,
 				}),
-				status: fields.select({ label: "状态", options: PROJECT_STATUS, defaultValue: "completed" }),
+				status: fields.select({
+					label: "状态",
+					options: PROJECT_STATUS,
+					defaultValue: "completed",
+				}),
 				liveDemo: fields.url({ label: "在线演示" }),
 				sourceCode: fields.url({ label: "源代码" }),
 				visitUrl: fields.url({ label: "访问链接" }),
-				startDate: fields.date({ label: "开始日期", validation: { isRequired: true } }),
+				startDate: fields.date({
+					label: "开始日期",
+					validation: { isRequired: true },
+				}),
 				endDate: fields.date({ label: "结束日期" }),
 				featured: fields.checkbox({ label: "精选项目", defaultValue: false }),
 				tags: fields.array(fields.text({ label: "标签名" }), {
@@ -233,11 +307,30 @@ export default config({
 					slug: { label: "ID（英文）", description: "用于 URL 和内部引用" },
 				}),
 				description: fields.text({ label: "描述", multiline: true }),
-				icon: fields.text({ label: "图标", description: "Iconify 图标名，如 simple-icons:typescript" }),
-				category: fields.select({ label: "分类", options: SKILL_CATEGORIES, defaultValue: "frontend" }),
-				level: fields.select({ label: "水平", options: SKILL_LEVELS, defaultValue: "intermediate" }),
-				years: fields.integer({ label: "经验年数", defaultValue: 0, validation: { min: 0 } }),
-				months: fields.integer({ label: "经验月数", defaultValue: 0, validation: { min: 0, max: 11 } }),
+				icon: fields.text({
+					label: "图标",
+					description: "Iconify 图标名，如 simple-icons:typescript",
+				}),
+				category: fields.select({
+					label: "分类",
+					options: SKILL_CATEGORIES,
+					defaultValue: "frontend",
+				}),
+				level: fields.select({
+					label: "水平",
+					options: SKILL_LEVELS,
+					defaultValue: "intermediate",
+				}),
+				years: fields.integer({
+					label: "经验年数",
+					defaultValue: 0,
+					validation: { min: 0 },
+				}),
+				months: fields.integer({
+					label: "经验月数",
+					defaultValue: 0,
+					validation: { min: 0, max: 11 },
+				}),
 				projects: fields.array(fields.text({ label: "项目 ID" }), {
 					label: "关联项目",
 					itemLabel: (props) => props.value,
@@ -246,7 +339,10 @@ export default config({
 					label: "证书",
 					itemLabel: (props) => props.value,
 				}),
-				color: fields.text({ label: "主题色", description: "卡片主题色，如 #3178C6" }),
+				color: fields.text({
+					label: "主题色",
+					description: "卡片主题色，如 #3178C6",
+				}),
 			},
 		}),
 
@@ -263,8 +359,15 @@ export default config({
 					slug: { label: "ID（英文）", description: "唯一标识符" },
 				}),
 				description: fields.text({ label: "描述", multiline: true }),
-				type: fields.select({ label: "类型", options: TIMELINE_TYPES, defaultValue: "education" }),
-				startDate: fields.date({ label: "开始日期", validation: { isRequired: true } }),
+				type: fields.select({
+					label: "类型",
+					options: TIMELINE_TYPES,
+					defaultValue: "education",
+				}),
+				startDate: fields.date({
+					label: "开始日期",
+					validation: { isRequired: true },
+				}),
 				endDate: fields.date({ label: "结束日期" }),
 				location: fields.text({ label: "地点" }),
 				organization: fields.text({ label: "组织/机构" }),
@@ -312,9 +415,22 @@ export default config({
 					],
 					defaultValue: "local",
 				}),
-				cover: fields.text({ label: "封面图 URL", description: "外链模式必填" }),
+				cover: fields.text({
+					label: "封面图 URL",
+					description: "外链模式必填",
+				}),
 				hidden: fields.checkbox({ label: "隐藏相册", defaultValue: false }),
-				password: fields.text({ label: "访问密码", description: "留空不加密" }),
+				// 预加密密文（base64），由 sync-keystatic 自动生成，请勿手动编辑。
+				encryptedContent: fields.text({
+					label: "加密照片密文",
+					description: "自动生成，请勿手动编辑",
+					multiline: true,
+				}),
+				// 临时加密密码：填写后保存，sync 自动加密照片并清除本字段，仓库不留明文密码。
+				password: fields.text({
+					label: "访问密码",
+					description: "填写后保存，sync 自动加密并清除本字段（仅留密文）",
+				}),
 				passwordHint: fields.text({ label: "密码提示" }),
 			},
 		}),
@@ -329,9 +445,19 @@ export default config({
 				name: fields.slug({
 					name: { label: "设备名称", validation: { length: { min: 1 } } },
 				}),
-				category: fields.text({ label: "品牌/分类", description: "如 OnePlus、Router、Apple", validation: { length: { min: 1 } } }),
-				image: fields.text({ label: "图片路径", description: "如 /images/device/xxx.webp" }),
-				specs: fields.text({ label: "规格", description: "如 Gray / 16G + 1TB" }),
+				category: fields.text({
+					label: "品牌/分类",
+					description: "如 OnePlus、Router、Apple",
+					validation: { length: { min: 1 } },
+				}),
+				image: fields.text({
+					label: "图片路径",
+					description: "如 /images/device/xxx.webp",
+				}),
+				specs: fields.text({
+					label: "规格",
+					description: "如 Gray / 16G + 1TB",
+				}),
 				description: fields.text({ label: "描述", multiline: true }),
 				link: fields.url({ label: "购买链接" }),
 			},
@@ -345,7 +471,10 @@ export default config({
 			path: "src/data/keystatic/site-settings",
 			format: { data: "json" },
 			schema: {
-				title: fields.text({ label: "站点标题", validation: { length: { min: 1 } } }),
+				title: fields.text({
+					label: "站点标题",
+					validation: { length: { min: 1 } },
+				}),
 				subtitle: fields.text({ label: "副标题" }),
 				siteURL: fields.url({ label: "站点 URL" }),
 				siteLang: fields.select({
@@ -357,19 +486,43 @@ export default config({
 					],
 					defaultValue: "zh_CN",
 				}),
-				themeHue: fields.integer({ label: "主题色相", description: "色相值 0-360", defaultValue: 240, validation: { min: 0, max: 360 } }),
-				themeFixed: fields.checkbox({ label: "固定主题色", description: "开启后不允许切换", defaultValue: false }),
+				themeHue: fields.integer({
+					label: "主题色相",
+					description: "色相值 0-360",
+					defaultValue: 240,
+					validation: { min: 0, max: 360 },
+				}),
+				themeFixed: fields.checkbox({
+					label: "固定主题色",
+					description: "开启后不允许切换",
+					defaultValue: false,
+				}),
 				pageAnime: fields.checkbox({ label: "追番页面", defaultValue: true }),
 				pageDiary: fields.checkbox({ label: "日记页面", defaultValue: true }),
-				pageFriends: fields.checkbox({ label: "友链页面", defaultValue: false }),
-				pageProjects: fields.checkbox({ label: "项目页面", defaultValue: true }),
+				pageFriends: fields.checkbox({
+					label: "友链页面",
+					defaultValue: false,
+				}),
+				pageProjects: fields.checkbox({
+					label: "项目页面",
+					defaultValue: true,
+				}),
 				pageSkills: fields.checkbox({ label: "技能页面", defaultValue: true }),
-				pageTimeline: fields.checkbox({ label: "时间线页面", defaultValue: true }),
+				pageTimeline: fields.checkbox({
+					label: "时间线页面",
+					defaultValue: true,
+				}),
 				pageAlbums: fields.checkbox({ label: "相册页面", defaultValue: true }),
-				pageDevices: fields.checkbox({ label: "设备页面", defaultValue: false }),
+				pageDevices: fields.checkbox({
+					label: "设备页面",
+					defaultValue: false,
+				}),
 				navbarTitleText: fields.text({ label: "导航栏标题文字" }),
 				navbarTitleIcon: fields.text({ label: "导航栏图标路径" }),
-				diaryApiUrl: fields.url({ label: "日记 API URL", description: "Memos API 地址，留空使用静态数据" }),
+				diaryApiUrl: fields.url({
+					label: "日记 API URL",
+					description: "Memos API 地址，留空使用静态数据",
+				}),
 			},
 		}),
 
@@ -379,14 +532,29 @@ export default config({
 			path: "src/data/keystatic/profile",
 			format: { data: "json" },
 			schema: {
-				avatar: fields.text({ label: "头像路径", description: "如 assets/images/avatar.webp" }),
-				name: fields.text({ label: "显示名称", validation: { length: { min: 1 } } }),
+				avatar: fields.text({
+					label: "头像路径",
+					description: "如 assets/images/avatar.webp",
+				}),
+				name: fields.text({
+					label: "显示名称",
+					validation: { length: { min: 1 } },
+				}),
 				bio: fields.text({ label: "个人简介", multiline: true }),
 				links: fields.array(
 					fields.object({
-						name: fields.text({ label: "平台名称", validation: { length: { min: 1 } } }),
-						url: fields.url({ label: "链接地址", validation: { isRequired: true } }),
-						icon: fields.text({ label: "图标", description: "Iconify 图标名，如 simple-icons:github" }),
+						name: fields.text({
+							label: "平台名称",
+							validation: { length: { min: 1 } },
+						}),
+						url: fields.url({
+							label: "链接地址",
+							validation: { isRequired: true },
+						}),
+						icon: fields.text({
+							label: "图标",
+							description: "Iconify 图标名，如 simple-icons:github",
+						}),
 					}),
 					{
 						label: "社交链接",
@@ -402,8 +570,15 @@ export default config({
 			path: "src/data/keystatic/announcement",
 			format: { data: "json" },
 			schema: {
-				content: fields.text({ label: "公告内容", multiline: true, validation: { length: { min: 1 } } }),
-				title: fields.text({ label: "标题（可选）", description: "留空使用默认文字" }),
+				content: fields.text({
+					label: "公告内容",
+					multiline: true,
+					validation: { length: { min: 1 } },
+				}),
+				title: fields.text({
+					label: "标题（可选）",
+					description: "留空使用默认文字",
+				}),
 				icon: fields.text({ label: "图标", description: "Iconify 图标名" }),
 				type: fields.select({
 					label: "类型",
@@ -419,7 +594,10 @@ export default config({
 				linkEnable: fields.checkbox({ label: "显示链接", defaultValue: false }),
 				linkText: fields.text({ label: "链接文字" }),
 				linkUrl: fields.url({ label: "链接地址" }),
-				linkExternal: fields.checkbox({ label: "外部链接", defaultValue: false }),
+				linkExternal: fields.checkbox({
+					label: "外部链接",
+					defaultValue: false,
+				}),
 			},
 		}),
 
@@ -429,16 +607,33 @@ export default config({
 			path: "src/data/keystatic/homepage",
 			format: { data: "json" },
 			schema: {
-				homeTitle: fields.text({ label: "首页大标题", defaultValue: "わたしの部屋" }),
+				homeTitle: fields.text({
+					label: "首页大标题",
+					defaultValue: "わたしの部屋",
+				}),
 				subtitle1: fields.text({ label: "副标题 1" }),
 				subtitle2: fields.text({ label: "副标题 2" }),
 				subtitle3: fields.text({ label: "副标题 3" }),
 				subtitle4: fields.text({ label: "副标题 4" }),
 				subtitle5: fields.text({ label: "副标题 5" }),
-				typewriterEnable: fields.checkbox({ label: "打字机效果", defaultValue: true }),
-				typewriterSpeed: fields.integer({ label: "打字速度(ms)", defaultValue: 100, validation: { min: 20, max: 500 } }),
-				carouselEnable: fields.checkbox({ label: "横幅轮播", defaultValue: true }),
-				carouselInterval: fields.integer({ label: "轮播间隔(秒)", defaultValue: 3, validation: { min: 1, max: 30 } }),
+				typewriterEnable: fields.checkbox({
+					label: "打字机效果",
+					defaultValue: true,
+				}),
+				typewriterSpeed: fields.integer({
+					label: "打字速度(ms)",
+					defaultValue: 100,
+					validation: { min: 20, max: 500 },
+				}),
+				carouselEnable: fields.checkbox({
+					label: "横幅轮播",
+					defaultValue: true,
+				}),
+				carouselInterval: fields.integer({
+					label: "轮播间隔(秒)",
+					defaultValue: 3,
+					validation: { min: 1, max: 30 },
+				}),
 				wavesEnable: fields.checkbox({ label: "波浪效果", defaultValue: true }),
 			},
 		}),
@@ -449,19 +644,41 @@ export default config({
 			path: "src/data/keystatic/effects",
 			format: { data: "json" },
 			schema: {
-				sakuraEnable: fields.checkbox({ label: "樱花特效", defaultValue: false }),
-				sakuraSwitchable: fields.checkbox({ label: "允许用户切换", defaultValue: true }),
-				sakuraNum: fields.integer({ label: "樱花数量", defaultValue: 21, validation: { min: 1, max: 100 } }),
+				sakuraEnable: fields.checkbox({
+					label: "樱花特效",
+					defaultValue: false,
+				}),
+				sakuraSwitchable: fields.checkbox({
+					label: "允许用户切换",
+					defaultValue: true,
+				}),
+				sakuraNum: fields.integer({
+					label: "樱花数量",
+					defaultValue: 21,
+					validation: { min: 1, max: 100 },
+				}),
 				pioEnable: fields.checkbox({ label: "看板娘", defaultValue: true }),
 				pioPosition: fields.select({
 					label: "看板娘位置",
-					options: [{ label: "左下", value: "left" }, { label: "右下", value: "right" }],
+					options: [
+						{ label: "左下", value: "left" },
+						{ label: "右下", value: "right" },
+					],
 					defaultValue: "left",
 				}),
-				pioHiddenOnMobile: fields.checkbox({ label: "移动端隐藏", defaultValue: true }),
+				pioHiddenOnMobile: fields.checkbox({
+					label: "移动端隐藏",
+					defaultValue: true,
+				}),
 				pioDraggable: fields.checkbox({ label: "可拖拽", defaultValue: true }),
-				pioWelcome: fields.text({ label: "欢迎语", defaultValue: "嗨~ 欢迎来到 Mizuki 博客！" }),
-				pioTouchDialog: fields.text({ label: "触摸对话（每行一条）", multiline: true }),
+				pioWelcome: fields.text({
+					label: "欢迎语",
+					defaultValue: "嗨~ 欢迎来到 Mizuki 博客！",
+				}),
+				pioTouchDialog: fields.text({
+					label: "触摸对话（每行一条）",
+					multiline: true,
+				}),
 			},
 		}),
 
@@ -474,7 +691,8 @@ export default config({
 				linksJson: fields.text({
 					label: "导航链接 JSON",
 					multiline: true,
-					description: '格式: [{"name":"首页","url":"/","preset":"home"},{"name":"归档","url":"/archive/","preset":"archive"},{"name":"分组","children":[{"name":"GitHub","url":"https://github.com","icon":"simple-icons:github","external":true}]}]',
+					description:
+						'格式: [{"name":"首页","url":"/","preset":"home"},{"name":"归档","url":"/archive/","preset":"archive"},{"name":"分组","children":[{"name":"GitHub","url":"https://github.com","icon":"simple-icons:github","external":true}]}]',
 				}),
 			},
 		}),
@@ -488,13 +706,25 @@ export default config({
 				enable: fields.checkbox({ label: "启用评论", defaultValue: false }),
 				system: fields.select({
 					label: "评论系统",
-					options: [{ label: "Twikoo", value: "twikoo" }, { label: "Giscus", value: "giscus" }],
+					options: [
+						{ label: "Twikoo", value: "twikoo" },
+						{ label: "Giscus", value: "giscus" },
+					],
 					defaultValue: "twikoo",
 				}),
-				twikooEnvId: fields.text({ label: "Twikoo 环境 ID", description: "如 https://twikoo.vercel.app" }),
-				giscusRepo: fields.text({ label: "Giscus 仓库", description: "如 username/repo-name" }),
+				twikooEnvId: fields.text({
+					label: "Twikoo 环境 ID",
+					description: "如 https://twikoo.vercel.app",
+				}),
+				giscusRepo: fields.text({
+					label: "Giscus 仓库",
+					description: "如 username/repo-name",
+				}),
 				giscusRepoId: fields.text({ label: "Giscus 仓库 ID" }),
-				giscusCategory: fields.text({ label: "Giscus 分类", defaultValue: "Announcements" }),
+				giscusCategory: fields.text({
+					label: "Giscus 分类",
+					defaultValue: "Announcements",
+				}),
 				giscusCategoryId: fields.text({ label: "Giscus 分类 ID" }),
 			},
 		}),
@@ -506,10 +736,16 @@ export default config({
 			format: { data: "json" },
 			schema: {
 				enable: fields.checkbox({ label: "启用播放器", defaultValue: true }),
-				showFloating: fields.checkbox({ label: "悬浮播放器", defaultValue: true }),
+				showFloating: fields.checkbox({
+					label: "悬浮播放器",
+					defaultValue: true,
+				}),
 				mode: fields.select({
 					label: "模式",
-					options: [{ label: "Meting API", value: "meting" }, { label: "本地", value: "local" }],
+					options: [
+						{ label: "Meting API", value: "meting" },
+						{ label: "本地", value: "local" },
+					],
 					defaultValue: "local",
 				}),
 				metingApi: fields.text({ label: "Meting API 地址" }),
@@ -533,7 +769,10 @@ export default config({
 			format: { data: "json" },
 			schema: {
 				enable: fields.checkbox({ label: "显示版权信息", defaultValue: true }),
-				name: fields.text({ label: "许可证名称", defaultValue: "CC BY-NC-SA 4.0" }),
+				name: fields.text({
+					label: "许可证名称",
+					defaultValue: "CC BY-NC-SA 4.0",
+				}),
 				url: fields.url({ label: "许可证链接" }),
 			},
 		}),
