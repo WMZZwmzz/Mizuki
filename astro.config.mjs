@@ -44,9 +44,20 @@ const isPagesBuild = process.env.DEPLOY_TARGET === "pages";
 // GitHub Pages 项目站部署在 /Mizuki/ 子路径，需要带前缀。
 const isCloudflarePages = process.env.CF_PAGES === "1";
 
+// 多部署目标下，Astro.site 需指向实际部署域名，否则 Open Graph / sitemap /
+// RSS 等所有绝对链接会带着 GitHub Pages 域名生成到 Cloudflare 部署产物里，
+// 且因 Cloudflare 部署 base = "/" 会丢失 /Mizuki/ 前缀。
+// Cloudflare Pages 自动注入 CF_PAGES_URL=当前项目部署 URL（如 https://xxx.pages.dev），
+// 优先使用；其余部署目标（GitHub Pages / Vercel / 本地 dev）继续使用
+// keystaticSettings.siteURL，行为与之前完全一致。
+const resolvedSite =
+	isCloudflarePages && process.env.CF_PAGES_URL
+		? process.env.CF_PAGES_URL
+		: siteConfig.siteURL;
+
 // https://astro.build/config
 export default defineConfig({
-	site: siteConfig.siteURL,
+	site: resolvedSite,
 	// Pages 子路径部署需要 /Mizuki/ 前缀；本地 dev 用 / 以兼容 keystatic 管理后台
 	// （keystatic 前端固定请求 /api/keystatic/*，不带 base，base 非 / 时会 404）。
 	// Cloudflare Pages 部署在根域名，base 用 "/"。
