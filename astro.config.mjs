@@ -47,13 +47,27 @@ const isCloudflarePages = process.env.CF_PAGES === "1";
 // 多部署目标下，Astro.site 需指向实际部署域名，否则 Open Graph / sitemap /
 // RSS 等所有绝对链接会带着 GitHub Pages 域名生成到 Cloudflare 部署产物里，
 // 且因 Cloudflare 部署 base = "/" 会丢失 /Mizuki/ 前缀。
-// Cloudflare Pages 自动注入 CF_PAGES_URL=当前项目部署 URL（如 https://xxx.pages.dev），
-// 优先使用；其余部署目标（GitHub Pages / Vercel / 本地 dev）继续使用
-// keystaticSettings.siteURL，行为与之前完全一致。
+// 优先级：
+//   1. SITE_URL 环境变量（推荐：显式指定稳定生产域名，如 https://mizuki-eaf.pages.dev/，
+//      可在 Cloudflare Pages 项目 Settings → Environment variables 配置）
+//   2. Cloudflare Pages 自动注入的 CF_PAGES_URL（当前部署 URL；若是带部署哈希前缀的
+//      https://<hash>.<project>.pages.dev/ 形式则自动转换为 https://<project>.pages.dev/）
+//   3. siteConfig.siteURL（GitHub Pages / Vercel / 本地 dev，行为与之前完全一致）
+// Cloudflare Pages 部署 URL 形如 https://3604dc35.mizuki-eaf.pages.dev/（哈希前缀为 8 位十六进制），
+// 生产稳定域名应去掉该前缀。自定义域名等其他形式原样返回。
+function resolveCloudflareSite(cfUrl) {
+	if (!cfUrl) return "";
+	const m = cfUrl.match(/^https:\/\/([0-9a-f]{8})\.([a-z0-9-]+\.pages\.dev)\/?$/i);
+	if (m) {
+		return `https://${m[2]}/`;
+	}
+	return cfUrl;
+}
 const resolvedSite =
-	isCloudflarePages && process.env.CF_PAGES_URL
-		? process.env.CF_PAGES_URL
-		: siteConfig.siteURL;
+	process.env.SITE_URL ||
+	(isCloudflarePages && process.env.CF_PAGES_URL
+		? resolveCloudflareSite(process.env.CF_PAGES_URL)
+		: siteConfig.siteURL);
 
 // https://astro.build/config
 export default defineConfig({
