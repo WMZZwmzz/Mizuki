@@ -4,18 +4,23 @@ import { onDestroy, onMount } from "svelte";
 
 import type { MusicPlayerState } from "@/stores/musicPlayerStore";
 import { musicPlayerStore } from "@/stores/musicPlayerStore";
+import { navigateToPage, pathsEqual } from "@/utils/navigation-utils";
+import { url } from "@/utils/url-utils";
 
 let state: MusicPlayerState = musicPlayerStore.getState();
 let unsubscribe: (() => void) | undefined;
 
-function toggleControlCenter() {
-	musicPlayerStore.toggleExpanded();
+function goToMusicPage() {
+	const musicPagePath = url("/music/");
+	// 已在音乐播放器页面时忽略，避免无意义导航
+	if (pathsEqual(window.location.pathname, musicPagePath)) {
+		return;
+	}
+	navigateToPage(musicPagePath);
 }
 
-$: currentSongTitle = state.currentSong?.title || "音乐控制中心";
-$: ariaLabel = state.isExpanded
-	? `收起音乐控制中心：${currentSongTitle}`
-	: `打开音乐控制中心：${currentSongTitle}`;
+$: currentSongTitle = state.currentSong?.title || "音乐播放器";
+$: ariaLabel = `前往音乐播放器页面：${currentSongTitle}`;
 $: statusIcon = state.isLoading
 	? "svg-spinners:90-ring-with-bg"
 	: "material-symbols:music-note-rounded";
@@ -39,7 +44,7 @@ onDestroy(() => {
 	class="music-fab btn-card"
 	aria-label={ariaLabel}
 	title={ariaLabel}
-	onclick={toggleControlCenter}
+	onclick={goToMusicPage}
 >
 	<span class="music-fab__icon" aria-hidden="true">
 		<Icon icon={statusIcon} />
