@@ -384,4 +384,17 @@ export const zh_TW: Translation = {
 	[Key.randomPosts]: "隨機文章",
 	[Key.smartRecommend]: "智能推薦",
 	[Key.randomRecommend]: "隨機推薦",
+
+	// 網盤頁面
+	[Key.drive]: "網盤",
+	[Key.driveSubtitle]: "共享資源的檔案管理器",
+	[Key.driveSearchPlaceholder]: "搜尋檔案...",
+	[Key.driveEmpty]: "此資料夾為空",
+	[Key.driveBack]: "返回",
+	[Key.driveRoot]: "根目錄",
+	[Key.driveItems]: "個項目",
+	[Key.driveOpen]: "開啟",
+	[Key.driveDownload]: "下載",
+	[Key.driveFolders]: "資料夾",
+	[Key.driveFiles]: "檔案",
 };

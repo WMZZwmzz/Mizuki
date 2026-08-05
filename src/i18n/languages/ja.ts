@@ -399,4 +399,17 @@ export const ja: Translation = {
 	[Key.randomPosts]: "ランダムな投稿",
 	[Key.smartRecommend]: "スマート",
 	[Key.randomRecommend]: "ランダム",
+
+	// ドライブページ
+	[Key.drive]: "ドライブ",
+	[Key.driveSubtitle]: "共有リソースのファイルマネージャー",
+	[Key.driveSearchPlaceholder]: "ファイルを検索...",
+	[Key.driveEmpty]: "このフォルダは空です",
+	[Key.driveBack]: "戻る",
+	[Key.driveRoot]: "ルート",
+	[Key.driveItems]: "アイテム",
+	[Key.driveOpen]: "開く",
+	[Key.driveDownload]: "ダウンロード",
+	[Key.driveFolders]: "フォルダ",
+	[Key.driveFiles]: "ファイル",
 };

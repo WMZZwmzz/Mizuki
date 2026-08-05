@@ -396,4 +396,17 @@ export const en: Translation = {
 	[Key.randomPosts]: "Random Posts",
 	[Key.smartRecommend]: "Smart",
 	[Key.randomRecommend]: "Random",
+
+	// Drive page
+	[Key.drive]: "Drive",
+	[Key.driveSubtitle]: "File manager for shared resources",
+	[Key.driveSearchPlaceholder]: "Search files...",
+	[Key.driveEmpty]: "This folder is empty",
+	[Key.driveBack]: "Back",
+	[Key.driveRoot]: "Root",
+	[Key.driveItems]: "items",
+	[Key.driveOpen]: "Open",
+	[Key.driveDownload]: "Download",
+	[Key.driveFolders]: "Folders",
+	[Key.driveFiles]: "Files",
 };

@@ -382,4 +382,17 @@ export const zh_CN: Translation = {
 	[Key.randomPosts]: "随机文章",
 	[Key.smartRecommend]: "智能推荐",
 	[Key.randomRecommend]: "随机推荐",
+
+	// 网盘页面
+	[Key.drive]: "网盘",
+	[Key.driveSubtitle]: "共享资源的文件管理器",
+	[Key.driveSearchPlaceholder]: "搜索文件...",
+	[Key.driveEmpty]: "此文件夹为空",
+	[Key.driveBack]: "返回",
+	[Key.driveRoot]: "根目录",
+	[Key.driveItems]: "个项目",
+	[Key.driveOpen]: "打开",
+	[Key.driveDownload]: "下载",
+	[Key.driveFolders]: "文件夹",
+	[Key.driveFiles]: "文件",
 };

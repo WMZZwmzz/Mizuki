@@ -374,6 +374,19 @@ enum I18nKey {
 	randomPosts = "randomPosts",
 	smartRecommend = "smartRecommend",
 	randomRecommend = "randomRecommend",
+
+	// 网盘页面
+	drive = "drive",
+	driveSubtitle = "driveSubtitle",
+	driveSearchPlaceholder = "driveSearchPlaceholder",
+	driveEmpty = "driveEmpty",
+	driveBack = "driveBack",
+	driveRoot = "driveRoot",
+	driveItems = "driveItems",
+	driveOpen = "driveOpen",
+	driveDownload = "driveDownload",
+	driveFolders = "driveFolders",
+	driveFiles = "driveFiles",
 }
 
 export default I18nKey;

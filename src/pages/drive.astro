@@ -1,0 +1,47 @@
+---
+import DrivePage from "@components/features/drive/DrivePage.svelte";
+import { PageHeader } from "@components/features/page-header";
+import MainGridLayout from "@layouts/MainGridLayout.astro";
+
+import { driveData } from "../data/drive";
+import I18nKey from "../i18n/i18nKey";
+import { i18n } from "../i18n/translation";
+
+export const prerender = true;
+
+const title = i18n(I18nKey.drive);
+const subtitle = i18n(I18nKey.driveSubtitle);
+
+const driveI18n = {
+	searchPlaceholder: i18n(I18nKey.driveSearchPlaceholder),
+	empty: i18n(I18nKey.driveEmpty),
+	back: i18n(I18nKey.driveBack),
+	root: i18n(I18nKey.driveRoot),
+	items: i18n(I18nKey.driveItems),
+	open: i18n(I18nKey.driveOpen),
+	download: i18n(I18nKey.driveDownload),
+	folders: i18n(I18nKey.driveFolders),
+	files: i18n(I18nKey.driveFiles),
+};
+---
+
+<MainGridLayout title={title} description={subtitle}>
+	<script>
+		import("../scripts/right-sidebar-layout.js");
+		import { loadIconify } from "../utils/icon-loader";
+
+		loadIconify().catch((error) => {
+			console.error("Failed to load Iconify:", error);
+		});
+	</script>
+
+	<div
+		class="drive-page-wrapper flex w-full rounded-[var(--radius-large)] overflow-hidden relative min-h-32"
+	>
+		<div class="card-base z-10 px-6 sm:px-9 py-6 relative w-full">
+			<PageHeader title={title} subtitle={subtitle} />
+
+			<DrivePage items={driveData} i18n={driveI18n} client:only="svelte" />
+		</div>
+	</div>
+</MainGridLayout>

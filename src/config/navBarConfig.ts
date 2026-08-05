@@ -231,9 +231,14 @@ export const navBarConfig: NavBarConfig = {
 					icon: "material-symbols:timeline",
 				},
 				{
-					name: "Music",
+					name: "音乐",
 					url: "/music/",
 					icon: "material-symbols:music-note-rounded",
+				},
+				{
+					name: "Drive",
+					url: "/drive/",
+					icon: "material-symbols:cloud-folder-outline",
 				},
 			],
 		},
