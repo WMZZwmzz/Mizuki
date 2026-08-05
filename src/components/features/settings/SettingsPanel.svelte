@@ -8,9 +8,11 @@ import {
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import Icon from "@iconify/svelte";
+import { extractPlaylistId } from "@utils/playlist-id-utils";
 import {
 	getDefaultBannerTitleEnabled,
 	getDefaultHue,
+	getDefaultMusicPlaylistId,
 	getDefaultOverlayBlur,
 	getDefaultOverlayCardOpacity,
 	getDefaultOverlayOpacity,
@@ -18,6 +20,7 @@ import {
 	getDefaultWavesEnabled,
 	getHue,
 	getStoredBannerTitleEnabled,
+	getStoredMusicPlaylistId,
 	getStoredOverlayBlur,
 	getStoredOverlayCardOpacity,
 	getStoredOverlayOpacity,
@@ -25,6 +28,7 @@ import {
 	getStoredWavesEnabled,
 	setBannerTitleEnabled,
 	setHue,
+	setMusicPlaylistId,
 	setOverlayBlur,
 	setOverlayCardOpacity,
 	setOverlayOpacity,
@@ -33,7 +37,13 @@ import {
 	setWavesEnabled,
 } from "@utils/setting-utils";
 import { onMount } from "svelte";
-import { fullscreenWallpaperConfig, sakuraConfig, siteConfig } from "@/config";
+import {
+	fullscreenWallpaperConfig,
+	musicPlayerConfig,
+	sakuraConfig,
+	siteConfig,
+} from "@/config";
+import { musicPlayerStore } from "@/stores/musicPlayerStore";
 
 import type { WALLPAPER_MODE } from "@/types/config";
 
@@ -81,6 +91,9 @@ const hasBannerSettings = isWavesSwitchable || isBannerTitleSwitchable;
 const isSakuraSwitchable =
 	sakuraConfig.enable && (sakuraConfig.switchable ?? false);
 
+const showMusicPlaylistId =
+	(musicPlayerConfig.enable ?? false) && musicPlayerConfig.mode === "meting";
+
 const showModeValue = siteConfig.wallpaperMode.showModeSwitchOnMobile;
 let isMobile = $state(false);
 
@@ -98,7 +111,8 @@ const hasAnyContent = $derived(
 		allowLayoutSwitch ||
 		hasOverlaySettings ||
 		hasBannerSettings ||
-		isSakuraSwitchable,
+		isSakuraSwitchable ||
+		showMusicPlaylistId,
 );
 
 let hue = $state(getHue());
@@ -117,6 +131,9 @@ let bannerTitleEnabled = $state(getDefaultBannerTitleEnabled());
 const defaultBannerTitleEnabled = getDefaultBannerTitleEnabled();
 let sakuraEnabled = $state(getDefaultSakuraEnabled());
 const defaultSakuraEnabled = getDefaultSakuraEnabled();
+const defaultMusicPlaylistId = getDefaultMusicPlaylistId();
+let musicPlaylistId = $state(defaultMusicPlaylistId);
+let appliedMusicPlaylistId = defaultMusicPlaylistId;
 
 let overlaySettingsIsDefault = $derived(
 	(!isOverlayOpacitySwitchable || overlayOpacity === defaultOverlayOpacity) &&
@@ -205,6 +222,41 @@ function toggleSakuraEnabled() {
 	setSakuraEnabled(sakuraEnabled);
 }
 
+function applyMusicPlaylistId() {
+	const trimmed = musicPlaylistId.trim();
+	if (!trimmed) {
+		musicPlaylistId = defaultMusicPlaylistId;
+	} else {
+		const extracted = extractPlaylistId(trimmed);
+		if (!extracted) {
+			// 无法解析时回退到当前生效的 ID
+			musicPlaylistId = appliedMusicPlaylistId;
+			return;
+		}
+		musicPlaylistId = extracted;
+	}
+	if (musicPlaylistId === appliedMusicPlaylistId) return;
+	setMusicPlaylistId(musicPlaylistId);
+	appliedMusicPlaylistId = musicPlaylistId;
+	musicPlayerStore.reloadPlaylist();
+}
+
+function handleMusicPlaylistPaste(event: ClipboardEvent) {
+	const text = event.clipboardData?.getData("text") ?? "";
+	const extracted = extractPlaylistId(text);
+	// 粘贴分享链接时直接提取并应用；纯数字按普通粘贴处理
+	if (extracted && !/^\d+$/.test(text.trim())) {
+		event.preventDefault();
+		musicPlaylistId = extracted;
+		applyMusicPlaylistId();
+	}
+}
+
+function resetMusicPlaylistId() {
+	musicPlaylistId = defaultMusicPlaylistId;
+	applyMusicPlaylistId();
+}
+
 function switchWallpaperMode(newMode: WALLPAPER_MODE) {
 	wallpaperMode = newMode;
 	setWallpaperMode(newMode);
@@ -266,6 +318,8 @@ onMount(() => {
 	wavesEnabled = getStoredWavesEnabled();
 	bannerTitleEnabled = getStoredBannerTitleEnabled();
 	sakuraEnabled = getStoredSakuraEnabled();
+	musicPlaylistId = getStoredMusicPlaylistId();
+	appliedMusicPlaylistId = musicPlaylistId;
 
 	const savedLayout = siteConfig.postListLayout?.enable
 		? sessionStorage.getItem("postListLayout") ||
@@ -657,6 +711,46 @@ $effect(() => {
 						<Icon icon="material-symbols:check-circle" class="text-[1rem] shrink-0 text-(--primary)" />
 					{/if}
 				</button>
+			</div>
+		</div>
+	{/if}
+
+	{#if showMusicPlaylistId}
+		<div class="mt-2 mb-2">
+			<div
+				class="flex gap-2 font-bold text-lg text-neutral-900 dark:text-neutral-100 transition relative ml-3 mb-2
+				before:w-1 before:h-4 before:rounded-md before:bg-(--primary)
+				before:absolute before:-left-3 before:top-1/2 before:-translate-y-1/2"
+			>
+				{i18n(I18nKey.settingsMusicPlaylistId)}
+			</div>
+			<div class="flex gap-2 items-center">
+				<input
+					type="text"
+					aria-label={i18n(I18nKey.settingsMusicPlaylistId)}
+					placeholder={i18n(I18nKey.settingsMusicPlaylistIdPlaceholder)}
+					class="flex-1 min-w-0 rounded-md bg-(--btn-regular-bg) text-sm text-(--btn-content) px-3 h-9 outline-none focus:ring-2 focus:ring-(--primary) placeholder:text-(--btn-content) placeholder:opacity-50 transition"
+					bind:value={musicPlaylistId}
+					onchange={applyMusicPlaylistId}
+					onpaste={handleMusicPlaylistPaste}
+					onkeydown={(e) => {
+						if (e.key === "Enter") (e.currentTarget as HTMLInputElement).blur();
+					}}
+				/>
+				<button
+					aria-label="Reset to Default"
+					class="btn-regular w-9 h-9 shrink-0 rounded-md active:scale-90"
+					class:opacity-0={musicPlaylistId === defaultMusicPlaylistId}
+					class:pointer-events-none={musicPlaylistId === defaultMusicPlaylistId}
+					onclick={resetMusicPlaylistId}
+				>
+					<div class="text-(--btn-content)">
+						<Icon icon="material-symbols:refresh" class="text-[0.875rem]" />
+					</div>
+				</button>
+			</div>
+			<div class="text-xs text-neutral-500 dark:text-neutral-400 mt-1 px-1">
+				{i18n(I18nKey.settingsMusicPlaylistIdHint)}
 			</div>
 		</div>
 	{/if}
