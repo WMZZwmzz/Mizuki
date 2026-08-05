@@ -1,6 +1,5 @@
 ---
 import { PhotoCard } from "@components/features/albums";
-import Encryptor from "@components/features/auth/Encryptor.astro";
 import PasswordProtection from "@components/features/auth/PasswordProtection.astro";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
 import { encryptContent } from "@utils/crypto-utils";
@@ -34,9 +33,14 @@ if (!album) {
 	return Astro.redirect("/404/");
 }
 
-const isEncrypted = !!album.password;
+// 加密逻辑：预加密形态（album.encryptedContent）优先，兼容旧明文 password 形态
+const hasEncryptedContent = !!album.encryptedContent;
+const isEncrypted = !!(album.encryptedContent || album.password);
 let encryptedPhotoData = "";
-if (isEncrypted) {
+if (hasEncryptedContent) {
+	// 预加密形态：直接使用仓库中的密文，构建期无需明文密码
+	encryptedPhotoData = album.encryptedContent as string;
+} else if (isEncrypted) {
 	const photoHtml = album.photos
 		.map(
 			(photo: Photo) =>
@@ -188,6 +192,7 @@ if (isEncrypted) {
 					<PasswordProtection
 						encryptedContent={encryptedPhotoData}
 						hint={album.passwordHint}
+						contentType="html"
 					/>
 				) : album.photos.length > 0 ? (
 					<div class="gallery-masonry">

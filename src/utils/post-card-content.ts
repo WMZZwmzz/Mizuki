@@ -3,6 +3,7 @@ export const ENCRYPTED_POST_HOME_CONTENT = "该文章已加密";
 export interface PostHomeContentData {
 	description?: string;
 	hideHomeContent?: boolean;
+	encrypted?: boolean;
 	password?: string | null;
 }
 
@@ -11,7 +12,10 @@ function hasPassword(password?: string | null): boolean {
 }
 
 export function shouldHidePostHomeContent(data: PostHomeContentData): boolean {
-	return data.hideHomeContent ?? hasPassword(data.password);
+	// 加密文章（预加密形态 encrypted，或兼容旧明文 password 形态）一律隐藏首页内容
+	return (
+		data.hideHomeContent ?? (!!data.encrypted || hasPassword(data.password))
+	);
 }
 
 export function getPostHomeContent(

@@ -78,6 +78,9 @@ declare global {
 		};
 		renderMermaidDiagrams?: () => void;
 
+		// 加密文章客户端 markdown 渲染器（marked，由 PasswordProtection 的 module script 注入）
+		__mizukiMarked?: typeof import("marked").marked;
+
 		// Sidebar manager window properties
 		__mizukiSidebarResizeHandler?: () => void;
 		__mizukiSidebarSwupHooked?: boolean;

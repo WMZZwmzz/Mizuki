@@ -22,7 +22,7 @@ const candidates = allPosts.filter((p) => {
 	if (excludeIds.includes(p.id)) {
 		return false;
 	}
-	if (p.data.password) {
+	if (p.data.encrypted) {
 		return false;
 	}
 	return true;

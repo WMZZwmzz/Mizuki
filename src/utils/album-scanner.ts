@@ -55,6 +55,8 @@ async function processAlbumFolder(
 		date?: string;
 		location?: string;
 		tags?: string[];
+		encryptedContent?: string;
+		encrypted?: boolean;
 		password?: string;
 		passwordHint?: string;
 	}
@@ -117,6 +119,8 @@ async function processAlbumFolder(
 		location: info.location || "",
 		tags: info.tags || [],
 		photos,
+		encryptedContent: info.encryptedContent || undefined,
+		encrypted: info.encrypted === true || !!info.encryptedContent || undefined,
 		password: info.password || undefined,
 		passwordHint: info.passwordHint || undefined,
 	};

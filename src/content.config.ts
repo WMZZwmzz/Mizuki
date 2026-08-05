@@ -24,6 +24,9 @@ const postsCollection = defineCollection({
 
 		/* Page encryption fields */
 		encrypted: z.boolean().optional().default(false),
+		// encryptedContent: 预加密密文（base64，含 salt/iv/authTag），由 scripts/encrypt-content.mjs 本地生成。
+		// 存在此字段即视为加密文章，构建时直接输出密文，无需明文密码。
+		encryptedContent: z.string().optional().default(""),
 		password: z.string().optional().default(""),
 		passwordHint: z.string().optional().default(""),
 		hideHomeContent: z.boolean().optional(),

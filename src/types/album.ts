@@ -21,6 +21,9 @@ export interface AlbumGroup {
 	location?: string;
 	tags?: string[];
 	photos: Photo[];
+	// 预加密密文（base64），存在即视为加密相册，构建时直接输出密文
+	encryptedContent?: string;
+	encrypted?: boolean;
 	password?: string;
 	passwordHint?: string;
 }

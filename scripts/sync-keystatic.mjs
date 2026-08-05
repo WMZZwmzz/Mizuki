@@ -12,6 +12,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+// 复用 crypto-utils.ts 的 encryptContent，确保密文格式与浏览器端解密一致
+import { encryptContent } from "../src/utils/crypto-utils.ts";
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 const KEYSTATIC_DIR = path.join(ROOT, "src/data/keystatic");
@@ -34,6 +37,117 @@ function readJsonDir(subdir) {
 function readJsonFile(filePath) {
 	if (!fs.existsSync(filePath)) return null;
 	return JSON.parse(fs.readFileSync(filePath, "utf-8"));
+}
+
+function writeJsonFile(filePath, data) {
+	fs.writeFileSync(filePath, `${JSON.stringify(data, null, 2)}\n`, "utf-8");
+}
+
+// ===== 自动加密（Keystatic 保存后由 sync/watch 自动转换） =====
+// 检测「勾选 encrypted + 填了明文 password + 有明文 content」的文章，自动加密为密文形态：
+// content → encryptedContent（密文），清空 content，删除明文 password。
+// 这样作者在 Keystatic 勾选加密并填密码保存后，sync 自动完成加密，仓库不留明文。
+
+function autoEncryptPosts() {
+	const dir = path.join(KEYSTATIC_DIR, "posts");
+	if (!fs.existsSync(dir)) return 0;
+	let count = 0;
+	for (const file of fs.readdirSync(dir).filter((f) => f.endsWith(".json"))) {
+		const filePath = path.join(dir, file);
+		const p = readJsonFile(filePath);
+		if (!p) continue;
+		// 待加密状态：勾选 encrypted，有明文正文，有密码，尚未生成密文
+		if (
+			p.encrypted &&
+			!p.encryptedContent &&
+			(p.content || "").trim() &&
+			p.password
+		) {
+			p.encryptedContent = encryptContent(p.content, p.password);
+			p.content = "";
+			delete p.password;
+			writeJsonFile(filePath, p);
+			count++;
+			console.log(`  🔒 auto-encrypted post: ${file.replace(/\.json$/, "")}`);
+		}
+	}
+	return count;
+}
+
+// 相册照片扫描（复刻 album-scanner.ts 的本地/外链模式，生成展示 HTML）
+function collectAlbumPhotos(albumId, info) {
+	const isExternal = info.mode === "external";
+	if (isExternal) {
+		return (info.photos || [])
+			.filter((p) => p.src)
+			.map((p, i) => ({
+				src: p.src,
+				alt: p.alt || p.title || `Photo ${i + 1}`,
+				title: p.title || p.alt || "",
+			}));
+	}
+	const albumDir = path.join(ROOT, "public/images/albums", albumId);
+	const imageExts = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".avif"];
+	if (!fs.existsSync(albumDir)) return [];
+	const imageFiles = fs
+		.readdirSync(albumDir)
+		.filter(
+			(f) =>
+				imageExts.includes(path.extname(f).toLowerCase()) &&
+				f !== "cover.jpg" &&
+				f !== "cover.webp",
+		);
+	const fileWebpMap = new Map();
+	for (const f of imageFiles) {
+		const base = path.basename(f, path.extname(f));
+		const ext = path.extname(f).toLowerCase();
+		if (
+			(ext === ".jpg" || ext === ".jpeg" || ext === ".png") &&
+			imageFiles.includes(`${base}.webp`)
+		) {
+			fileWebpMap.set(f, `${base}.webp`);
+		}
+	}
+	return imageFiles.map((f) => {
+		const src = fileWebpMap.has(f)
+			? `/images/albums/${albumId}/${fileWebpMap.get(f)}`
+			: `/images/albums/${albumId}/${f}`;
+		const baseName = path.basename(f, path.extname(f));
+		return { src, alt: baseName, title: baseName };
+	});
+}
+
+function autoEncryptAlbums() {
+	const albumsDir = path.join(ROOT, "public/images/albums");
+	if (!fs.existsSync(albumsDir)) return 0;
+	let count = 0;
+	const folders = fs
+		.readdirSync(albumsDir, { withFileTypes: true })
+		.filter((d) => d.isDirectory())
+		.map((d) => d.name);
+	for (const folder of folders) {
+		const infoPath = path.join(albumsDir, folder, "info.json");
+		const info = readJsonFile(infoPath);
+		if (!info) continue;
+		// 待加密状态：填了明文密码，尚未生成密文
+		if (info.password && !info.encryptedContent) {
+			const photos = collectAlbumPhotos(folder, info);
+			const photoHtml = photos
+				.map(
+					(p) =>
+						`<div class="gallery-masonry-item"><a data-fancybox="album-${folder}" href="${p.src}" data-caption="${p.alt || p.title || ""}"><img src="${p.src}" alt="${p.alt || p.title || ""}" loading="lazy" decoding="async" class="w-full rounded-lg" /></a></div>`,
+				)
+				.join("");
+			const wrappedHtml = `<div class="gallery-masonry">${photoHtml}</div>`;
+			info.encryptedContent = encryptContent(wrappedHtml, info.password);
+			info.encrypted = true;
+			delete info.password;
+			writeJsonFile(infoPath, info);
+			count++;
+			console.log(`  🔒 auto-encrypted album: ${folder}`);
+		}
+	}
+	return count;
 }
 
 function escapeStr(s) {
@@ -99,6 +213,8 @@ export function buildPostMarkdown(slug, p) {
 	if (p.licenseName) fm.licenseName = p.licenseName;
 	if (p.licenseUrl) fm.licenseUrl = p.licenseUrl;
 	if (p.encrypted) fm.encrypted = true;
+	// 预加密形态：密文存 frontmatter，明文密码不入库，正文留占位符
+	if (p.encryptedContent) fm.encryptedContent = p.encryptedContent;
 	if (p.password) fm.password = p.password;
 	if (p.passwordHint) fm.passwordHint = p.passwordHint;
 	if (p.alias) fm.alias = p.alias;
@@ -110,7 +226,10 @@ export function buildPostMarkdown(slug, p) {
 		return `${k}: ${v}`;
 	});
 
-	const content = p.content || "";
+	// 加密文章的正文由密文承载，Markdown 正文留占位符，避免明文泄露
+	const content = p.encryptedContent
+		? "<!-- 该文章已加密，正文以密文形式存储于 frontmatter.encryptedContent -->"
+		: p.content || "";
 	return `---\n${yamlLines.join("\n")}\n---\n\n${content}\n`;
 }
 
@@ -688,6 +807,10 @@ ${groupEntries}
 
 function syncAll() {
 	if (!fs.existsSync(KEYSTATIC_DIR)) return [];
+
+	// 自动加密：Keystatic 中勾选加密并填密码的文章/相册，在此转为密文形态
+	autoEncryptPosts();
+	autoEncryptAlbums();
 
 	const hasData = (sub) => {
 		const dir = path.join(KEYSTATIC_DIR, sub);
