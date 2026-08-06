@@ -59,6 +59,14 @@ const archiveUrl = url("/archive/");
 			</div>
 			<div class="scroll-fade scroll-fade-right" aria-hidden="true"></div>
 		</div>
+		<button
+			type="button"
+			class="expand-btn flex-shrink-0 rounded-lg flex items-center justify-center transition-colors duration-200"
+			aria-label={i18n(I18nKey.categories)}
+			aria-expanded="false"
+		>
+			<Icon name="material-symbols:arrow-drop-down" class="text-xl" />
+		</button>
 	</div>
 </div>
 
@@ -127,6 +135,31 @@ const archiveUrl = url("/archive/");
 		background: var(--primary);
 		border-color: var(--primary);
 		opacity: 0.9;
+	}
+	.expand-btn {
+		display: none;
+		border: 1.5px solid var(--line-divider);
+		color: var(--btn-content);
+		background: transparent;
+		width: 2rem;
+		height: 2rem;
+	}
+	.expand-btn[data-show] {
+		display: flex;
+	}
+	.expand-btn:hover {
+		border-color: var(--primary);
+		color: var(--primary);
+	}
+	.expand-btn :global(svg) {
+		transition: transform 200ms ease-in-out;
+	}
+	.expand-btn[aria-expanded="true"] :global(svg) {
+		transform: rotate(180deg);
+	}
+	.category-scroll[data-expanded] {
+		flex-wrap: wrap;
+		overflow-x: visible;
 	}
 </style>
 
@@ -231,10 +264,13 @@ const archiveUrl = url("/archive/");
 			return;
 		}
 
-		// 鼠标滚轮横向滚动
+		// 鼠标滚轮横向滚动（展开状态下不拦截，交给页面正常滚动）
 		scroll.addEventListener(
 			"wheel",
 			(e) => {
+				if (scroll.hasAttribute("data-expanded")) {
+					return;
+				}
 				if (scroll.scrollWidth <= scroll.clientWidth) {
 					return;
 				}
@@ -243,6 +279,23 @@ const archiveUrl = url("/archive/");
 			},
 			{ passive: false },
 		);
+
+		// 倒三角展开按钮：点击切换展开/收起
+		const expandBtn = bar.querySelector<HTMLButtonElement>(".expand-btn");
+		if (expandBtn) {
+			expandBtn.addEventListener("click", () => {
+				const expanded =
+					expandBtn.getAttribute("aria-expanded") === "true";
+				if (expanded) {
+					scroll.removeAttribute("data-expanded");
+					expandBtn.setAttribute("aria-expanded", "false");
+				} else {
+					scroll.setAttribute("data-expanded", "");
+					expandBtn.setAttribute("aria-expanded", "true");
+				}
+				updateScrollHint();
+			});
+		}
 
 		// 监听滚动更新提示图标
 		scroll.addEventListener("scroll", updateScrollHint);
@@ -258,14 +311,32 @@ const archiveUrl = url("/archive/");
 		const scroll = bar.querySelector<HTMLElement>(".category-scroll");
 		const fadeLeft = bar.querySelector<HTMLElement>(".scroll-fade-left");
 		const fadeRight = bar.querySelector<HTMLElement>(".scroll-fade-right");
+		const expandBtn = bar.querySelector<HTMLElement>(".expand-btn");
 		if (!scroll || !fadeLeft || !fadeRight) {
 			return;
 		}
 
+		const isExpanded = scroll.hasAttribute("data-expanded");
 		const hasOverflow = scroll.scrollWidth > scroll.clientWidth + 1;
 		const atStart = scroll.scrollLeft <= 1;
 		const atEnd =
 			scroll.scrollLeft + scroll.clientWidth >= scroll.scrollWidth - 1;
+
+		// 展开/收起按钮：溢出时显示，展开后保持显示用于收起
+		if (expandBtn) {
+			if (hasOverflow || isExpanded) {
+				expandBtn.setAttribute("data-show", "");
+			} else {
+				expandBtn.removeAttribute("data-show");
+			}
+		}
+
+		// 展开状态下不显示边缘渐变提示
+		if (isExpanded) {
+			fadeLeft.removeAttribute("data-visible");
+			fadeRight.removeAttribute("data-visible");
+			return;
+		}
 
 		if (hasOverflow && !atStart) {
 			fadeLeft.setAttribute("data-visible", "");

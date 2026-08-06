@@ -42,6 +42,7 @@ console.log("🚀 Mizuki — watch + dev server\n   Ctrl+C to stop\n");
 
 // 启动 watch（后台运行）
 const _watch = start("watch", "node", [
+	"--experimental-strip-types",
 	"scripts/sync-keystatic.mjs",
 	"--watch",
 ]);

@@ -180,7 +180,11 @@ export default defineConfig({
 	markdown: {
 		processor: unified({
 			remarkPlugins: [
-				remarkMath,
+				// 关闭单 `$` 行内公式：内容里大量 `$10/$50` 形式的价格会被 remark-math
+				// 误判为行内数学公式，从而把夹在中间的中文（如“价”）塞进 math mode，
+				// 触发 rehype-katex 的 unicodeTextInMathMode 警告并破坏渲染。
+				// 站点实际只使用 `$$...$$` 块级公式，故禁用单 `$` 行内公式即可根治。
+				[remarkMath, { singleDollarTextMath: false }],
 				remarkContent,
 				remarkFixGithubAdmonitions,
 				remarkDirective,

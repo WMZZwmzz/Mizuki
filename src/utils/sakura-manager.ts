@@ -197,10 +197,14 @@ export class SakuraManager {
 	private isRunning = false;
 	private resizeTimeout: number | null = null;
 	private boundResizeHandler: () => void;
+	private boundScrollHandler: () => void;
+	private isScrolling = false;
+	private scrollEndTimer: ReturnType<typeof setTimeout> | null = null;
 
 	constructor(config: SakuraConfig) {
 		this.config = config;
 		this.boundResizeHandler = this.handleResize.bind(this);
+		this.boundScrollHandler = this.handleScroll.bind(this);
 	}
 
 	// 初始化樱花特效
@@ -245,6 +249,10 @@ export class SakuraManager {
 
 		// 使用被动事件监听器提升滚动性能
 		window.addEventListener("resize", this.boundResizeHandler, {
+			passive: true,
+		});
+		// 监听滚动：滚动期间暂停绘制，避免全屏 canvas 每帧重绘与滚动争用帧预算
+		window.addEventListener("scroll", this.boundScrollHandler, {
 			passive: true,
 		});
 	}
@@ -305,13 +313,30 @@ export class SakuraManager {
 				return;
 			}
 
-			this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-			this.sakuraList.update();
-			this.sakuraList.draw(this.ctx);
+			// 滚动期间跳过重绘：全屏 canvas 每帧 clearRect+drawImage 会使整个视口
+			// 的合成层持续失效，与滚动重绘争用帧预算造成卡顿；花瓣在滚动期间
+			// 短暂定格（保留上一帧画面），停止滚动约 160ms 后自动恢复
+			if (!this.isScrolling) {
+				this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+				this.sakuraList.update();
+				this.sakuraList.draw(this.ctx);
+			}
 			this.animationId = requestAnimationFrame(animate);
 		};
 
 		this.animationId = requestAnimationFrame(animate);
+	}
+
+	// 处理滚动 - 标记滚动状态，停止滚动约 160ms 后恢复绘制
+	private handleScroll(): void {
+		this.isScrolling = true;
+		if (this.scrollEndTimer) {
+			clearTimeout(this.scrollEndTimer);
+		}
+		this.scrollEndTimer = setTimeout(() => {
+			this.isScrolling = false;
+			this.scrollEndTimer = null;
+		}, 160);
 	}
 
 	// 处理窗口大小变化 - 带防抖
@@ -339,12 +364,19 @@ export class SakuraManager {
 			this.resizeTimeout = null;
 		}
 
+		if (this.scrollEndTimer) {
+			clearTimeout(this.scrollEndTimer);
+			this.scrollEndTimer = null;
+		}
+		this.isScrolling = false;
+
 		if (this.canvas) {
 			document.body.removeChild(this.canvas);
 			this.canvas = null;
 		}
 
 		window.removeEventListener("resize", this.boundResizeHandler);
+		window.removeEventListener("scroll", this.boundScrollHandler);
 		this.isRunning = false;
 	}
 

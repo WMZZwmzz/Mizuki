@@ -238,7 +238,7 @@ export const navBarConfig: NavBarConfig = {
 				{
 					name: "Drive",
 					url: "/drive/",
-					icon: "material-symbols:cloud-folder-outline",
+					icon: "material-symbols:folder",
 				},
 			],
 		},

@@ -25,7 +25,6 @@ Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-s
 
 - **每次推送 `master` 都会触发部署**：`deploy.yml` 在 push 到 `master` 时先跑质量门禁（复用 `lint.yml`：biome / typecheck / 单测 / 构建），门禁通过后构建并发布到 `pages` 分支。门禁失败则部署被跳过，但 `master` 上仍会留下失败提交。
 - **可直推 `master` 的改动**：内容/数据更新（`src/content/`、`src/data/`）、文档（`docs/`、README、AGENTS.md）、样式微调等低风险改动，前提是本地已按需跑过验证命令。
-- **应先经分支验证的改动**：核心行为变更（构建脚本 `scripts/`、`astro.config.mjs`、workflow 文件、播放器/导航等核心组件逻辑、依赖升级或补丁变更）。在特性分支上提交并向 `master` 发起 PR——`lint.yml` 对 PR 也会跑同一套门禁——通过后再合并；合并进 `master` 时才会触发部署。
 - **发布失败的回滚步骤**（在 `master` 上执行）：
   1. `git revert <坏提交>`（多个提交用 `git revert <老提交>^..<新提交>`），不要用 force push 重写历史。
   2. `git push origin master` —— 推送 revert 提交会重新触发 `deploy.yml`，用回滚后的代码重新部署。
