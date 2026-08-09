@@ -990,14 +990,12 @@ html.is-page-transitioning .banner-page-overlay {
    由 src/layouts/partials/HeroOverlayScroll.astro 驱动 --hero-progress (0~1)
    ========================================================================== */
 
-/* 注册 --hero-progress 为数值类型自定义属性。
-   类型化后浏览器可对该属性的变化做差分失效检测：每帧 setProperty 时，
-   仅真正消费该变量的元素参与 style recalc，而非未注册时的保守全子树重算。
-   未注册时变量仍作为普通自定义属性工作，视觉无差异，仅失去此优化。
-   --hero-progress 由 HeroOverlayScroll.astro 每帧指数平滑驱动（0~1）。 */
+/* 注册 --hero-progress 为不继承的数值属性。
+   HeroOverlayScroll.astro 只在 banner 和全屏壁纸两个消费者上更新它，
+   避免根级继承变量变化导致整棵 DOM 参与样式重算。 */
 @property --hero-progress {
   syntax: "<number>";
-  inherits: true;
+  inherits: false;
   initial-value: 0;
 }
 
@@ -1025,31 +1023,27 @@ body.hero-overlay-scroll #banner-wrapper {
   will-change: opacity;
 }
 
-/* 卡片背景透明度跟随 progress 线性渐变
-   progress=0 → 完全不透明（等同 --card-bg）
-   progress=1 → 半透明（等同 overlay 配置的 cardOpacity）
-   特异性高于 variables.styl 的默认规则，确保覆盖 */
+/* 卡片在 hero-scrolled 阈值处切换为 overlay 透明度。
+   变量仅在阈值跨越时变化一次，避免滚动期间逐帧重算所有卡片。 */
 body.hero-overlay-scroll.wallpaper-transparent {
-  --card-bg-transparent: rgba(
-    255,
-    255,
-    255,
-    calc(1 - var(--hero-progress, 0) * (1 - var(--hero-card-target-opacity, 0.5)))
-  );
+  --card-bg-transparent: rgba(255, 255, 255, 1);
+}
+
+body.hero-overlay-scroll.wallpaper-transparent.hero-scrolled {
+  --card-bg-transparent: rgba(255, 255, 255, var(--hero-card-target-opacity, 0.5));
 }
 
 :root.dark body.hero-overlay-scroll.wallpaper-transparent {
-  --card-bg-transparent: rgba(
-    23,
-    23,
-    23,
-    calc(1 - var(--hero-progress, 0) * (1 - var(--hero-card-target-opacity, 0.5)))
-  );
+  --card-bg-transparent: rgba(23, 23, 23, 1);
 }
 
-/* 卡片背景透明度由 --hero-progress 经 JS 每帧平滑驱动，无需 CSS 过渡 */
+:root.dark body.hero-overlay-scroll.wallpaper-transparent.hero-scrolled {
+  --card-bg-transparent: rgba(23, 23, 23, var(--hero-card-target-opacity, 0.5));
+}
+
+/* 只过渡卡片背景色，避免覆盖边框等组件自身的过渡定义 */
 body.hero-overlay-scroll .card-base {
-  transition: none;
+  transition: background-color 300ms ease;
 }
 
 /* hero-scrolled 后禁用 banner 指针事件，避免误触 */

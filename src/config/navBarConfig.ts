@@ -235,11 +235,12 @@ export const navBarConfig: NavBarConfig = {
 					url: "/music/",
 					icon: "material-symbols:music-note-rounded",
 				},
-				{
-					name: "Drive",
-					url: "/drive/",
-					icon: "material-symbols:folder",
-				},
+				// 暂时隐藏网盘导航入口，/drive/ 页面仍保留。
+				// {
+				// 	name: "Drive",
+				// 	url: "/drive/",
+				// 	icon: "material-symbols:folder",
+				// },
 			],
 		},
 	],

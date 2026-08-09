@@ -5,8 +5,8 @@
  * 工作原理：
  * - 在首页启用，无视用户设置的壁纸模式（横幅/全屏/覆盖均呈现全屏→覆盖过渡）
  * - 进入首页时强制全屏 banner 视觉状态（enable-banner + fullscreen-banner）
- * - 监听滚动，计算 --hero-progress（0~1，在 0~90vh 区间内完成过渡）
- * - CSS 据此变量让 banner 视差淡出、FullscreenWallpaper 淡入、卡片半透明渐变
+ * - 监听滚动，计算 --hero-progress（0~1，在 0~80vh 区间内完成过渡）
+ * - CSS 据此变量让 banner 淡出、FullscreenWallpaper 淡入，卡片在阈值处切换为半透明
  * - 不调用 setWallpaperMode，不写入 localStorage，不影响用户手动设置
  * - 滚回顶部自动恢复全屏 hero 状态
  * - 离开首页时清理强制状态并通知 GridScripts 恢复实际模式
@@ -62,10 +62,11 @@ const navbarTransparentMode =
 	let lastTime = 0;
 	// 当前 hero overlay 是否处于激活状态（防止 disable 重复派发事件）
 	let heroOverlayActive = false;
-	// 缓存 documentElement 引用，避免 tick 每帧重复属性查找；init 时赋值
-	let rootEl = null;
+	// 进度只写入两个实际消费者，避免根级继承变量触发全页面样式重算
+	let bannerEl = null;
+	let wallpaperEl = null;
 	// 上次实际写入 --hero-progress 的值（字符串）；收敛态下相同值跳过 setProperty，
-	// 避免无意义的全文档 style recalc
+	// 避免无意义的样式重算
 	let lastAppliedProgress = "";
 
 	// 平滑系数：越大越跟手、越小越柔和。8 对应约 125ms 时间常数，
@@ -84,6 +85,11 @@ const navbarTransparentMode =
 		lastTime = 0;
 	}
 
+	function applyProgress(progress) {
+		if (bannerEl) bannerEl.style.setProperty("--hero-progress", progress);
+		if (wallpaperEl) wallpaperEl.style.setProperty("--hero-progress", progress);
+	}
+
 	function disableHeroOverlay() {
 		if (!heroOverlayActive) return;
 		heroOverlayActive = false;
@@ -97,19 +103,25 @@ const navbarTransparentMode =
 			"fullscreen-banner",
 		);
 		// 清除强制的 display 内联样式
-		const bannerWrapper = document.getElementById("banner-wrapper");
-		const fullscreenWallpaper = document.querySelector(
-			"[data-fullscreen-wallpaper]",
-		);
+		const bannerWrapper = bannerEl || document.getElementById("banner-wrapper");
+		const fullscreenWallpaper =
+			wallpaperEl ||
+			document.querySelector("[data-fullscreen-wallpaper]");
 		if (bannerWrapper) bannerWrapper.style.removeProperty("display");
-		if (fullscreenWallpaper)
+		if (bannerWrapper) bannerWrapper.style.removeProperty("--hero-progress");
+		if (fullscreenWallpaper) {
 			fullscreenWallpaper.style.removeProperty("display");
-
-		const root = rootEl || document.documentElement;
-		root.style.removeProperty("--hero-progress");
-		root.style.removeProperty("--hero-wallpaper-target-opacity");
-		root.style.removeProperty("--hero-wallpaper-target-blur");
-		root.style.removeProperty("--hero-card-target-opacity");
+			fullscreenWallpaper.style.removeProperty("--hero-progress");
+			fullscreenWallpaper.style.removeProperty(
+				"--hero-wallpaper-target-opacity",
+			);
+			fullscreenWallpaper.style.removeProperty(
+				"--hero-wallpaper-target-blur",
+			);
+		}
+		document.body.style.removeProperty("--hero-card-target-opacity");
+		bannerEl = null;
+		wallpaperEl = null;
 		lastAppliedProgress = "";
 
 		// 通知 GridScripts 恢复当前页面实际壁纸模式
@@ -153,10 +165,10 @@ const navbarTransparentMode =
 			const factor = 1 - Math.exp(-SMOOTHING * dt);
 			currentProgress += diff * factor;
 		}
-		// 仅当值真正变化时写入，避免收敛态下重复触发全文档 style recalc
+		// 仅当值真正变化时写入两个视觉元素，避免触发全页面样式重算
 		const progressStr = currentProgress.toFixed(4);
-		if (progressStr !== lastAppliedProgress && rootEl) {
-			rootEl.style.setProperty("--hero-progress", progressStr);
+		if (progressStr !== lastAppliedProgress) {
+			applyProgress(progressStr);
 			lastAppliedProgress = progressStr;
 		}
 
@@ -196,12 +208,12 @@ const navbarTransparentMode =
 		body.classList.add("enable-banner", "fullscreen-banner");
 
 		// 确保 banner 可见、全屏壁纸由 CSS（hero-overlay-scroll 规则）控制淡入
-		const bannerWrapper = document.getElementById("banner-wrapper");
-		const fullscreenWallpaper = document.querySelector(
+		bannerEl = document.getElementById("banner-wrapper");
+		wallpaperEl = document.querySelector(
 			"[data-fullscreen-wallpaper]",
 		);
-		if (bannerWrapper) bannerWrapper.style.display = "block";
-		if (fullscreenWallpaper) fullscreenWallpaper.style.display = "";
+		if (bannerEl) bannerEl.style.display = "block";
+		if (wallpaperEl) wallpaperEl.style.display = "";
 
 		// 恢复 navbar 透明模式（覆盖 overlay/none 模式设置的 data-dynamic-transparent）
 		const navbar = document.getElementById("navbar");
@@ -231,13 +243,17 @@ const navbarTransparentMode =
 		const targetBlur = getCarrierNumber("overlayBlur", 10);
 		const targetCardOpacity = getCarrierNumber("overlayCardOpacity", 0.5);
 
-		rootEl = document.documentElement;
-		rootEl.style.setProperty(
-			"--hero-wallpaper-target-opacity",
-			String(targetOpacity),
-		);
-		rootEl.style.setProperty("--hero-wallpaper-target-blur", `${targetBlur}px`);
-		rootEl.style.setProperty(
+		if (wallpaperEl) {
+			wallpaperEl.style.setProperty(
+				"--hero-wallpaper-target-opacity",
+				String(targetOpacity),
+			);
+			wallpaperEl.style.setProperty(
+				"--hero-wallpaper-target-blur",
+				`${targetBlur}px`,
+			);
+		}
+		body.style.setProperty(
 			"--hero-card-target-opacity",
 			String(targetCardOpacity),
 		);
@@ -251,7 +267,7 @@ const navbarTransparentMode =
 		updateTarget();
 		currentProgress = targetProgress;
 		const initProgressStr = currentProgress.toFixed(4);
-		rootEl.style.setProperty("--hero-progress", initProgressStr);
+		applyProgress(initProgressStr);
 		lastAppliedProgress = initProgressStr;
 	}
 
