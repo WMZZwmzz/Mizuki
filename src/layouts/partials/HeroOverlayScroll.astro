@@ -62,6 +62,11 @@ const navbarTransparentMode =
 	let lastTime = 0;
 	// 当前 hero overlay 是否处于激活状态（防止 disable 重复派发事件）
 	let heroOverlayActive = false;
+	// 缓存 documentElement 引用，避免 tick 每帧重复属性查找；init 时赋值
+	let rootEl = null;
+	// 上次实际写入 --hero-progress 的值（字符串）；收敛态下相同值跳过 setProperty，
+	// 避免无意义的全文档 style recalc
+	let lastAppliedProgress = "";
 
 	// 平滑系数：越大越跟手、越小越柔和。8 对应约 125ms 时间常数，
 	// 足以把鼠标滚轮的离散步进抹平成连续淡入淡出，又不至于明显滞后
@@ -100,11 +105,12 @@ const navbarTransparentMode =
 		if (fullscreenWallpaper)
 			fullscreenWallpaper.style.removeProperty("display");
 
-		const root = document.documentElement;
+		const root = rootEl || document.documentElement;
 		root.style.removeProperty("--hero-progress");
 		root.style.removeProperty("--hero-wallpaper-target-opacity");
 		root.style.removeProperty("--hero-wallpaper-target-blur");
 		root.style.removeProperty("--hero-card-target-opacity");
+		lastAppliedProgress = "";
 
 		// 通知 GridScripts 恢复当前页面实际壁纸模式
 		window.dispatchEvent(new Event("wallpaper-mode-change"));
@@ -147,10 +153,12 @@ const navbarTransparentMode =
 			const factor = 1 - Math.exp(-SMOOTHING * dt);
 			currentProgress += diff * factor;
 		}
-		document.documentElement.style.setProperty(
-			"--hero-progress",
-			currentProgress.toFixed(4),
-		);
+		// 仅当值真正变化时写入，避免收敛态下重复触发全文档 style recalc
+		const progressStr = currentProgress.toFixed(4);
+		if (progressStr !== lastAppliedProgress && rootEl) {
+			rootEl.style.setProperty("--hero-progress", progressStr);
+			lastAppliedProgress = progressStr;
+		}
 
 		// 未收敛则继续下一帧；收敛后停止循环，等下次滚动再启动
 		if (Math.abs(targetProgress - currentProgress) > 0.0005) {
@@ -223,13 +231,13 @@ const navbarTransparentMode =
 		const targetBlur = getCarrierNumber("overlayBlur", 10);
 		const targetCardOpacity = getCarrierNumber("overlayCardOpacity", 0.5);
 
-		const root = document.documentElement;
-		root.style.setProperty(
+		rootEl = document.documentElement;
+		rootEl.style.setProperty(
 			"--hero-wallpaper-target-opacity",
 			String(targetOpacity),
 		);
-		root.style.setProperty("--hero-wallpaper-target-blur", `${targetBlur}px`);
-		root.style.setProperty(
+		rootEl.style.setProperty("--hero-wallpaper-target-blur", `${targetBlur}px`);
+		rootEl.style.setProperty(
 			"--hero-card-target-opacity",
 			String(targetCardOpacity),
 		);
@@ -242,10 +250,9 @@ const navbarTransparentMode =
 		// 初始化：直接对齐当前滚动位置，避免页面已滚动时从 0 淡入
 		updateTarget();
 		currentProgress = targetProgress;
-		root.style.setProperty(
-			"--hero-progress",
-			currentProgress.toFixed(4),
-		);
+		const initProgressStr = currentProgress.toFixed(4);
+		rootEl.style.setProperty("--hero-progress", initProgressStr);
+		lastAppliedProgress = initProgressStr;
 	}
 
 	// 初始化时机

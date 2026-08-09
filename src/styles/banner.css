@@ -990,6 +990,17 @@ html.is-page-transitioning .banner-page-overlay {
    由 src/layouts/partials/HeroOverlayScroll.astro 驱动 --hero-progress (0~1)
    ========================================================================== */
 
+/* 注册 --hero-progress 为数值类型自定义属性。
+   类型化后浏览器可对该属性的变化做差分失效检测：每帧 setProperty 时，
+   仅真正消费该变量的元素参与 style recalc，而非未注册时的保守全子树重算。
+   未注册时变量仍作为普通自定义属性工作，视觉无差异，仅失去此优化。
+   --hero-progress 由 HeroOverlayScroll.astro 每帧指数平滑驱动（0~1）。 */
+@property --hero-progress {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
 /* 全屏壁纸：覆盖 fullscreen 模式下的 display:none，opacity 跟随 progress 淡入
    blur 固定为目标值，避免滚动时对整屏大图逐帧重算滤镜 */
 body.hero-overlay-scroll [data-fullscreen-wallpaper] {
