@@ -34,6 +34,12 @@ const navbarTransparentMode =
 		return Number.isFinite(n) ? n : fallback;
 	}
 
+	function getStoredNumber(key, fallback) {
+		const value = localStorage.getItem(key);
+		const parsed = Number(value ?? fallback);
+		return Number.isFinite(parsed) ? parsed : fallback;
+	}
+
 	function isHomePagePath() {
 		return (
 			window.location.pathname.replace(/\/+$/, "") ===
@@ -88,6 +94,38 @@ const navbarTransparentMode =
 	function applyProgress(progress) {
 		if (bannerEl) bannerEl.style.setProperty("--hero-progress", progress);
 		if (wallpaperEl) wallpaperEl.style.setProperty("--hero-progress", progress);
+	}
+
+	function syncHeroOverlayTargets() {
+		if (!heroOverlayActive) return;
+
+		const targetOpacity = getStoredNumber(
+			"overlayOpacity",
+			getCarrierNumber("overlayOpacity", 0.8),
+		);
+		const targetBlur = getStoredNumber(
+			"overlayBlur",
+			getCarrierNumber("overlayBlur", 10),
+		);
+		const targetCardOpacity = getStoredNumber(
+			"overlayCardOpacity",
+			getCarrierNumber("overlayCardOpacity", 0.5),
+		);
+
+		if (wallpaperEl) {
+			wallpaperEl.style.setProperty(
+				"--hero-wallpaper-target-opacity",
+				String(targetOpacity),
+			);
+			wallpaperEl.style.setProperty(
+				"--hero-wallpaper-target-blur",
+				`${targetBlur}px`,
+			);
+		}
+		document.body.style.setProperty(
+			"--hero-card-target-opacity",
+			String(targetCardOpacity),
+		);
 	}
 
 	function disableHeroOverlay() {
@@ -238,25 +276,8 @@ const navbarTransparentMode =
 		// 标识启用 hero→overlay 滚动过渡
 		body.classList.add("hero-overlay-scroll", "wallpaper-transparent");
 
-		// 读取 overlay 目标视觉参数（从 ConfigCarrier）
-		const targetOpacity = getCarrierNumber("overlayOpacity", 0.8);
-		const targetBlur = getCarrierNumber("overlayBlur", 10);
-		const targetCardOpacity = getCarrierNumber("overlayCardOpacity", 0.5);
-
-		if (wallpaperEl) {
-			wallpaperEl.style.setProperty(
-				"--hero-wallpaper-target-opacity",
-				String(targetOpacity),
-			);
-			wallpaperEl.style.setProperty(
-				"--hero-wallpaper-target-blur",
-				`${targetBlur}px`,
-			);
-		}
-		body.style.setProperty(
-			"--hero-card-target-opacity",
-			String(targetCardOpacity),
-		);
+		// 读取 overlay 目标视觉参数，并同步用户在设置面板中保存的值
+		syncHeroOverlayTargets();
 
 		// 注册滚动监听
 		cleanup();
@@ -283,4 +304,7 @@ const navbarTransparentMode =
 
 	// 用户手动切换壁纸模式后重新评估
 	window.addEventListener("wallpaper-mode-change", initHeroOverlayScroll);
+
+	// 设置面板调整壁纸效果时，立即刷新首页 Hero 的覆盖变量
+	window.addEventListener("overlay-settings-change", syncHeroOverlayTargets);
 </script>
