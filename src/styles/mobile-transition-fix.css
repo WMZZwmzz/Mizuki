@@ -6,20 +6,6 @@
 
 /* 移动端页面切换性能优化 */
 @media (max-width: 768px) {
-  /* 为所有动画元素添加硬件加速 */
-  .transition-main,
-  .transition-leaving,
-  .onload-animation,
-  .transition-slide-in,
-  .card-animation,
-  .nav-animation,
-  #dynamic-sidebar,
-  .widget-container {
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-    will-change: transform, opacity;
-  }
-
   /* 优化页面切换动画 */
   html.is-changing .transition-main {
     transition:
@@ -56,12 +42,6 @@
   /* 优化网格布局切换 */
   #main-grid {
     transition: all 0.3s ease-in-out;
-  }
-
-  /* 防止图片加载时的闪烁 */
-  img {
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
   }
 
   /* 优化滚动行为 */

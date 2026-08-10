@@ -102,7 +102,7 @@ function renderComponent(
 	<div class:list={["flex flex-col w-full gap-4 mb-4", topClass]}>
 		{
 			showMobile && mobileTopComponents.length > 0 && (
-				<div class="flex flex-col w-full gap-4 md:hidden">
+				<div class="sidebar-non-sticky flex flex-col w-full gap-4 md:hidden">
 					{mobileTopComponents.map((component, index) => {
 						const renderData = renderComponent(component, index);
 						if (!renderData) {
@@ -118,7 +118,7 @@ function renderComponent(
 
 		{
 			showTablet && tabletTopComponents.length > 0 && (
-				<div class="sidebar-content hidden md:flex lg:hidden flex-col w-full gap-4">
+				<div class="sidebar-content sidebar-non-sticky hidden md:flex lg:hidden flex-col w-full gap-4">
 					{tabletTopComponents.map((component, index) => {
 						const renderData = renderComponent(component, index);
 						if (!renderData) {
@@ -134,7 +134,7 @@ function renderComponent(
 
 		{
 			showDesktop && desktopTopComponents.length > 0 && (
-				<div class="sidebar-content hidden lg:flex flex-col w-full gap-4">
+				<div class="sidebar-content sidebar-non-sticky hidden lg:flex flex-col w-full gap-4">
 					{desktopTopComponents.map((component, index) => {
 						const renderData = renderComponent(component, index);
 						if (!renderData) {
@@ -205,3 +205,10 @@ function renderComponent(
 		}
 	</div>
 </div>
+
+<style>
+	.sidebar-non-sticky > :global(*) {
+		content-visibility: auto;
+		contain-intrinsic-size: auto 20rem;
+	}
+</style>

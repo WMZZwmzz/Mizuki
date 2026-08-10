@@ -15,6 +15,7 @@ const {
 	class: className = "",
 } = Astro.props;
 const textData = Array.isArray(text) ? JSON.stringify(text) : text;
+const reserveTexts = Array.isArray(text) ? text : [text];
 ---
 
 <span
@@ -22,25 +23,39 @@ const textData = Array.isArray(text) ? JSON.stringify(text) : text;
 	data-text={textData}
 	data-speed={speed}
 	data-delete-speed={deleteSpeed}
-	data-pause-time={pauseTime}></span>
+	data-pause-time={pauseTime}
+>
+	{
+		reserveTexts.map((item) => (
+			<span class="typewriter__reserve" aria-hidden="true">
+				{item || "\u00A0"}
+			</span>
+		))
+	}
+	<span class="typewriter__paint" aria-live="polite"></span>
+</span>
 
 <script>
 	class TypewriterEffect {
-		private element: HTMLElement;
-		private texts: string[];
+		public readonly element: HTMLElement;
+		private readonly paint: HTMLElement;
+		private readonly texts: string[];
 		private currentTextIndex = 0;
-		private speed: number;
-		private deleteSpeed: number;
-		private pauseTime: number;
+		private readonly speed: number;
+		private readonly deleteSpeed: number;
+		private readonly pauseTime: number;
 		private currentIndex = 0;
 		private isDeleting = false;
 		private timeoutId: number | null = null;
+		private running = false;
+		private completed = false;
 
 		constructor(element: HTMLElement) {
 			this.element = element;
+			this.paint =
+				element.querySelector<HTMLElement>(".typewriter__paint") ?? element;
 			const textData = element.dataset.text || "";
 
-			// 尝试解析为 JSON 数组，如果失败则作为单个字符串处理
 			try {
 				const parsed = JSON.parse(textData);
 				this.texts = Array.isArray(parsed) ? parsed : [textData];
@@ -48,133 +63,244 @@ const textData = Array.isArray(text) ? JSON.stringify(text) : text;
 				this.texts = [textData];
 			}
 
-			this.speed = parseInt(element.dataset.speed || "100");
-			this.deleteSpeed = parseInt(element.dataset.deleteSpeed || "50");
-			this.pauseTime = parseInt(element.dataset.pauseTime || "2000");
-
-			// 如果有多条文本且未启用打字机效果，随机显示一条
-			if (this.texts.length > 1 && !this.isTypewriterEnabled()) {
-				this.showRandomText();
-			} else {
-				this.start();
-			}
-		}
-
-		private isTypewriterEnabled(): boolean {
-			// 检查是否有打字机相关的数据属性
-			return (
-				this.element.dataset.speed !== undefined ||
-				this.element.dataset.deleteSpeed !== undefined ||
-				this.element.dataset.pauseTime !== undefined
+			this.speed = Number.parseInt(element.dataset.speed || "100", 10);
+			this.deleteSpeed = Number.parseInt(
+				element.dataset.deleteSpeed || "50",
+				10,
+			);
+			this.pauseTime = Number.parseInt(
+				element.dataset.pauseTime || "2000",
+				10,
 			);
 		}
 
-		private showRandomText() {
-			const randomIndex = Math.floor(Math.random() * this.texts.length);
-			this.element.textContent = this.texts[randomIndex];
-		}
-
-		private start() {
-			if (this.texts.length === 0) {
+		public resume() {
+			if (this.running || this.completed || this.texts.length === 0) {
 				return;
 			}
+			this.running = true;
 			this.type();
+		}
+
+		public pause() {
+			this.running = false;
+			if (this.timeoutId !== null) {
+				window.clearTimeout(this.timeoutId);
+				this.timeoutId = null;
+			}
 		}
 
 		private getCurrentText(): string {
 			return this.texts[this.currentTextIndex] || "";
 		}
 
+		private schedule(delay: number) {
+			this.timeoutId = window.setTimeout(() => this.type(), delay);
+		}
+
 		private type() {
+			this.timeoutId = null;
+			if (!this.running || !this.element.isConnected || document.hidden) {
+				this.pause();
+				return;
+			}
+
 			const currentText = this.getCurrentText();
 
 			if (this.isDeleting) {
-				// 删除字符
 				if (this.currentIndex > 0) {
 					this.currentIndex--;
-					this.element.textContent = currentText.substring(
-						0,
-						this.currentIndex,
-					);
-					this.timeoutId = window.setTimeout(
-						() => this.type(),
-						this.deleteSpeed,
-					);
-				} else {
-					// 删除完成，切换到下一条文本
-					this.isDeleting = false;
-					this.currentTextIndex =
-						(this.currentTextIndex + 1) % this.texts.length;
-					this.timeoutId = window.setTimeout(
-						() => this.type(),
-						this.speed,
-					);
+					this.paint.textContent = currentText.substring(0, this.currentIndex);
+					this.schedule(this.deleteSpeed);
+					return;
 				}
-			} else {
-				// 添加字符
-				if (this.currentIndex < currentText.length) {
-					this.currentIndex++;
-					this.element.textContent = currentText.substring(
-						0,
-						this.currentIndex,
-					);
-					this.timeoutId = window.setTimeout(
-						() => this.type(),
-						this.speed,
-					);
-				} else {
-					// 打字完成，暂停后开始删除（如果有多条文本）
-					if (this.texts.length > 1) {
-						this.isDeleting = true;
-						this.timeoutId = window.setTimeout(
-							() => this.type(),
-							this.pauseTime,
-						);
-					} else {
-						// 如果只有一条文本，保持显示不删除，但确保元素有内容
-						if (this.texts.length === 1 && this.texts[0] === "") {
-							this.element.innerHTML = "&nbsp;"; // 使用不间断空格保持布局
-						}
-					}
-				}
+
+				this.isDeleting = false;
+				this.currentTextIndex =
+					(this.currentTextIndex + 1) % this.texts.length;
+				this.schedule(this.speed);
+				return;
 			}
+
+			if (this.currentIndex < currentText.length) {
+				this.currentIndex++;
+				this.paint.textContent = currentText.substring(0, this.currentIndex);
+				this.schedule(this.speed);
+				return;
+			}
+
+			if (this.texts.length > 1) {
+				this.isDeleting = true;
+				this.schedule(this.pauseTime);
+				return;
+			}
+
+			if (currentText === "") {
+				this.paint.innerHTML = "&nbsp;";
+			}
+			this.completed = true;
+			this.running = false;
 		}
 
 		public destroy() {
-			if (this.timeoutId) {
-				clearTimeout(this.timeoutId);
-			}
+			this.pause();
 		}
 	}
 
-	// 初始化所有打字机效果
-	document.addEventListener("DOMContentLoaded", () => {
-		const typewriterElements = document.querySelectorAll(".typewriter");
-		typewriterElements.forEach((element) => {
-			new TypewriterEffect(element as HTMLElement);
-		});
-	});
+	interface TypewriterManager {
+		instances: WeakMap<HTMLElement, TypewriterEffect>;
+		tracked: Set<TypewriterEffect>;
+		intersectionObserver: IntersectionObserver;
+		mutationObserver: MutationObserver;
+		reconcile: () => void;
+	}
 
-	// 支持页面切换时重新初始化
-	document.addEventListener("swup:contentReplaced", () => {
-		const typewriterElements = document.querySelectorAll(".typewriter");
-		typewriterElements.forEach((element) => {
-			new TypewriterEffect(element as HTMLElement);
+	interface TypewriterWindow extends Window {
+		__mizukiTypewriterManager?: TypewriterManager;
+	}
+
+	const typewriterWindow = window as TypewriterWindow;
+
+	function isVisible(element: HTMLElement): boolean {
+		if (!element.isConnected || document.hidden) {
+			return false;
+		}
+
+		const style = window.getComputedStyle(element);
+		if (style.display === "none" || style.visibility === "hidden") {
+			return false;
+		}
+
+		const rect = element.getBoundingClientRect();
+		return (
+			rect.width > 0 &&
+			rect.height > 0 &&
+			rect.bottom > 0 &&
+			rect.right > 0 &&
+			rect.top < window.innerHeight &&
+			rect.left < window.innerWidth
+		);
+	}
+
+	function createManager(): TypewriterManager {
+		const instances = new WeakMap<HTMLElement, TypewriterEffect>();
+		const tracked = new Set<TypewriterEffect>();
+		let reconcileFrame = 0;
+		let initialize = () => {};
+
+		const reconcile = () => {
+			window.cancelAnimationFrame(reconcileFrame);
+			reconcileFrame = window.requestAnimationFrame(() => {
+				for (const effect of tracked) {
+					if (!effect.element.isConnected) {
+						effect.destroy();
+						intersectionObserver.unobserve(effect.element);
+						instances.delete(effect.element);
+						tracked.delete(effect);
+						continue;
+					}
+
+					if (isVisible(effect.element)) {
+						effect.resume();
+					} else {
+						effect.pause();
+					}
+				}
+			});
+		};
+
+		const intersectionObserver = new IntersectionObserver(reconcile);
+		const mutationObserver = new MutationObserver((records) => {
+			const removedTypewriter = records.some((record) =>
+				Array.from(record.removedNodes).some(
+					(node) =>
+						node instanceof HTMLElement &&
+						(node.matches(".typewriter") ||
+							node.querySelector(".typewriter") !== null),
+				),
+			);
+			const addedTypewriter = records.some((record) =>
+				Array.from(record.addedNodes).some(
+					(node) =>
+						node instanceof HTMLElement &&
+						(node.matches(".typewriter") ||
+							node.querySelector(".typewriter") !== null),
+				),
+			);
+			if (removedTypewriter) {
+				reconcile();
+			}
+			if (addedTypewriter) {
+				initialize();
+			}
 		});
-	});
+
+		const manager: TypewriterManager = {
+			instances,
+			tracked,
+			intersectionObserver,
+			mutationObserver,
+			reconcile,
+		};
+
+		initialize = () => {
+			if (document.body) {
+				mutationObserver.observe(document.body, {
+					childList: true,
+					subtree: true,
+				});
+			}
+			document.querySelectorAll<HTMLElement>(".typewriter").forEach((element) => {
+				if (instances.has(element)) {
+					return;
+				}
+
+				const effect = new TypewriterEffect(element);
+				instances.set(element, effect);
+				tracked.add(effect);
+				intersectionObserver.observe(element);
+			});
+			reconcile();
+		};
+
+		window.addEventListener("resize", reconcile, { passive: true });
+		document.addEventListener("visibilitychange", reconcile);
+		document.addEventListener("astro:page-load", initialize);
+		document.addEventListener("swup:contentReplaced", initialize);
+
+		if (document.readyState === "loading") {
+			document.addEventListener("DOMContentLoaded", initialize, { once: true });
+		} else {
+			initialize();
+		}
+
+		return manager;
+	}
+
+	if (typewriterWindow.__mizukiTypewriterManager) {
+		typewriterWindow.__mizukiTypewriterManager.reconcile();
+	} else {
+		typewriterWindow.__mizukiTypewriterManager = createManager();
+	}
 </script>
 
 <style>
 	.typewriter {
 		position: relative;
-		min-height: 1.5em; /* 确保即使没有文字也保持最小高度 */
-		display: inline-block;
+		display: inline-grid;
+		min-height: 1.5em;
 		vertical-align: baseline;
 	}
 
-	/* 确保打字机效果不会导致布局抖动 */
-	.typewriter:empty::before {
-		content: "\00A0"; /* 使用不间断空格保持高度 */
+	.typewriter__reserve {
 		visibility: hidden;
+		grid-area: 1 / 1;
+		pointer-events: none;
+	}
+
+	.typewriter__paint {
+		position: absolute;
+		inset: 0;
+		contain: strict;
 	}
 </style>

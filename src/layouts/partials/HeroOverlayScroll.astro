@@ -89,6 +89,7 @@ const navbarTransparentMode =
 			rafId = null;
 		}
 		lastTime = 0;
+		document.body.classList.remove("hero-overlay-animating");
 	}
 
 	function applyProgress(progress) {
@@ -216,6 +217,7 @@ const navbarTransparentMode =
 		} else {
 			currentProgress = targetProgress;
 			rafId = null;
+			document.body.classList.remove("hero-overlay-animating");
 		}
 	}
 
@@ -223,6 +225,7 @@ const navbarTransparentMode =
 		updateTarget();
 		if (rafId === null) {
 			lastTime = 0;
+			document.body.classList.add("hero-overlay-animating");
 			rafId = requestAnimationFrame(tick);
 		}
 	}

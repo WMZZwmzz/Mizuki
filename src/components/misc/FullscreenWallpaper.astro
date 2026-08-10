@@ -107,7 +107,7 @@ const renderGroups = [
 		"fixed inset-0 w-full h-full overflow-hidden pointer-events-none wallpaper-container",
 		className
 	]}
-	style={`z-index: ${zIndex}; transform: translateZ(0); perspective: 1000px; opacity: var(--wallpaper-opacity, ${opacity}); filter: blur(var(--wallpaper-blur, ${blurAmount}px));`}
+	style={`z-index: ${zIndex}; opacity: var(--wallpaper-opacity, ${opacity}); filter: blur(var(--wallpaper-blur, ${blurAmount}px));`}
 	data-fullscreen-wallpaper
 >
 	<script is:inline define:vars={{ wallpaperEnabled: config.enable ?? true, overlaySwitchable: config.overlay?.switchable ?? true, defaultMode }}>
@@ -142,14 +142,14 @@ const renderGroups = [
 
 	{isCarouselEnabled ? (
 			renderGroups.map(group => group.hasImages && (
-				<div class={`${group.containerClass} w-full h-full relative`} style="transform: translateZ(0);">
+				<div class={`${group.containerClass} w-full h-full relative`}>
 					{group.images.map((src, index) => (
 						<img
 							src={src}
 							alt={`${group.key} wallpaper ${index + 1}`}
 							class={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${positionClass}`}
 							data-carousel-item={index}
-							style={`transform: translateZ(0); backface-visibility: hidden; will-change: opacity; opacity: ${index === 0 ? 1 : 0};`}
+							style={`opacity: ${index === 0 ? 1 : 0};`}
 							decoding="async"
 							loading={index === 0 ? "eager" : "lazy"}
 							fetchpriority={index === 0 ? "high" : undefined}
@@ -184,12 +184,11 @@ const renderGroups = [
 				if (desktopSrc) {
 					const desktopDiv = document.createElement('div');
 					desktopDiv.className = 'hidden lg:block w-full h-full relative';
-					desktopDiv.style.transform = 'translateZ(0)';
 					const desktopImg = document.createElement('img');
 					desktopImg.src = desktopSrc;
 					desktopImg.alt = 'desktop wallpaper';
 					desktopImg.className = 'absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ' + positionClass;
-					desktopImg.style.cssText = 'transform: translateZ(0); backface-visibility: hidden; will-change: opacity; opacity: 1;';
+					desktopImg.style.opacity = '1';
 					desktopImg.decoding = 'async';
 					desktopImg.loading = 'eager';
 					desktopImg.fetchPriority = 'high';
@@ -200,12 +199,11 @@ const renderGroups = [
 				if (mobileSrc) {
 					const mobileDiv = document.createElement('div');
 					mobileDiv.className = 'block lg:hidden w-full h-full relative';
-					mobileDiv.style.transform = 'translateZ(0)';
 					const mobileImg = document.createElement('img');
 					mobileImg.src = mobileSrc;
 					mobileImg.alt = 'mobile wallpaper';
 					mobileImg.className = 'absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ' + positionClass;
-					mobileImg.style.cssText = 'transform: translateZ(0); backface-visibility: hidden; will-change: opacity; opacity: 1;';
+					mobileImg.style.opacity = '1';
 					mobileImg.decoding = 'async';
 					mobileImg.loading = 'eager';
 					mobileImg.fetchPriority = 'high';
@@ -243,6 +241,7 @@ const renderGroups = [
 					items,
 					currentIndex: safeIndex,
 					timer: null,
+					willChangeTimer: null,
 					active: items.length > 1
 				};
 			});
@@ -260,9 +259,21 @@ const renderGroups = [
 			function switchNextImage(stateItem) {
 				const { items, currentIndex } = stateItem;
 				const nextIndex = (currentIndex + 1) % items.length;
+				const currentItem = items[currentIndex];
+				const nextItem = items[nextIndex];
+				currentItem.style.willChange = 'opacity';
+				nextItem.style.willChange = 'opacity';
 				
-				items[currentIndex].style.opacity = '0';
-				items[nextIndex].style.opacity = '1';
+				currentItem.style.opacity = '0';
+				nextItem.style.opacity = '1';
+				if (stateItem.willChangeTimer) {
+					clearTimeout(stateItem.willChangeTimer);
+				}
+				stateItem.willChangeTimer = setTimeout(() => {
+					currentItem.style.willChange = '';
+					nextItem.style.willChange = '';
+					stateItem.willChangeTimer = null;
+				}, 1100);
 				
 				stateItem.currentIndex = nextIndex;
 
@@ -289,6 +300,13 @@ const renderGroups = [
 						clearInterval(s.timer);
 						s.timer = null;
 					}
+					if (s.willChangeTimer) {
+						clearTimeout(s.willChangeTimer);
+						s.willChangeTimer = null;
+					}
+					s.items.forEach(item => {
+						item.style.willChange = '';
+					});
 				});
 			}
 

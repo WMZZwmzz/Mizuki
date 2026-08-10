@@ -144,22 +144,9 @@ html.is-animating .transition-swup-fade {
   transform: translateX(0);
 }
 
-/* 性能优化 */
-.transition-main,
-.transition-leaving,
-.onload-animation,
-.transition-slide-in,
-.card-animation {
-  transform: translateZ(0);
-  will-change: transform;
-}
-
-/* GPU 加速优化 - 用于 wave 等重型动画 */
-.gpu-accelerated {
-  transform: translateZ(0);
-  will-change: transform;
-  backface-visibility: hidden;
-  isolation: isolate;
+html.is-changing .transition-main,
+html.is-leaving .transition-leaving {
+  will-change: transform, opacity;
 }
 
 /* View Transitions API - 主题切换动画 */
@@ -192,22 +179,10 @@ html.is-animating .transition-swup-fade {
 }
 
 /* 主题切换期间禁用复杂动画 */
-.is-theme-transitioning .waves > .parallax use,
+.is-theme-transitioning .wave-track,
 .is-theme-transitioning .sakura-canvas,
 .is-theme-transitioning .animation-element {
   animation-play-state: paused !important;
-}
-
-/* 移动端性能优化 */
-@media (max-width: 768px) {
-  .transition-main,
-  .transition-leaving,
-  .onload-animation,
-  .transition-slide-in,
-  .card-animation {
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-  }
 }
 
 /* 减少动画的用户偏好设置 */
@@ -218,7 +193,7 @@ html.is-animating .transition-swup-fade {
   .transition-slide-in,
   .card-animation,
   .nav-animation,
-  .waves > .parallax use,
+  .wave-track,
   .sakura-canvas,
   .animation-element {
     animation-duration: 0.01ms !important;

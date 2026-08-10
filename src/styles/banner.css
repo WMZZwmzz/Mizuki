@@ -303,7 +303,6 @@ body.wallpaper-transparent #toc-inner-wrapper:has(table-of-contents[data-loaded=
 .banner-image-slot-mobile,
 .banner-image-slot-desktop {
   overflow: hidden;
-  will-change: transform, opacity;
 }
 
 .banner-image-slot-mobile img,
@@ -458,15 +457,12 @@ html.is-page-transitioning #header-waves {
       transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94),
       opacity 0.3s ease-out;
     transform-origin: top center;
-    will-change: transform, opacity;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
   }
 
   .mobile-hide-banner {
-    transform: translateY(-100%) translateZ(0) !important;
+    transform: translateY(-100%) !important;
     opacity: 0 !important;
     pointer-events: none !important;
     transition:
@@ -477,7 +473,6 @@ html.is-page-transitioning #header-waves {
   /* 手机端非首页时主内容区域从顶部开始 */
   .absolute.w-full.z-30 {
     transition: top 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.1s;
-    will-change: top;
   }
 
   .absolute.w-full.z-30.mobile-main-no-banner {
@@ -502,9 +497,6 @@ html.is-page-transitioning #header-waves {
    ========================================================================== */
 @media (max-width: 1279px) {
   .banner-container {
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
-    will-change: transform, opacity;
     contain: layout style paint;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
@@ -512,9 +504,6 @@ html.is-page-transitioning #header-waves {
 
   .banner-image-slot-mobile,
   .banner-image-slot-desktop {
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
-    will-change: transform, opacity;
     touch-action: pan-y;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -735,35 +724,48 @@ html.is-page-transitioning #header-waves {
    水波纹显示优化
    ========================================================================== */
 .waves {
-  overflow: visible;
+  overflow: hidden;
   z-index: 5;
-  transform: translateZ(0);
-  will-change: transform;
-  contain: none;
+  contain: layout paint style;
 }
 
-.waves svg {
-  width: 100%;
+.wave-track {
+  position: absolute;
+  inset: 0 auto 0 0;
+  display: flex;
+  width: 234.6667%;
   height: 100%;
-  display: block;
-  transform: translateZ(0);
+  animation: wave-track var(--wave-duration)
+    cubic-bezier(0.5, 0.5, 0.45, 0.5) var(--wave-delay) infinite;
   backface-visibility: hidden;
+  will-change: transform;
+}
+
+.wave-segment {
+  display: block;
+  flex: 0 0 50%;
+  width: 50%;
+  height: 100%;
+}
+
+@keyframes wave-track {
+  from {
+    transform: translate3d(-50%, 0, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
 }
 
 /* 波浪与背景同步切换优化 */
 #header-waves {
   isolation: isolate;
-  contain: none;
   margin-bottom: -1px;
 }
 
 /* 主题切换时的额外保护 */
-.theme-changing #header-waves,
-.theme-changing #header-waves svg,
-.theme-changing #header-waves use {
-  will-change: auto;
-  transform: translateZ(0);
-  backface-visibility: hidden;
+.theme-changing #header-waves .wave-track {
+  animation-play-state: paused;
 }
 
 /* ==========================================================================
@@ -780,7 +782,7 @@ html.is-page-transitioning #header-waves {
     display: none !important;
   }
 
-  .waves svg {
+  .wave-segment {
     min-height: 60px;
   }
 
@@ -936,11 +938,6 @@ html.is-page-transitioning #header-waves {
 .banner-page-overlay {
   align-items: center;
   justify-content: center;
-  will-change: opacity, transform, filter;
-}
-
-.banner-page-overlay .page-overlay-title {
-  will-change: opacity, transform, filter;
 }
 
 .banner-page-overlay .page-overlay-title.anim-in {
@@ -1008,7 +1005,6 @@ body.hero-overlay-scroll [data-fullscreen-wallpaper] {
   /* 不设 CSS 过渡：--hero-progress 由 HeroOverlayScroll.astro 每帧指数平滑驱动，
      直接逐帧绘制即可；CSS 过渡会与之双重平滑，反而产生滞后与拖影 */
   transition: none !important;
-  will-change: opacity;
 }
 
 /* Banner：整块作为一张「幻灯片」纯不透明淡出，与全屏壁纸同步交叉淡化(cross-dissolve)。
@@ -1020,6 +1016,10 @@ body.hero-overlay-scroll #banner-wrapper {
   transition: none !important;
   opacity: calc(1 - var(--hero-progress, 0));
   backface-visibility: hidden;
+}
+
+body.hero-overlay-scroll.hero-overlay-animating [data-fullscreen-wallpaper],
+body.hero-overlay-scroll.hero-overlay-animating #banner-wrapper {
   will-change: opacity;
 }
 
