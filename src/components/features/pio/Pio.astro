@@ -110,7 +110,13 @@ const hiddenOnMobile = config.hiddenOnMobile ?? false;
 </div>
 
 <script>
-	type PioController = {
+		import {
+			EFFECT_PERFORMANCE_MODE_EVENT,
+			getEffectPerformanceMode,
+			normalizeEffectPerformanceMode,
+		} from "@/utils/effect-performance";
+
+		type PioController = {
 		update: (
 			el: HTMLIFrameElement,
 			config: Record<string, unknown>,
@@ -473,14 +479,22 @@ const hiddenOnMobile = config.hiddenOnMobile ?? false;
 				}
 
 				// ── 原有逻辑 ──
-			function applyVisibility() {
-				if (!currentEl) return;
-				currentEl.style.display = "";
-			}
+				function applyVisibility() {
+					if (!currentEl) return;
+					currentEl.style.display = "";
+				}
 
-			function postInit() {
-				if (!currentEl || initSent || isTransitioning) return;
-				currentEl.contentWindow?.postMessage(
+				function postPerformanceMode(mode = getEffectPerformanceMode()) {
+					currentEl?.contentWindow?.postMessage(
+						{ type: "l2d-performance-mode", mode },
+						"*",
+					);
+				}
+
+				function postInit() {
+					if (!currentEl || initSent || isTransitioning) return;
+					postPerformanceMode();
+					currentEl.contentWindow?.postMessage(
 					{ type: "l2d-init", config: currentConfig },
 					"*",
 				);
@@ -505,8 +519,8 @@ const hiddenOnMobile = config.hiddenOnMobile ?? false;
 				}
 			}
 
-			function handleMessage(e: MessageEvent) {
-				if (!currentEl || e.source !== currentEl.contentWindow) return;
+				function handleMessage(e: MessageEvent) {
+					if (!currentEl || e.source !== currentEl.contentWindow) return;
 
 				if (e.data.type === "l2d-loaded") {
 					const h = e.data.contentHeight || 500;
@@ -515,14 +529,22 @@ const hiddenOnMobile = config.hiddenOnMobile ?? false;
 					modelHeight = e.data.modelHeight || h;
 				}
 
-				if (e.data.type === "l2d-action") {
+					if (e.data.type === "l2d-action") {
 					menuActions[e.data.action]?.();
 				}
 
 				if (e.data.type === "l2d-click") {
 					showBubble();
+					}
 				}
-			}
+
+				function handlePerformanceModeChange(event: Event) {
+					postPerformanceMode(
+						normalizeEffectPerformanceMode(
+							(event as CustomEvent<{ mode?: unknown }>).detail?.mode,
+						),
+					);
+				}
 
 			function setupSwupHooks() {
 				const swup = window.swup;
@@ -539,7 +561,11 @@ const hiddenOnMobile = config.hiddenOnMobile ?? false;
 				});
 			}
 
-			window.addEventListener("message", handleMessage);
+				window.addEventListener("message", handleMessage);
+				window.addEventListener(
+					EFFECT_PERFORMANCE_MODE_EVENT,
+					handlePerformanceModeChange,
+				);
 			window.addEventListener("resize", () => {
 				applyVisibility();
 				scheduleInit();
@@ -566,10 +592,11 @@ const hiddenOnMobile = config.hiddenOnMobile ?? false;
 						initSent = false;
 						currentConfigKey = nextConfigKey;
 					}
-					if (isNewFrame) {
-						nextEl.addEventListener("load", () => {
-							initSent = false;
-							scheduleInit();
+						if (isNewFrame) {
+							nextEl.addEventListener("load", () => {
+								initSent = false;
+								postPerformanceMode();
+								scheduleInit();
 						});
 					}
 					applyVisibility();

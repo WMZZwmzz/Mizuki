@@ -8,6 +8,12 @@ import {
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import Icon from "@iconify/svelte";
+import {
+	DEFAULT_EFFECT_PERFORMANCE_MODE,
+	type EffectPerformanceMode,
+	getEffectPerformanceMode,
+	setEffectPerformanceMode,
+} from "@utils/effect-performance";
 import { extractPlaylistId } from "@utils/playlist-id-utils";
 import {
 	getDefaultBannerTitleEnabled,
@@ -105,15 +111,7 @@ const isWallpaperModeSwitchable = $derived(
 		(fullscreenWallpaperConfig.switchable ?? false),
 );
 
-const hasAnyContent = $derived(
-	showThemeColor ||
-		isWallpaperModeSwitchable ||
-		allowLayoutSwitch ||
-		hasOverlaySettings ||
-		hasBannerSettings ||
-		isSakuraSwitchable ||
-		showMusicPlaylistId,
-);
+const hasAnyContent = true;
 
 let hue = $state(getHue());
 const defaultHue = getDefaultHue();
@@ -131,6 +129,9 @@ let bannerTitleEnabled = $state(getDefaultBannerTitleEnabled());
 const defaultBannerTitleEnabled = getDefaultBannerTitleEnabled();
 let sakuraEnabled = $state(getDefaultSakuraEnabled());
 const defaultSakuraEnabled = getDefaultSakuraEnabled();
+let effectPerformanceMode = $state<EffectPerformanceMode>(
+	DEFAULT_EFFECT_PERFORMANCE_MODE,
+);
 const defaultMusicPlaylistId = getDefaultMusicPlaylistId();
 let musicPlaylistId = $state(defaultMusicPlaylistId);
 let appliedMusicPlaylistId = defaultMusicPlaylistId;
@@ -220,6 +221,10 @@ function toggleBannerTitleEnabled() {
 function toggleSakuraEnabled() {
 	sakuraEnabled = !sakuraEnabled;
 	setSakuraEnabled(sakuraEnabled);
+}
+
+function switchEffectPerformanceMode(mode: EffectPerformanceMode) {
+	effectPerformanceMode = setEffectPerformanceMode(mode);
 }
 
 function applyMusicPlaylistId() {
@@ -318,6 +323,7 @@ onMount(() => {
 	wavesEnabled = getStoredWavesEnabled();
 	bannerTitleEnabled = getStoredBannerTitleEnabled();
 	sakuraEnabled = getStoredSakuraEnabled();
+	effectPerformanceMode = getEffectPerformanceMode();
 	musicPlaylistId = getStoredMusicPlaylistId();
 	appliedMusicPlaylistId = musicPlaylistId;
 
@@ -496,16 +502,47 @@ $effect(() => {
 		</div>
 	{/if}
 
-	{#if isSakuraSwitchable}
-		<div class="mt-2 mb-2">
-			<div
-				class="flex gap-2 font-bold text-lg text-neutral-900 dark:text-neutral-100 transition relative ml-3 mb-2
+	<div class="mt-2 mb-2">
+		<div
+			class="flex gap-2 font-bold text-lg text-neutral-900 dark:text-neutral-100 transition relative ml-3 mb-2
 				before:w-1 before:h-4 before:rounded-md before:bg-(--primary)
 				before:absolute before:-left-3 before:top-1/2 before:-translate-y-1/2"
-			>
-				{i18n(I18nKey.effectsSettings)}
+		>
+			{i18n(I18nKey.effectsSettings)}
+		</div>
+		<div class="space-y-1">
+			<div class="rounded-md bg-(--btn-regular-bg) p-2">
+				<div class="text-sm font-medium text-(--btn-content) opacity-80 mb-2">
+					{i18n(I18nKey.effectPerformanceMode)}
+				</div>
+				<div
+					class="grid grid-cols-2 gap-1"
+					role="group"
+					aria-label={i18n(I18nKey.effectPerformanceMode)}
+				>
+					<button
+						class="min-w-0 rounded-md py-2 px-2 flex items-center justify-center gap-1.5 text-xs font-medium active:scale-95 transition-all"
+						class:bg-(--btn-regular-bg-hover)={effectPerformanceMode === "efficiency"}
+						class:opacity-60={effectPerformanceMode !== "efficiency"}
+						aria-pressed={effectPerformanceMode === "efficiency"}
+						onclick={() => switchEffectPerformanceMode("efficiency")}
+					>
+						<Icon icon="material-symbols:energy-savings-leaf-outline-rounded" class="text-[1rem] shrink-0" />
+						<span>{i18n(I18nKey.effectEfficiencyPriority)}</span>
+					</button>
+					<button
+						class="min-w-0 rounded-md py-2 px-2 flex items-center justify-center gap-1.5 text-xs font-medium active:scale-95 transition-all"
+						class:bg-(--btn-regular-bg-hover)={effectPerformanceMode === "quality"}
+						class:opacity-60={effectPerformanceMode !== "quality"}
+						aria-pressed={effectPerformanceMode === "quality"}
+						onclick={() => switchEffectPerformanceMode("quality")}
+					>
+						<Icon icon="material-symbols:high-quality-outline-rounded" class="text-[1rem] shrink-0" />
+						<span>{i18n(I18nKey.effectQualityPriority)}</span>
+					</button>
+				</div>
 			</div>
-			<div class="space-y-1">
+			{#if isSakuraSwitchable}
 				<button
 					class="w-full btn-regular rounded-md py-2 px-3 flex items-center gap-3 text-left active:scale-95 transition-all relative overflow-hidden"
 					class:bg-(--btn-regular-bg-hover)={sakuraEnabled}
@@ -521,9 +558,9 @@ $effect(() => {
 							class:left-5={sakuraEnabled}></div>
 					</div>
 				</button>
-			</div>
+			{/if}
 		</div>
-	{/if}
+	</div>
 
 	{#if wallpaperMode === WALLPAPER_OVERLAY && hasOverlaySettings}
 		<div class="mt-2 mb-2">

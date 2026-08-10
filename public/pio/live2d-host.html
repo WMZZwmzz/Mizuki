@@ -11,6 +11,134 @@
 </head>
 <body>
 <script>
+// 效率模式将第三方 Live2D 渲染限制为 30 FPS，画面模式跟随浏览器刷新率。
+// 回调身份和 cancelAnimationFrame 语义保持不变。
+(function () {
+  var nativeRequestAnimationFrame = window.requestAnimationFrame.bind(window);
+  var nativeCancelAnimationFrame = window.cancelAnimationFrame.bind(window);
+  var STORAGE_KEY = 'effectPerformanceMode';
+  var efficiencyFrameInterval = 1000 / 30;
+  var nextId = 1;
+  var nativeFrameId = 0;
+  var frameTimerId = 0;
+  var lastFrameTime = 0;
+  var pending = new Map();
+
+  function normalizeMode(value) {
+    return value === 'quality' ? 'quality' : 'efficiency';
+  }
+
+  function readStoredMode() {
+    try {
+      return normalizeMode(localStorage.getItem(STORAGE_KEY));
+    } catch (err) {
+      return 'efficiency';
+    }
+  }
+
+  var performanceMode = readStoredMode();
+  document.documentElement.dataset.effectPerformanceMode = performanceMode;
+
+  function getFrameInterval() {
+    return performanceMode === 'efficiency' ? efficiencyFrameInterval : 0;
+  }
+
+  function cancelScheduledFrame() {
+    if (nativeFrameId) nativeCancelAnimationFrame(nativeFrameId);
+    if (frameTimerId) clearTimeout(frameTimerId);
+    nativeFrameId = 0;
+    frameTimerId = 0;
+  }
+
+  function scheduleFrame() {
+    if (nativeFrameId || frameTimerId || document.hidden || pending.size === 0) return;
+    var frameInterval = getFrameInterval();
+    if (!frameInterval) {
+      nativeFrameId = nativeRequestAnimationFrame(runFrame);
+      return;
+    }
+    var elapsed = lastFrameTime ? performance.now() - lastFrameTime : frameInterval;
+    var delay = Math.max(0, frameInterval - elapsed);
+    if (delay > 1) {
+      frameTimerId = setTimeout(function () {
+        frameTimerId = 0;
+        if (!document.hidden && pending.size > 0) {
+          nativeFrameId = nativeRequestAnimationFrame(runFrame);
+        }
+      }, delay);
+      return;
+    }
+    nativeFrameId = nativeRequestAnimationFrame(runFrame);
+  }
+
+  function runFrame(timestamp) {
+    nativeFrameId = 0;
+    if (document.hidden || pending.size === 0) return;
+
+    var frameInterval = getFrameInterval();
+    var elapsed = timestamp - lastFrameTime;
+    if (frameInterval && lastFrameTime && elapsed < frameInterval) {
+      scheduleFrame();
+      return;
+    }
+
+    lastFrameTime = frameInterval
+      ? timestamp - (elapsed % frameInterval)
+      : timestamp;
+    var frameCallbacks = Array.from(pending.keys());
+    for (var i = 0; i < frameCallbacks.length; i++) {
+      var id = frameCallbacks[i];
+      var callback = pending.get(id);
+      if (!callback) continue;
+      pending.delete(id);
+      try {
+        callback(timestamp);
+      } catch (err) {
+        setTimeout(function () { throw err; }, 0);
+      }
+    }
+    scheduleFrame();
+  }
+
+  window.requestAnimationFrame = function (callback) {
+    var id = nextId++;
+    pending.set(id, callback);
+    scheduleFrame();
+    return id;
+  };
+
+  window.cancelAnimationFrame = function (id) {
+    pending.delete(id);
+    if (pending.size === 0) {
+      cancelScheduledFrame();
+    }
+  };
+
+  function setPerformanceMode(value) {
+    var nextMode = normalizeMode(value);
+    if (nextMode === performanceMode) return;
+    performanceMode = nextMode;
+    document.documentElement.dataset.effectPerformanceMode = performanceMode;
+    cancelScheduledFrame();
+    lastFrameTime = 0;
+    scheduleFrame();
+  }
+
+  window.addEventListener('message', function (event) {
+    if (!event.data || event.data.type !== 'l2d-performance-mode') return;
+    setPerformanceMode(event.data.mode);
+  });
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) {
+      cancelScheduledFrame();
+      return;
+    }
+    lastFrameTime = 0;
+    scheduleFrame();
+  });
+})();
+
 // ── 看板娘点击穿透：WebGL 像素级透明检测 ──
 // 在 l2d-widget 创建 WebGL 上下文前拦截 getContext，强制 preserveDrawingBuffer:true，
 // 使帧缓冲在帧间保留，从而允许任意时刻通过 readPixels 读取像素 alpha。

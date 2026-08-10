@@ -13,6 +13,13 @@
  */
 
 import { musicPlayerStore } from "@/stores/musicPlayerStore";
+import {
+	EFFECT_PERFORMANCE_MODE_EVENT,
+	type EffectPerformanceMode,
+	getEffectFrameInterval,
+	getEffectPerformanceMode,
+	normalizeEffectPerformanceMode,
+} from "@/utils/effect-performance";
 
 interface WaveLayer {
 	/** 基础振幅（px，桌面基准），随频段能量在约 0.15~2.0 倍区间跳动 */
@@ -42,11 +49,11 @@ const BAND_COUNT = 4;
 const SPECTRUM_BAND_EDGES = [0, 0.04, 0.12, 0.3, 1];
 /** 连续多少帧频谱全零后判定为 tainted 降级伪节奏 */
 const SILENCE_THRESHOLD = 30;
-
 class MusicWaveManager {
 	private canvas: HTMLCanvasElement | null = null;
 	private ctx: CanvasRenderingContext2D | null = null;
 	private rafId = 0;
+	private frameTimerId = 0;
 	private width = 0;
 	private height = DESKTOP_HEIGHT;
 	private layers: WaveLayer[] = [];
@@ -60,6 +67,9 @@ class MusicWaveManager {
 	private primaryRGB = "128, 128, 128";
 	private initialized = false;
 	private resizeObserver: MutationObserver | null = null;
+	private visibilityHandler: (() => void) | null = null;
+	private performanceHandler: ((event: Event) => void) | null = null;
+	private performanceMode: EffectPerformanceMode = getEffectPerformanceMode();
 
 	// 频谱分析相关
 	private audioCtx: AudioContext | null = null;
@@ -82,6 +92,8 @@ class MusicWaveManager {
 		this.initLayers();
 		this.refreshColor();
 		this.bindResize();
+		this.bindVisibility();
+		this.bindPerformanceMode();
 		this.subscribeMusic();
 	}
 
@@ -251,7 +263,7 @@ class MusicWaveManager {
 			if (playing !== this.lastIsPlaying) {
 				this.lastIsPlaying = playing;
 				this.targetVisibility = playing ? 1 : 0;
-				if (playing && !this.rafId) {
+				if (playing && !this.rafId && !this.frameTimerId) {
 					this.trySetupAnalyser();
 					this.lastTime = 0;
 					this.startLoop();
@@ -269,6 +281,42 @@ class MusicWaveManager {
 			}
 		};
 		window.addEventListener("music-sidebar:state", this.stateEventHandler);
+	}
+
+	private bindVisibility(): void {
+		this.visibilityHandler = () => {
+			if (document.hidden) {
+				this.stopLoop();
+				return;
+			}
+
+			if (
+				(this.lastIsPlaying || this.visibility > 0.001) &&
+				!this.rafId &&
+				!this.frameTimerId
+			) {
+				this.startLoop();
+			}
+		};
+		document.addEventListener("visibilitychange", this.visibilityHandler);
+	}
+
+	private bindPerformanceMode(): void {
+		this.performanceHandler = (event) => {
+			const nextMode = normalizeEffectPerformanceMode(
+				(event as CustomEvent<{ mode?: unknown }>).detail?.mode,
+			);
+			if (nextMode === this.performanceMode) return;
+			this.performanceMode = nextMode;
+			this.stopLoop();
+			if (this.lastIsPlaying || this.visibility > 0.001) {
+				this.startLoop();
+			}
+		};
+		window.addEventListener(
+			EFFECT_PERFORMANCE_MODE_EVENT,
+			this.performanceHandler,
+		);
 	}
 
 	/** 尝试建立并行频谱分析链路（captureStream + MediaStreamSource + AnalyserNode） */
@@ -389,15 +437,47 @@ class MusicWaveManager {
 	}
 
 	private startLoop(): void {
+		if (this.rafId || this.frameTimerId || document.hidden) {
+			return;
+		}
 		const loop = (t: number) => {
+			this.rafId = 0;
+			if (document.hidden) {
+				this.lastTime = 0;
+				return;
+			}
 			const cont = this.step(t);
 			if (cont) {
-				this.rafId = requestAnimationFrame(loop);
-			} else {
-				this.rafId = 0;
+				this.scheduleNextFrame(loop);
 			}
 		};
 		this.rafId = requestAnimationFrame(loop);
+	}
+
+	private scheduleNextFrame(callback: FrameRequestCallback): void {
+		const frameInterval = getEffectFrameInterval(this.performanceMode);
+		if (frameInterval === null) {
+			this.rafId = requestAnimationFrame(callback);
+			return;
+		}
+		const elapsed = this.lastTime
+			? performance.now() - this.lastTime
+			: frameInterval;
+		const delay = Math.max(0, frameInterval - elapsed);
+		this.frameTimerId = window.setTimeout(() => {
+			this.frameTimerId = 0;
+			if (!document.hidden) {
+				this.rafId = requestAnimationFrame(callback);
+			}
+		}, delay);
+	}
+
+	private stopLoop(): void {
+		window.cancelAnimationFrame(this.rafId);
+		window.clearTimeout(this.frameTimerId);
+		this.rafId = 0;
+		this.frameTimerId = 0;
+		this.lastTime = 0;
 	}
 
 	private step(t: number): boolean {
@@ -493,8 +573,18 @@ class MusicWaveManager {
 			this.resizeObserver.disconnect();
 			this.resizeObserver = null;
 		}
-		cancelAnimationFrame(this.rafId);
-		this.rafId = 0;
+		if (this.visibilityHandler) {
+			document.removeEventListener("visibilitychange", this.visibilityHandler);
+			this.visibilityHandler = null;
+		}
+		if (this.performanceHandler) {
+			window.removeEventListener(
+				EFFECT_PERFORMANCE_MODE_EVENT,
+				this.performanceHandler,
+			);
+			this.performanceHandler = null;
+		}
+		this.stopLoop();
 		this.disposeAnalyser();
 		this.analysedAudio = null;
 		if (this.canvas) {
