@@ -3,7 +3,7 @@ import path from "node:path";
 import Fontmin from "fontmin";
 import { getFontConfigs } from "./config-parser.js";
 import { collectText, getAsciiCharset } from "./text-collector.js";
-import { ROOT_DIR } from "./utils.js";
+import { getStaticOutputDir, ROOT_DIR } from "./utils.js";
 
 /**
  * 压缩字体并输出到 dist 目录
@@ -29,7 +29,7 @@ export async function compressFonts() {
 			return;
 		}
 
-		const distFontDir = path.join(distDir, "assets/font");
+		const distFontDir = path.join(getStaticOutputDir(distDir), "assets/font");
 		if (!fs.existsSync(distFontDir)) {
 			fs.mkdirSync(distFontDir, { recursive: true });
 		}

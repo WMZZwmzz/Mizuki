@@ -7,6 +7,15 @@ export const __dirname = path.dirname(__filename);
 export const ROOT_DIR = path.join(__dirname, "../..");
 
 /**
+ * Astro SSR builds serve public assets from dist/client, while static builds
+ * serve them directly from dist.
+ */
+export function getStaticOutputDir(distDir = path.join(ROOT_DIR, "dist")) {
+	const clientDir = path.join(distDir, "client");
+	return fs.existsSync(clientDir) ? clientDir : distDir;
+}
+
+/**
  * 递归读取目录下所有文件
  */
 export function readFilesRecursively(dir, fileList = []) {

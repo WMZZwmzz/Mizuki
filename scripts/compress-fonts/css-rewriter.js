@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { getFontConfigs } from "./config-parser.js";
-import { ROOT_DIR, readFilesRecursively } from "./utils.js";
+import { getStaticOutputDir, ROOT_DIR, readFilesRecursively } from "./utils.js";
 
 /**
  * 更新 dist 中的 CSS，将 ttf 引用替换为 woff2
@@ -10,6 +10,7 @@ export async function updateCssFontReferences() {
 	try {
 		const fonts = getFontConfigs();
 		const distDir = path.join(ROOT_DIR, "dist/");
+		const staticOutputDir = getStaticOutputDir(distDir);
 		const publicFontDir = path.join(ROOT_DIR, "public/assets/font");
 
 		const cssFiles = readFilesRecursively(distDir).filter((f) =>
@@ -28,7 +29,7 @@ export async function updateCssFontReferences() {
 				const baseName = path.basename(fontFile, ext);
 				const woff2File = `${baseName}.woff2`;
 
-				const distWoff2 = path.join(ROOT_DIR, `dist/assets/font/${woff2File}`);
+				const distWoff2 = path.join(staticOutputDir, "assets/font", woff2File);
 				const publicWoff2 = path.join(publicFontDir, `${baseName}.woff2`);
 				const hasWoff2 = fs.existsSync(distWoff2) || fs.existsSync(publicWoff2);
 
