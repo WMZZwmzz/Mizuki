@@ -12,6 +12,8 @@ export interface Song {
 export interface LyricLine {
 	time: number;
 	text: string;
+	/** 双语 LRC 中与原文时间戳相同的译文行 */
+	translation?: string;
 }
 
 export type PlayerMode = "local" | "meting";

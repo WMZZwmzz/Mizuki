@@ -92,6 +92,7 @@ declare global {
 		// Sakura effect flags
 		sakuraInitialized?: boolean;
 		__sakuraToggleListenerAdded?: boolean;
+		__sakuraPerformanceListenerAdded?: boolean;
 
 		// Panel manager
 		panelManager?: unknown;

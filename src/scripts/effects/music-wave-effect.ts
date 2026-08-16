@@ -309,6 +309,14 @@ class MusicWaveManager {
 			if (nextMode === this.performanceMode) return;
 			this.performanceMode = nextMode;
 			this.stopLoop();
+			if (nextMode === "minimal") {
+				// 极简档：隐藏波浪并停止渲染（音乐播放不受影响）
+				this.visibility = 0;
+				if (this.canvas) {
+					this.canvas.style.opacity = "0";
+				}
+				return;
+			}
 			if (this.lastIsPlaying || this.visibility > 0.001) {
 				this.startLoop();
 			}
@@ -437,6 +445,10 @@ class MusicWaveManager {
 	}
 
 	private startLoop(): void {
+		// 极简档下不渲染波浪（切回其它档位时由性能模式监听器按播放状态恢复）
+		if (this.performanceMode === "minimal") {
+			return;
+		}
 		if (this.rafId || this.frameTimerId || document.hidden) {
 			return;
 		}

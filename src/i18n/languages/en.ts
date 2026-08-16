@@ -237,6 +237,7 @@ export const en: Translation = {
 	[Key.sakuraEffect]: "Sakura Effect",
 	[Key.effectsSettings]: "Effects",
 	[Key.effectPerformanceMode]: "Performance Mode",
+	[Key.effectMinimalPriority]: "Minimal",
 	[Key.effectEfficiencyPriority]: "Efficiency",
 	[Key.effectQualityPriority]: "Visual Quality",
 	[Key.postListLayout]: "Post Layout",
@@ -253,6 +254,8 @@ export const en: Translation = {
 	[Key.settingsMusicPlaylistIdPlaceholder]: "Enter NetEase playlist ID",
 	[Key.settingsMusicPlaylistIdHint]:
 		"Paste a share link to auto-extract the playlist ID",
+	[Key.lyricSubtitle]: "Lyric Subtitle",
+	[Key.lyricSubtitleBgOpacity]: "Lyric Background Opacity",
 
 	// Skills Page
 	[Key.skills]: "Skills",

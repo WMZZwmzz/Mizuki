@@ -66,7 +66,7 @@ const siteBase = import.meta.env.BASE_URL;
 
 	// 读取当前页面的有效默认壁纸模式
 	// 优先取 #page-overlay-data[data-wallpaper-mode]——该元素位于 Swup 的 <main> 容器内，
-	// 会随页面切换刷新为当前页的 effectiveDefaultMode（首页 fullscreen，其余 overlay）；
+	// 会随页面切换刷新为当前页的 effectiveDefaultMode（默认 overlay）；
 	// 回退到闭包 defaultWallpaperMode（仅首屏全量加载时准确，Swup 导航后会过期）
 	function getEffectiveDefaultWallpaperMode() {
 		const dataEl = document.getElementById("page-overlay-data");

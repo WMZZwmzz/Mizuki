@@ -308,6 +308,7 @@ export const zh_CN: Translation = {
 	[Key.sakuraEffect]: "樱花特效",
 	[Key.effectsSettings]: "特效",
 	[Key.effectPerformanceMode]: "性能模式",
+	[Key.effectMinimalPriority]: "极简优先",
 	[Key.effectEfficiencyPriority]: "效率优先",
 	[Key.effectQualityPriority]: "画面优先",
 	[Key.postListLayout]: "文章布局",
@@ -323,6 +324,8 @@ export const zh_CN: Translation = {
 	[Key.settingsMusicPlaylistId]: "歌单ID",
 	[Key.settingsMusicPlaylistIdPlaceholder]: "输入网易云歌单ID",
 	[Key.settingsMusicPlaylistIdHint]: "支持粘贴歌单分享链接，自动提取歌单ID",
+	[Key.lyricSubtitle]: "歌词字幕",
+	[Key.lyricSubtitleBgOpacity]: "歌词字幕背景透明度",
 
 	// 站点统计
 	[Key.siteStats]: "站点统计",

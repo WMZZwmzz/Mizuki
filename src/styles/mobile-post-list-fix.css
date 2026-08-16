@@ -79,8 +79,8 @@ body.wallpaper-transparent .card-base .card-base,
 .wallpaper-transparent .card-base .card-base {
   background: var(--card-bg-transparent) !important;
   background-color: var(--card-bg-transparent) !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
+  backdrop-filter: var(--card-backdrop-filter, blur(8px)) !important;
+  -webkit-backdrop-filter: var(--card-backdrop-filter, blur(8px)) !important;
 }
 
 /* 暗色模式 */
@@ -94,8 +94,8 @@ body.wallpaper-transparent .card-base .card-base,
 :root.dark .wallpaper-transparent .card-base .card-base {
   background: var(--card-bg-transparent) !important;
   background-color: var(--card-bg-transparent) !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
+  backdrop-filter: var(--card-backdrop-filter, blur(8px)) !important;
+  -webkit-backdrop-filter: var(--card-backdrop-filter, blur(8px)) !important;
 }
 
 /* 移动端（<768px）强制透明 */

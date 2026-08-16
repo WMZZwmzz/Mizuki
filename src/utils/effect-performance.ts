@@ -1,10 +1,14 @@
-export type EffectPerformanceMode = "efficiency" | "quality";
+export type EffectPerformanceMode = "minimal" | "efficiency" | "quality";
 
 export const DEFAULT_EFFECT_PERFORMANCE_MODE: EffectPerformanceMode =
 	"efficiency";
 export const EFFECT_PERFORMANCE_MODE_STORAGE_KEY = "effectPerformanceMode";
 export const EFFECT_PERFORMANCE_MODE_EVENT = "effect-performance-mode-change";
 export const EFFICIENCY_FRAME_INTERVAL = 1000 / 30;
+
+/** 档位从低到高排列，与设置面板滑块的 1/2/3 档一一对应 */
+export const EFFECT_PERFORMANCE_MODE_LEVELS: readonly EffectPerformanceMode[] =
+	["minimal", "efficiency", "quality"];
 
 type StorageReader = Pick<Storage, "getItem">;
 type StorageWriter = Pick<Storage, "setItem">;
@@ -21,7 +25,9 @@ function getBrowserStorage(): Storage | null {
 export function normalizeEffectPerformanceMode(
 	value: unknown,
 ): EffectPerformanceMode {
-	return value === "quality" ? "quality" : DEFAULT_EFFECT_PERFORMANCE_MODE;
+	return EFFECT_PERFORMANCE_MODE_LEVELS.includes(value as EffectPerformanceMode)
+		? (value as EffectPerformanceMode)
+		: DEFAULT_EFFECT_PERFORMANCE_MODE;
 }
 
 export function getEffectPerformanceMode(
@@ -40,7 +46,24 @@ export function getEffectPerformanceMode(
 export function getEffectFrameInterval(
 	mode: EffectPerformanceMode,
 ): number | null {
-	return mode === "efficiency" ? EFFICIENCY_FRAME_INTERVAL : null;
+	return mode === "quality" ? null : EFFICIENCY_FRAME_INTERVAL;
+}
+
+/** 档位名 → 滑块等级（1=极简 2=效率 3=画面） */
+export function getEffectPerformanceLevel(mode: EffectPerformanceMode): number {
+	const index = EFFECT_PERFORMANCE_MODE_LEVELS.indexOf(mode);
+	return (index < 0 ? 1 : index) + 1;
+}
+
+/** 滑块等级 → 档位名，越界时钳制到 1~3 档 */
+export function getEffectPerformanceModeFromLevel(
+	level: number,
+): EffectPerformanceMode {
+	const clamped = Math.min(
+		Math.max(Math.trunc(level) || 1, 1),
+		EFFECT_PERFORMANCE_MODE_LEVELS.length,
+	);
+	return EFFECT_PERFORMANCE_MODE_LEVELS[clamped - 1];
 }
 
 export function setEffectPerformanceMode(

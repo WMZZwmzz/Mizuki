@@ -239,6 +239,7 @@ export const ja: Translation = {
 	[Key.sakuraEffect]: "桜エフェクト",
 	[Key.effectsSettings]: "エフェクト",
 	[Key.effectPerformanceMode]: "パフォーマンスモード",
+	[Key.effectMinimalPriority]: "最小優先",
 	[Key.effectEfficiencyPriority]: "効率優先",
 	[Key.effectQualityPriority]: "画質優先",
 	[Key.postListLayout]: "投稿レイアウト",
@@ -255,6 +256,8 @@ export const ja: Translation = {
 	[Key.settingsMusicPlaylistIdPlaceholder]: "NetEaseプレイリストIDを入力",
 	[Key.settingsMusicPlaylistIdHint]:
 		"共有リンクを貼り付けるとIDを自動抽出します",
+	[Key.lyricSubtitle]: "歌詞字幕",
+	[Key.lyricSubtitleBgOpacity]: "歌詞字幕の背景透明度",
 
 	// スキルページ
 	[Key.skills]: "スキル",

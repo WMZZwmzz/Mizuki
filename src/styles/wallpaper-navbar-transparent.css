@@ -123,10 +123,10 @@ body.wallpaper-transparent #navbar[data-transparent-mode="semifull"].scrolled {
 /* Banner 模式下的特殊增强 */
 @media (min-width: 1280px) {
   body.wallpaper-transparent :is(.dropdown-content, #display-setting, #search-panel) {
-    background: rgba(255, 255, 255, 0.85);
+    background: var(--glass-panel-bg-light, rgba(255, 255, 255, 0.85));
   }
   :root.dark body.wallpaper-transparent :is(.dropdown-content, #display-setting, #search-panel) {
-    background: rgba(24, 25, 38, 0.85);
+    background: var(--glass-panel-bg-dark, rgba(24, 25, 38, 0.85));
   }
 }
 

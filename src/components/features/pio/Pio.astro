@@ -150,9 +150,22 @@ const hiddenOnMobile = config.hiddenOnMobile ?? false;
 			.forEach((n) => n.remove());
 	}
 
+	// ── 极简性能档：隐藏全部图层且不加载 iframe（避免 WebGL 开销），切回其它档位时恢复 ──
+	const minimalAtStart = getEffectPerformanceMode() === "minimal";
+	function setPioLayersVisible(visible: boolean) {
+		document
+			.querySelectorAll<HTMLElement>('[data-role="pio-layer"]')
+			.forEach((node) => {
+				node.style.display = visible ? "" : "none";
+			});
+	}
+	if (minimalAtStart) {
+		setPioLayersVisible(false);
+	}
+
 	if (el && configSource && !mobileHidden) {
-		// 桌面端：按需赋值 src 启动 iframe 加载（移动端跳过，避免触发 WebGL）
-		if (el.dataset.src) el.src = el.dataset.src;
+		// 桌面端：按需赋值 src 启动 iframe 加载（移动端/极简档跳过，避免触发 WebGL）
+		if (!minimalAtStart && el.dataset.src) el.src = el.dataset.src;
 		const config = JSON.parse(configSource.dataset.config || "{}");
 
 		if (!win.__mizukiPioController) {
@@ -479,9 +492,11 @@ const hiddenOnMobile = config.hiddenOnMobile ?? false;
 				}
 
 				// ── 原有逻辑 ──
+				let minimalActive = minimalAtStart;
+
 				function applyVisibility() {
 					if (!currentEl) return;
-					currentEl.style.display = "";
+					currentEl.style.display = minimalActive ? "none" : "";
 				}
 
 				function postPerformanceMode(mode = getEffectPerformanceMode()) {
@@ -539,11 +554,21 @@ const hiddenOnMobile = config.hiddenOnMobile ?? false;
 				}
 
 				function handlePerformanceModeChange(event: Event) {
-					postPerformanceMode(
-						normalizeEffectPerformanceMode(
-							(event as CustomEvent<{ mode?: unknown }>).detail?.mode,
-						),
+					const mode = normalizeEffectPerformanceMode(
+						(event as CustomEvent<{ mode?: unknown }>).detail?.mode,
 					);
+					minimalActive = mode === "minimal";
+					setPioLayersVisible(!minimalActive);
+					// 极简档期间未加载的 iframe，切回其它档位时补启加载
+					if (
+						!minimalActive &&
+						currentEl &&
+						!currentEl.src &&
+						currentEl.dataset.src
+					) {
+						currentEl.src = currentEl.dataset.src;
+					}
+					postPerformanceMode(mode);
 				}
 
 			function setupSwupHooks() {
@@ -579,8 +604,10 @@ const hiddenOnMobile = config.hiddenOnMobile ?? false;
 				});
 			}
 
-			// 欢迎气泡
-			setTimeout(showBubble, 1500);
+				// 欢迎气泡（极简档下图层隐藏，跳过）
+				if (!minimalAtStart) {
+					setTimeout(showBubble, 1500);
+				}
 
 			win.__mizukiPioController = {
 				update(nextEl, nextConfig) {

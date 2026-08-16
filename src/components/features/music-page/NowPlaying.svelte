@@ -20,6 +20,8 @@ import { musicPlayerStore } from "@/stores/musicPlayerStore";
 interface LyricLine {
 	time: number;
 	text: string;
+	/** 双语 LRC 中与原文时间戳相同的译文行 */
+	translation?: string;
 }
 
 interface Props {
@@ -237,7 +239,10 @@ let progressPercent = $derived(
 					class:lyric-line--active={i === currentLyricIndex}
 					onclick={() => seekToLyricTime(lyric.time)}
 				>
-					{lyric.text}
+					<span class="lyric-line__text">{lyric.text}</span>
+					{#if lyric.translation}
+						<span class="lyric-line__translation">{lyric.translation}</span>
+					{/if}
 				</button>
 			{/each}
 		{:else}
@@ -502,8 +507,21 @@ let progressPercent = $derived(
 		background-color: var(--btn-plain-bg-hover);
 	}
 
+	.lyric-line__text {
+		display: block;
+	}
+
+	.lyric-line__translation {
+		display: block;
+		margin-top: 0.125rem;
+		font-size: 0.8125rem;
+		font-weight: 400;
+		line-height: 1.4;
+		color: var(--content-meta);
+	}
+
 	.lyric-line--active {
-		color: #fff;
+		color: var(--primary, #ff2d55);
 		font-weight: 700;
 		font-size: 1.25rem;
 	}

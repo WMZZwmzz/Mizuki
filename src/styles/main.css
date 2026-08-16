@@ -11,6 +11,8 @@
 @import "./gradient-buttons.css";
 /* 导入 Banner 和网格布局样式 */
 @import "./banner.css";
+/* 导入极简性能档样式 */
+@import "./effect-minimal.css";
 /* 加密内容样式已移除，现在直接使用非加密文章的样式 */
 
 @plugin "@tailwindcss/typography";
@@ -255,15 +257,15 @@ html {
   /* 全屏壁纸模式下的半透明效果 - 使用!important确保优先级 */
   .wallpaper-transparent .card-base {
     background: var(--card-bg-transparent) !important;
-    backdrop-filter: blur(8px) !important;
-    -webkit-backdrop-filter: blur(8px) !important;
+    backdrop-filter: var(--card-backdrop-filter, blur(8px)) !important;
+    -webkit-backdrop-filter: var(--card-backdrop-filter, blur(8px)) !important;
     isolation: isolate;
   }
 
   body.wallpaper-transparent .card-base {
     background: var(--card-bg-transparent) !important;
-    backdrop-filter: blur(8px) !important;
-    -webkit-backdrop-filter: blur(8px) !important;
+    backdrop-filter: var(--card-backdrop-filter, blur(8px)) !important;
+    -webkit-backdrop-filter: var(--card-backdrop-filter, blur(8px)) !important;
     isolation: isolate;
   }
 
@@ -271,8 +273,8 @@ html {
   .wallpaper-transparent .card-base .card-base,
   body.wallpaper-transparent .card-base .card-base {
     background: var(--card-bg-transparent) !important;
-    backdrop-filter: blur(8px) !important;
-    -webkit-backdrop-filter: blur(8px) !important;
+    backdrop-filter: var(--card-backdrop-filter, blur(8px)) !important;
+    -webkit-backdrop-filter: var(--card-backdrop-filter, blur(8px)) !important;
     isolation: isolate;
   }
 

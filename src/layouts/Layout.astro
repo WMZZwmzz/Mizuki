@@ -192,6 +192,11 @@ if (siteConfig.font) {
 						var t = localStorage.getItem("bannerTitleEnabled");
 						if (t !== null) html.setAttribute("data-banner-title-enabled", t);
 					}
+					// 首屏预设特效性能档属性，极简档的透明效果关闭需在渲染前生效
+					var pm = localStorage.getItem("effectPerformanceMode");
+					if (pm === "minimal" || pm === "efficiency" || pm === "quality") {
+						html.setAttribute("data-effect-performance-mode", pm);
+					}
 				} catch(e) {}
 			})();
 		</script>

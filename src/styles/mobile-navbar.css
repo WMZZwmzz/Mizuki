@@ -13,8 +13,8 @@
 @media (min-width: 1280px) {
   #banner-wrapper ~ * #navbar[data-transparent-mode="semi"] > div,
   body:has(#banner-wrapper) #navbar[data-transparent-mode="semi"] > div {
-    backdrop-filter: blur(20px);
-    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: var(--glass-blur, blur(20px));
+    background: var(--glass-bg-light, rgba(255, 255, 255, 0.55));
     border: 1px solid rgba(255, 255, 255, 0.55);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   }
@@ -24,8 +24,8 @@
 @media (max-width: 1279px) {
   #banner-wrapper ~ * #navbar[data-transparent-mode="semi"][data-is-home="true"] > div,
   body:has(#banner-wrapper) #navbar[data-transparent-mode="semi"][data-is-home="true"] > div {
-    backdrop-filter: blur(20px);
-    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: var(--glass-blur, blur(20px));
+    background: var(--glass-bg-light, rgba(255, 255, 255, 0.55));
     border: 1px solid rgba(255, 255, 255, 0.55);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   }
@@ -35,8 +35,8 @@
 @media (min-width: 1280px) {
   :root.dark #banner-wrapper ~ * #navbar[data-transparent-mode="semi"] > div,
   :root.dark body:has(#banner-wrapper) #navbar[data-transparent-mode="semi"] > div {
-    backdrop-filter: blur(20px);
-    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: var(--glass-blur, blur(20px));
+    background: var(--glass-bg-dark, rgba(0, 0, 0, 0.55));
     border: 1px solid rgba(0, 0, 0, 0.55);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
   }
@@ -46,8 +46,8 @@
 @media (max-width: 1279px) {
   :root.dark #banner-wrapper ~ * #navbar[data-transparent-mode="semi"][data-is-home="true"] > div,
   :root.dark body:has(#banner-wrapper) #navbar[data-transparent-mode="semi"][data-is-home="true"] > div {
-    backdrop-filter: blur(20px);
-    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: var(--glass-blur, blur(20px));
+    background: var(--glass-bg-dark, rgba(0, 0, 0, 0.55));
     border: 1px solid rgba(0, 0, 0, 0.55);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
   }
@@ -106,15 +106,15 @@
 @media (min-width: 1280px) {
   #banner-wrapper ~ * #navbar[data-transparent-mode="semifull"].scrolled > div,
   body:has(#banner-wrapper) #navbar[data-transparent-mode="semifull"].scrolled > div {
-    backdrop-filter: blur(20px);
-    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: var(--glass-blur, blur(20px));
+    background: var(--glass-bg-light, rgba(255, 255, 255, 0.55));
     border: 1px solid rgba(255, 255, 255, 0.55);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   }
 
   :root.dark #banner-wrapper ~ * #navbar[data-transparent-mode="semifull"].scrolled > div,
   :root.dark body:has(#banner-wrapper) #navbar[data-transparent-mode="semifull"].scrolled > div {
-    background: rgba(0, 0, 0, 0.55);
+    background: var(--glass-bg-dark, rgba(0, 0, 0, 0.55));
     border: 1px solid rgba(0, 0, 0, 0.55);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
   }
@@ -124,15 +124,15 @@
 @media (max-width: 1279px) {
   #banner-wrapper ~ * #navbar[data-transparent-mode="semifull"][data-is-home="true"].scrolled > div,
   body:has(#banner-wrapper) #navbar[data-transparent-mode="semifull"][data-is-home="true"].scrolled > div {
-    backdrop-filter: blur(20px);
-    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: var(--glass-blur, blur(20px));
+    background: var(--glass-bg-light, rgba(255, 255, 255, 0.55));
     border: 1px solid rgba(255, 255, 255, 0.55);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   }
 
   :root.dark #banner-wrapper ~ * #navbar[data-transparent-mode="semifull"][data-is-home="true"].scrolled > div,
   :root.dark body:has(#banner-wrapper) #navbar[data-transparent-mode="semifull"][data-is-home="true"].scrolled > div {
-    background: rgba(0, 0, 0, 0.55);
+    background: var(--glass-bg-dark, rgba(0, 0, 0, 0.55));
     border: 1px solid rgba(0, 0, 0, 0.55);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
   }
@@ -198,8 +198,8 @@
   body:has(#banner-wrapper) #mobile-toc-panel,
   #banner-wrapper ~ * #search-panel,
   body:has(#banner-wrapper) #search-panel {
-    backdrop-filter: blur(20px);
-    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: var(--glass-blur, blur(20px));
+    background: var(--glass-panel-bg-light, rgba(255, 255, 255, 0.85));
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   }
 
@@ -216,7 +216,7 @@
   :root.dark body:has(#banner-wrapper) #mobile-toc-panel,
   :root.dark #banner-wrapper ~ * #search-panel,
   :root.dark body:has(#banner-wrapper) #search-panel {
-    background: rgba(24, 25, 38, 0.85);
+    background: var(--glass-panel-bg-dark, rgba(24, 25, 38, 0.85));
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
   }
 }
@@ -233,8 +233,8 @@
   body:has(#banner-wrapper) #navbar[data-is-home="true"] #mobile-toc-panel,
   body:has(#banner-wrapper) #navbar[data-is-home="true"] #search-panel,
   body:has(#banner-wrapper) #navbar[data-is-home="true"] #display-setting {
-    backdrop-filter: blur(20px);
-    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: var(--glass-blur, blur(20px));
+    background: var(--glass-panel-bg-light, rgba(255, 255, 255, 0.85));
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   }
 
@@ -249,7 +249,7 @@
   :root.dark body:has(#banner-wrapper) #navbar[data-is-home="true"] #mobile-toc-panel,
   :root.dark body:has(#banner-wrapper) #navbar[data-is-home="true"] #search-panel,
   :root.dark body:has(#banner-wrapper) #navbar[data-is-home="true"] #display-setting {
-    background: rgba(24, 25, 38, 0.85);
+    background: var(--glass-panel-bg-dark, rgba(24, 25, 38, 0.85));
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
   }
 }

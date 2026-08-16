@@ -339,6 +339,43 @@ export function applyWallpaperVisualSettings(mode?: WALLPAPER_MODE): void {
 	root.style.removeProperty("--card-transparent-opacity");
 }
 
+// ─── Lyric Overlay ───────────────────────────────────────────
+
+export function getStoredLyricOverlayEnabled(): boolean {
+	const stored = localStorage.getItem("lyricOverlayEnabled");
+	return stored !== null ? stored === "true" : true;
+}
+
+export function setLyricOverlayEnabled(enabled: boolean): void {
+	localStorage.setItem("lyricOverlayEnabled", String(enabled));
+	window.dispatchEvent(
+		new CustomEvent("lyric-overlay-toggle", { detail: { enabled } }),
+	);
+}
+
+export const DEFAULT_LYRIC_BG_OPACITY = 25;
+
+export function getStoredLyricBgOpacity(): number {
+	const stored = localStorage.getItem("lyricBgOpacity");
+	return stored ? Number(stored) : DEFAULT_LYRIC_BG_OPACITY;
+}
+
+export function setLyricBgOpacity(value: number): void {
+	localStorage.setItem("lyricBgOpacity", String(value));
+	applyLyricBgOpacity();
+}
+
+// 供页面加载时恢复（LyricOverlay 挂载时调用）
+export function applyLyricBgOpacity(): void {
+	const root = document.querySelector(":root") as HTMLElement;
+	if (root) {
+		root.style.setProperty(
+			"--lyric-bg-opacity",
+			`${getStoredLyricBgOpacity()}%`,
+		);
+	}
+}
+
 // ─── Waves ───────────────────────────────────────────────────
 
 export function getDefaultWavesEnabled(): boolean {

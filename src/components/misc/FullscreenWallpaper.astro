@@ -107,7 +107,7 @@ const renderGroups = [
 		"fixed inset-0 w-full h-full overflow-hidden pointer-events-none wallpaper-container",
 		className
 	]}
-	style={`z-index: ${zIndex}; opacity: var(--wallpaper-opacity, ${opacity}); filter: blur(var(--wallpaper-blur, ${blurAmount}px));`}
+	style={`z-index: ${zIndex}; opacity: var(--wallpaper-display-opacity, var(--wallpaper-opacity, ${opacity})); filter: var(--wallpaper-display-filter, blur(var(--wallpaper-blur, ${blurAmount}px)));`}
 	data-fullscreen-wallpaper
 >
 	<script is:inline define:vars={{ wallpaperEnabled: config.enable ?? true, overlaySwitchable: config.overlay?.switchable ?? true, defaultMode }}>

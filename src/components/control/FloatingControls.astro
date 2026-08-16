@@ -5,6 +5,7 @@ import { musicPlayerConfig, siteConfig } from "../../config";
 import FloatingTOC from "../features/toc/FloatingTOC.astro";
 import BackToHome from "./BackToHome.astro";
 import BackToTop from "./BackToTop.astro";
+import LyricOverlayFabButton from "./LyricOverlayFabButton.svelte";
 import MusicFabButton from "./MusicFabButton.svelte";
 
 interface Props {
@@ -15,6 +16,13 @@ const { headings = [] } = Astro.props;
 ---
 
 <div class="floating-controls-container">
+	{
+		musicPlayerConfig.enable && (
+			<div class="floating-control-item" data-control-key="lyrics">
+				<LyricOverlayFabButton client:idle />
+			</div>
+		)
+	}
 	{
 		musicPlayerConfig.enable &&
 			musicPlayerConfig.showFloatingPlayer &&

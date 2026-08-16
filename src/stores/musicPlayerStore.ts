@@ -7,6 +7,10 @@ import {
 	SKIP_ERROR_DELAY,
 	STORAGE_KEY_VOLUME,
 } from "@/components/widgets/music-player/constants";
+import {
+	appendTranslatedLyric,
+	parseLRC,
+} from "@/components/widgets/music-player/parseLrc";
 import type {
 	LyricLine,
 	RepeatMode,
@@ -666,35 +670,6 @@ class MusicPlayerStore {
 		this.broadcastState();
 	}
 
-	parseLRC(lrcString: string): LyricLine[] {
-		const lines = lrcString.split("\n");
-		const result: LyricLine[] = [];
-		const timeRegex = /\[(\d{1,2}):(\d{1,2})(?:\.(\d{1,3}))?\]/g;
-
-		for (const line of lines) {
-			const times: number[] = [];
-			let lastEnd = 0;
-			const matches = [...line.matchAll(timeRegex)];
-			for (const match of matches) {
-				const minutes = Number.parseInt(match[1], 10);
-				const seconds = Number.parseInt(match[2], 10);
-				const ms = match[3] ? Number.parseInt(match[3].padEnd(3, "0"), 10) : 0;
-				times.push(minutes * 60 + seconds + ms / 1000);
-				lastEnd = (match.index ?? 0) + match[0].length;
-			}
-			const text = line.slice(lastEnd).trim();
-			if (!text) {
-				continue;
-			}
-			for (const time of times) {
-				result.push({ time, text });
-			}
-		}
-
-		result.sort((a, b) => a.time - b.time);
-		return result;
-	}
-
 	private async fetchLyrics(song: Song): Promise<void> {
 		if (!musicPlayerConfig.meting_api) {
 			return;
@@ -719,7 +694,10 @@ class MusicPlayerStore {
 						if (ct.includes("application/json")) {
 							try {
 								const json = await lrcRes.json();
-								lrcText = typeof json.lyric === "string" ? json.lyric : "";
+								lrcText = appendTranslatedLyric(
+									typeof json.lyric === "string" ? json.lyric : "",
+									json.tlyric,
+								);
 							} catch (parseError) {
 								console.error(
 									`[MusicPlayer] 歌词响应解析失败（lrc URL，${songInfo}）:`,
@@ -762,7 +740,10 @@ class MusicPlayerStore {
 							if (ct.includes("application/json")) {
 								try {
 									const json = await res.json();
-									lrcText = typeof json.lyric === "string" ? json.lyric : "";
+									lrcText = appendTranslatedLyric(
+										typeof json.lyric === "string" ? json.lyric : "",
+										json.tlyric,
+									);
 								} catch (parseError) {
 									console.error(
 										`[MusicPlayer] 歌词响应解析失败（Meting API，${songInfo}）:`,
@@ -773,7 +754,10 @@ class MusicPlayerStore {
 								const rawText = await res.text();
 								try {
 									const json = JSON.parse(rawText);
-									lrcText = typeof json.lyric === "string" ? json.lyric : "";
+									lrcText = appendTranslatedLyric(
+										typeof json.lyric === "string" ? json.lyric : "",
+										json.tlyric,
+									);
 								} catch {
 									lrcText = rawText;
 								}
@@ -799,7 +783,7 @@ class MusicPlayerStore {
 				throw new Error("no lyric content");
 			}
 
-			const parsed = this.parseLRC(lrcText);
+			const parsed = parseLRC(lrcText);
 			if (this.lyricRequestId !== thisRequestId) return;
 			this.state.lyrics = parsed;
 			this.state.currentLyricIndex = -1;

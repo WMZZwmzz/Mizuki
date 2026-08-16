@@ -1,0 +1,51 @@
+/**
+ * 极简性能档（特效设置第 1 档）样式
+ * 由 <html data-effect-performance-mode="minimal"> 驱动（见 src/utils/effect-performance.ts），
+ * 切回效率/画面档时该属性移除，以下覆盖全部自动还原为用户此前的设置。
+ *
+ * 说明：各处经 important 提权的强制毛玻璃规则（main.css / mobile-post-list-fix.css /
+ * banner.css）以及 mobile-navbar.css 中高优先级的硬编码毛玻璃，均通过 CSS 变量回退值路由，
+ * 变量未定义时行为与原来完全一致，因此本文件不引入任何新的 important 声明。
+ */
+
+html[data-effect-performance-mode="minimal"] {
+	/* 半透明卡片背景（variables.styl / banner.css hero 规则引用）→ 不透明 */
+	--card-transparent-opacity: 1;
+	--hero-card-target-opacity: 1;
+	/* 经 important 提权的强制 blur(8px/20px) 规则经此取值 */
+	--card-backdrop-filter: none;
+	/* mobile-navbar.css 中硬编码的导航栏/面板毛玻璃经此组变量取值 */
+	--glass-blur: none;
+	--glass-bg-light: var(--card-bg);
+	--glass-bg-dark: var(--card-bg);
+	--glass-panel-bg-light: var(--float-panel-bg);
+	--glass-panel-bg-dark: var(--float-panel-bg);
+	/* wallpaper-navbar-transparent.css 的默认面板/导航模糊 */
+	--nav-blur: none;
+	--panel-blur: none;
+	/* hero 滚动时壁纸自身模糊关闭 */
+	--hero-wallpaper-target-blur: 0px;
+}
+
+/* 壁纸本体：不透明、无模糊（FullscreenWallpaper.astro 的内联样式经此变量路由） */
+html[data-effect-performance-mode="minimal"] [data-fullscreen-wallpaper] {
+	--wallpaper-display-opacity: 1;
+	--wallpaper-display-filter: none;
+}
+
+/* 常规（未经 important 提权）毛玻璃消费者：直接关闭模糊并改为不透明背景 */
+html[data-effect-performance-mode="minimal"] .card-base,
+html[data-effect-performance-mode="minimal"] .card-base-transparent,
+html[data-effect-performance-mode="minimal"] .btn-card,
+html[data-effect-performance-mode="minimal"] .float-panel,
+html[data-effect-performance-mode="minimal"] .dropdown-content,
+html[data-effect-performance-mode="minimal"] #navbar > div,
+html[data-effect-performance-mode="minimal"] #display-setting,
+html[data-effect-performance-mode="minimal"] #nav-menu-panel,
+html[data-effect-performance-mode="minimal"] #translate-panel,
+html[data-effect-performance-mode="minimal"] #mobile-toc-panel,
+html[data-effect-performance-mode="minimal"] #search-panel {
+	background-color: var(--card-bg);
+	backdrop-filter: none;
+	-webkit-backdrop-filter: none;
+}

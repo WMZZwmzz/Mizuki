@@ -11,8 +11,8 @@
 </head>
 <body>
 <script>
-// 效率模式将第三方 Live2D 渲染限制为 30 FPS，画面模式跟随浏览器刷新率。
-// 回调身份和 cancelAnimationFrame 语义保持不变。
+// 效率模式将第三方 Live2D 渲染限制为 30 FPS，画面模式跟随浏览器刷新率，
+// 极简模式完全暂停渲染（图层由父页面隐藏）。回调身份和 cancelAnimationFrame 语义保持不变。
 (function () {
   var nativeRequestAnimationFrame = window.requestAnimationFrame.bind(window);
   var nativeCancelAnimationFrame = window.cancelAnimationFrame.bind(window);
@@ -25,7 +25,9 @@
   var pending = new Map();
 
   function normalizeMode(value) {
-    return value === 'quality' ? 'quality' : 'efficiency';
+    if (value === 'quality') return 'quality';
+    if (value === 'minimal') return 'minimal';
+    return 'efficiency';
   }
 
   function readStoredMode() {
@@ -40,7 +42,7 @@
   document.documentElement.dataset.effectPerformanceMode = performanceMode;
 
   function getFrameInterval() {
-    return performanceMode === 'efficiency' ? efficiencyFrameInterval : 0;
+    return performanceMode === 'quality' ? 0 : efficiencyFrameInterval;
   }
 
   function cancelScheduledFrame() {
@@ -51,6 +53,8 @@
   }
 
   function scheduleFrame() {
+    // 极简模式：不再调度任何帧，冻结渲染循环（切回其它模式时恢复）
+    if (performanceMode === 'minimal') return;
     if (nativeFrameId || frameTimerId || document.hidden || pending.size === 0) return;
     var frameInterval = getFrameInterval();
     if (!frameInterval) {

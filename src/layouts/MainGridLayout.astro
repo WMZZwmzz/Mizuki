@@ -70,9 +70,9 @@ const isHomePage = Astro.url.pathname.replace(/\/+$/, "") === _siteBase;
 // 手机端非首页不显示banner的CSS类
 const mobileNonHomeBannerClass = !isHomePage ? "mobile-hide-banner" : "";
 
-// 按页面区分默认壁纸模式：首页全屏 hero（由 HeroOverlayScroll 滚动过渡到 overlay），
-// 其他页面默认 overlay（全屏壁纸背景 + 半透明卡片）
-const effectiveDefaultMode: string = isHomePage ? "fullscreen" : "overlay";
+// 默认壁纸模式：overlay（全屏壁纸背景 + 半透明卡片）；
+// 首页由 HeroOverlayScroll 强制全屏 hero，滚动时平滑过渡到 overlay 视觉
+const effectiveDefaultMode: string = "overlay";
 
 // 计算主内容区域位置
 const finalMainPanelTop = getMainPanelTop(

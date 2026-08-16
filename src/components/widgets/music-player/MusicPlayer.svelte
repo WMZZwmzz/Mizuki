@@ -10,6 +10,7 @@ import { musicPlayerStore } from "@/stores/musicPlayerStore";
 
 import CoverImage from "./atoms/CoverImage.svelte";
 import FabMusicPanel from "./FabMusicPanel.svelte";
+import LyricOverlay from "./organisms/LyricOverlay.svelte";
 import MiniPlayer from "./organisms/MiniPlayer.svelte";
 import PlayerBar from "./organisms/PlayerBar.svelte";
 import Playlist from "./organisms/Playlist.svelte";
@@ -258,6 +259,9 @@ onDestroy(() => {
 </script>
 
 <svelte:window onkeydown={handleVolumeKeyDown} />
+
+<!-- 歌词字幕浮层：不依赖悬浮播放器 UI，播放时始终可用 -->
+<LyricOverlay />
 
 {#if shouldRenderFloatingUi}
 	{#if state.showError}

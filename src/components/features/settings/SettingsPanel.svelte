@@ -11,11 +11,14 @@ import Icon from "@iconify/svelte";
 import {
 	DEFAULT_EFFECT_PERFORMANCE_MODE,
 	type EffectPerformanceMode,
+	getEffectPerformanceLevel,
 	getEffectPerformanceMode,
+	getEffectPerformanceModeFromLevel,
 	setEffectPerformanceMode,
 } from "@utils/effect-performance";
 import { extractPlaylistId } from "@utils/playlist-id-utils";
 import {
+	DEFAULT_LYRIC_BG_OPACITY,
 	getDefaultBannerTitleEnabled,
 	getDefaultHue,
 	getDefaultMusicPlaylistId,
@@ -26,6 +29,7 @@ import {
 	getDefaultWavesEnabled,
 	getHue,
 	getStoredBannerTitleEnabled,
+	getStoredLyricBgOpacity,
 	getStoredMusicPlaylistId,
 	getStoredOverlayBlur,
 	getStoredOverlayCardOpacity,
@@ -34,6 +38,7 @@ import {
 	getStoredWavesEnabled,
 	setBannerTitleEnabled,
 	setHue,
+	setLyricBgOpacity,
 	setMusicPlaylistId,
 	setOverlayBlur,
 	setOverlayCardOpacity,
@@ -99,6 +104,8 @@ const isSakuraSwitchable =
 
 const showMusicPlaylistId =
 	(musicPlayerConfig.enable ?? false) && musicPlayerConfig.mode === "meting";
+// 歌词字幕浮层随播放器核心启用（不依赖悬浮播放器 UI）
+const isLyricSettingsAvailable = musicPlayerConfig.enable ?? false;
 
 const showModeValue = siteConfig.wallpaperMode.showModeSwitchOnMobile;
 let isMobile = $state(false);
@@ -129,9 +136,23 @@ let bannerTitleEnabled = $state(getDefaultBannerTitleEnabled());
 const defaultBannerTitleEnabled = getDefaultBannerTitleEnabled();
 let sakuraEnabled = $state(getDefaultSakuraEnabled());
 const defaultSakuraEnabled = getDefaultSakuraEnabled();
+let lyricBgOpacity = $state(DEFAULT_LYRIC_BG_OPACITY);
 let effectPerformanceMode = $state<EffectPerformanceMode>(
 	DEFAULT_EFFECT_PERFORMANCE_MODE,
 );
+let effectPerformanceLevel = $state(
+	getEffectPerformanceLevel(DEFAULT_EFFECT_PERFORMANCE_MODE),
+);
+// 拖拽中的连续值（1~3 浮点），松手后吸附到最近档位
+let effectPerformanceValue = $state(
+	getEffectPerformanceLevel(DEFAULT_EFFECT_PERFORMANCE_MODE),
+);
+const effectPerformanceModeLabels: Record<EffectPerformanceMode, () => string> =
+	{
+		minimal: () => i18n(I18nKey.effectMinimalPriority),
+		efficiency: () => i18n(I18nKey.effectEfficiencyPriority),
+		quality: () => i18n(I18nKey.effectQualityPriority),
+	};
 const defaultMusicPlaylistId = getDefaultMusicPlaylistId();
 let musicPlaylistId = $state(defaultMusicPlaylistId);
 let appliedMusicPlaylistId = defaultMusicPlaylistId;
@@ -140,7 +161,8 @@ let overlaySettingsIsDefault = $derived(
 	(!isOverlayOpacitySwitchable || overlayOpacity === defaultOverlayOpacity) &&
 		(!isOverlayBlurSwitchable || overlayBlur === defaultOverlayBlur) &&
 		(!isOverlayCardOpacitySwitchable ||
-			overlayCardOpacity === defaultOverlayCardOpacity),
+			overlayCardOpacity === defaultOverlayCardOpacity) &&
+		(!isLyricSettingsAvailable || lyricBgOpacity === DEFAULT_LYRIC_BG_OPACITY),
 );
 
 let bannerSettingsIsDefault = $derived(
@@ -191,6 +213,10 @@ function resetOverlaySettings() {
 		overlayCardOpacity = defaultOverlayCardOpacity;
 		setOverlayCardOpacity(defaultOverlayCardOpacity);
 	}
+	if (isLyricSettingsAvailable && lyricBgOpacity !== DEFAULT_LYRIC_BG_OPACITY) {
+		lyricBgOpacity = DEFAULT_LYRIC_BG_OPACITY;
+		setLyricBgOpacity(DEFAULT_LYRIC_BG_OPACITY);
+	}
 	requestAnimationFrame(refreshAllRangeProgress);
 }
 
@@ -223,8 +249,53 @@ function toggleSakuraEnabled() {
 	setSakuraEnabled(sakuraEnabled);
 }
 
-function switchEffectPerformanceMode(mode: EffectPerformanceMode) {
-	effectPerformanceMode = setEffectPerformanceMode(mode);
+function switchEffectPerformanceLevel(level: number) {
+	effectPerformanceMode = setEffectPerformanceMode(
+		getEffectPerformanceModeFromLevel(level),
+	);
+	effectPerformanceLevel = getEffectPerformanceLevel(effectPerformanceMode);
+	effectPerformanceValue = effectPerformanceLevel;
+}
+
+function handleEffectPerformanceInput(event: Event) {
+	effectPerformanceValue = Number(
+		(event.currentTarget as HTMLInputElement).value,
+	);
+}
+
+// 松手后将连续拖拽值吸附到最近的档位
+function commitEffectPerformanceValue(event: Event) {
+	const input = event.currentTarget as HTMLInputElement;
+	const snapped = Math.min(3, Math.max(1, Math.round(effectPerformanceValue)));
+	// 同步写回元素值并刷新轨道填充，保证滑块头与填充一起落位
+	input.value = String(snapped);
+	updateRangeProgress(input);
+	if (snapped !== effectPerformanceLevel) {
+		switchEffectPerformanceLevel(snapped);
+	} else {
+		effectPerformanceValue = snapped;
+	}
+}
+
+// step="any" 时方向键原生步进过小，改为按档位移动
+function handleEffectPerformanceKeyDown(event: KeyboardEvent) {
+	let next: number | undefined;
+	if (event.key === "ArrowLeft" || event.key === "ArrowDown") {
+		next = Math.max(1, effectPerformanceLevel - 1);
+	} else if (event.key === "ArrowRight" || event.key === "ArrowUp") {
+		next = Math.min(3, effectPerformanceLevel + 1);
+	} else if (event.key === "Home") {
+		next = 1;
+	} else if (event.key === "End") {
+		next = 3;
+	}
+	if (next !== undefined) {
+		event.preventDefault();
+		const input = event.currentTarget as HTMLInputElement;
+		input.value = String(next);
+		updateRangeProgress(input);
+		switchEffectPerformanceLevel(next);
+	}
 }
 
 function applyMusicPlaylistId() {
@@ -320,10 +391,13 @@ onMount(() => {
 	overlayOpacity = getStoredOverlayOpacity();
 	overlayBlur = getStoredOverlayBlur();
 	overlayCardOpacity = getStoredOverlayCardOpacity();
+	lyricBgOpacity = getStoredLyricBgOpacity();
 	wavesEnabled = getStoredWavesEnabled();
 	bannerTitleEnabled = getStoredBannerTitleEnabled();
 	sakuraEnabled = getStoredSakuraEnabled();
 	effectPerformanceMode = getEffectPerformanceMode();
+	effectPerformanceLevel = getEffectPerformanceLevel(effectPerformanceMode);
+	effectPerformanceValue = effectPerformanceLevel;
 	musicPlaylistId = getStoredMusicPlaylistId();
 	appliedMusicPlaylistId = musicPlaylistId;
 
@@ -371,6 +445,13 @@ $effect(() => {
 		if (isOverlayBlurSwitchable) setOverlayBlur(overlayBlur);
 		if (isOverlayCardOpacitySwitchable)
 			setOverlayCardOpacity(overlayCardOpacity);
+	}
+});
+
+$effect(() => {
+	// 歌词字幕背景透明度与壁纸模式无关，始终生效
+	if (isLyricSettingsAvailable) {
+		setLyricBgOpacity(lyricBgOpacity);
 	}
 });
 </script>
@@ -512,40 +593,47 @@ $effect(() => {
 		</div>
 		<div class="space-y-1">
 			<div class="rounded-md bg-(--btn-regular-bg) p-2">
-				<div class="text-sm font-medium text-(--btn-content) opacity-80 mb-2">
-					{i18n(I18nKey.effectPerformanceMode)}
+				<div class="flex items-center justify-between mb-1">
+					<span class="text-sm font-medium text-(--btn-content) opacity-80">
+						{i18n(I18nKey.effectPerformanceMode)}
+					</span>
+					<span class="text-xs text-(--btn-content)">
+						{effectPerformanceModeLabels[effectPerformanceMode]()}
+					</span>
 				</div>
-				<div
-					class="grid grid-cols-2 gap-1"
-					role="group"
-					aria-label={i18n(I18nKey.effectPerformanceMode)}
-				>
-					<button
-						class="min-w-0 rounded-md py-2 px-2 flex items-center justify-center gap-1.5 text-xs font-medium active:scale-95 transition-all"
-						class:bg-(--btn-regular-bg-hover)={effectPerformanceMode === "efficiency"}
-						class:opacity-60={effectPerformanceMode !== "efficiency"}
-						aria-pressed={effectPerformanceMode === "efficiency"}
-						onclick={() => switchEffectPerformanceMode("efficiency")}
-					>
-						<Icon icon="material-symbols:energy-savings-leaf-outline-rounded" class="text-[1rem] shrink-0" />
-						<span>{i18n(I18nKey.effectEfficiencyPriority)}</span>
-					</button>
-					<button
-						class="min-w-0 rounded-md py-2 px-2 flex items-center justify-center gap-1.5 text-xs font-medium active:scale-95 transition-all"
-						class:bg-(--btn-regular-bg-hover)={effectPerformanceMode === "quality"}
-						class:opacity-60={effectPerformanceMode !== "quality"}
-						aria-pressed={effectPerformanceMode === "quality"}
-						onclick={() => switchEffectPerformanceMode("quality")}
-					>
-						<Icon icon="material-symbols:high-quality-outline-rounded" class="text-[1rem] shrink-0" />
-						<span>{i18n(I18nKey.effectQualityPriority)}</span>
-					</button>
+					<input
+						id="effectPerformanceSlider"
+						aria-label={i18n(I18nKey.effectPerformanceMode)}
+						type="range"
+						min="1"
+						max="3"
+						step="any"
+						value={effectPerformanceValue}
+						oninput={handleEffectPerformanceInput}
+						onchange={commitEffectPerformanceValue}
+						onkeydown={handleEffectPerformanceKeyDown}
+						class="slider w-full"
+					/>
+				<div class="flex items-center justify-between px-1">
+					{#each ["minimal", "efficiency", "quality"] as mode (mode)}
+						<span
+							class="text-[0.675rem] leading-4 transition-all select-none"
+							class:text-(--primary)={effectPerformanceMode === mode}
+							class:font-medium={effectPerformanceMode === mode}
+							class:opacity-45={effectPerformanceMode !== mode}
+						>
+							{effectPerformanceModeLabels[mode as EffectPerformanceMode]()}
+						</span>
+					{/each}
 				</div>
 			</div>
 			{#if isSakuraSwitchable}
 				<button
 					class="w-full btn-regular rounded-md py-2 px-3 flex items-center gap-3 text-left active:scale-95 transition-all relative overflow-hidden"
-					class:bg-(--btn-regular-bg-hover)={sakuraEnabled}
+					class:bg-(--btn-regular-bg-hover)={sakuraEnabled && effectPerformanceMode !== "minimal"}
+					class:opacity-50={effectPerformanceMode === "minimal"}
+					class:pointer-events-none={effectPerformanceMode === "minimal"}
+					aria-disabled={effectPerformanceMode === "minimal"}
 					onclick={toggleSakuraEnabled}
 				>
 					<Icon icon="material-symbols:spa-outline-rounded" class="text-[1.25rem] shrink-0" />
@@ -562,12 +650,12 @@ $effect(() => {
 		</div>
 	</div>
 
-	{#if wallpaperMode === WALLPAPER_OVERLAY && hasOverlaySettings}
+	{#if (wallpaperMode === WALLPAPER_OVERLAY && hasOverlaySettings) || isLyricSettingsAvailable}
 		<div class="mt-2 mb-2">
 			<div
 				class="flex gap-2 font-bold text-lg text-neutral-900 dark:text-neutral-100 transition relative ml-3 mb-2
-				before:w-1 before:h-4 before:rounded-md before:bg-(--primary)
-				before:absolute before:-left-3 before:top-1/2 before:-translate-y-1/2"
+					before:w-1 before:h-4 before:rounded-md before:bg-(--primary)
+					before:absolute before:-left-3 before:top-1/2 before:-translate-y-1/2"
 			>
 				{i18n(I18nKey.settingsWallpaperEffects)}
 				<button
@@ -583,55 +671,75 @@ $effect(() => {
 				</button>
 			</div>
 			<div class="space-y-2">
-				{#if isOverlayOpacitySwitchable}
-					<div class="rounded-md bg-(--btn-regular-bg) p-2">
-						<div class="flex items-center justify-between mb-1">
-							<span class="text-sm font-medium text-(--btn-content) opacity-80">{i18n(I18nKey.overlayOpacity)}</span>
-							<span class="text-xs text-(--btn-content)">{Math.round(overlayOpacity * 100)}%</span>
+				{#if wallpaperMode === WALLPAPER_OVERLAY && hasOverlaySettings}
+					{#if isOverlayOpacitySwitchable}
+						<div class="rounded-md bg-(--btn-regular-bg) p-2">
+							<div class="flex items-center justify-between mb-1">
+								<span class="text-sm font-medium text-(--btn-content) opacity-80">{i18n(I18nKey.overlayOpacity)}</span>
+								<span class="text-xs text-(--btn-content)">{Math.round(overlayOpacity * 100)}%</span>
+							</div>
+							<input
+								aria-label={i18n(I18nKey.overlayOpacity)}
+								type="range"
+								min="20"
+								max="100"
+								step="1"
+								value={Math.round(overlayOpacity * 100)}
+								oninput={(e) => (overlayOpacity = Number((e.currentTarget as HTMLInputElement).value) / 100)}
+								class="slider w-full"
+							/>
 						</div>
-						<input
-							aria-label={i18n(I18nKey.overlayOpacity)}
-							type="range"
-							min="20"
-							max="100"
-							step="1"
-							value={Math.round(overlayOpacity * 100)}
-							oninput={(e) => (overlayOpacity = Number((e.currentTarget as HTMLInputElement).value) / 100)}
-							class="slider w-full"
-						/>
-					</div>
+					{/if}
+					{#if isOverlayBlurSwitchable}
+						<div class="rounded-md bg-(--btn-regular-bg) p-2">
+							<div class="flex items-center justify-between mb-1">
+								<span class="text-sm font-medium text-(--btn-content) opacity-80">{i18n(I18nKey.overlayBlur)}</span>
+								<span class="text-xs text-(--btn-content)">{overlayBlur.toFixed(1)}px</span>
+							</div>
+							<input
+								aria-label={i18n(I18nKey.overlayBlur)}
+								type="range"
+								min="0"
+								max="12"
+								step="0.5"
+								bind:value={overlayBlur}
+								class="slider w-full"
+							/>
+						</div>
+					{/if}
+					{#if isOverlayCardOpacitySwitchable}
+						<div class="rounded-md bg-(--btn-regular-bg) p-2">
+							<div class="flex items-center justify-between mb-1">
+								<span class="text-sm font-medium text-(--btn-content) opacity-80">{i18n(I18nKey.overlayCardOpacity)}</span>
+								<span class="text-xs text-(--btn-content)">{Math.round(overlayCardOpacity * 100)}%</span>
+							</div>
+							<input
+								aria-label={i18n(I18nKey.overlayCardOpacity)}
+								type="range"
+								min="20"
+								max="100"
+								step="1"
+								value={Math.round(overlayCardOpacity * 100)}
+								oninput={(e) => (overlayCardOpacity = Number((e.currentTarget as HTMLInputElement).value) / 100)}
+								class="slider w-full"
+							/>
+						</div>
+					{/if}
 				{/if}
-				{#if isOverlayBlurSwitchable}
+				{#if isLyricSettingsAvailable}
 					<div class="rounded-md bg-(--btn-regular-bg) p-2">
 						<div class="flex items-center justify-between mb-1">
-							<span class="text-sm font-medium text-(--btn-content) opacity-80">{i18n(I18nKey.overlayBlur)}</span>
-							<span class="text-xs text-(--btn-content)">{overlayBlur.toFixed(1)}px</span>
+							<span class="text-sm font-medium text-(--btn-content) opacity-80">{i18n(I18nKey.lyricSubtitleBgOpacity)}</span>
+							<span class="text-xs text-(--btn-content)">{lyricBgOpacity}%</span>
 						</div>
 						<input
-							aria-label={i18n(I18nKey.overlayBlur)}
+							aria-label={i18n(I18nKey.lyricSubtitleBgOpacity)}
 							type="range"
 							min="0"
-							max="12"
-							step="0.5"
-							bind:value={overlayBlur}
-							class="slider w-full"
-						/>
-					</div>
-				{/if}
-				{#if isOverlayCardOpacitySwitchable}
-					<div class="rounded-md bg-(--btn-regular-bg) p-2">
-						<div class="flex items-center justify-between mb-1">
-							<span class="text-sm font-medium text-(--btn-content) opacity-80">{i18n(I18nKey.overlayCardOpacity)}</span>
-							<span class="text-xs text-(--btn-content)">{Math.round(overlayCardOpacity * 100)}%</span>
-						</div>
-						<input
-							aria-label={i18n(I18nKey.overlayCardOpacity)}
-							type="range"
-							min="20"
 							max="100"
 							step="1"
-							value={Math.round(overlayCardOpacity * 100)}
-							oninput={(e) => (overlayCardOpacity = Number((e.currentTarget as HTMLInputElement).value) / 100)}
+							value={lyricBgOpacity}
+							oninput={(e) => (lyricBgOpacity = Number((e.currentTarget as HTMLInputElement).value))}
 							class="slider w-full"
 						/>
 					</div>
@@ -824,6 +932,38 @@ $effect(() => {
 		border-radius: 0;
 		background: transparent;
 		box-shadow: none;
+	}
+
+	/* 性能模式档位滑块：纤细居中轨道 + 可见圆形滑块头，自由拖拽、松手吸附档位 */
+	#display-setting #effectPerformanceSlider {
+		background-size: 100% 0.375rem;
+		background-position: center;
+		background-repeat: no-repeat;
+		transition: none;
+	}
+
+	#display-setting #effectPerformanceSlider::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		appearance: none;
+		height: 1rem;
+		width: 1rem;
+		border-radius: 9999px;
+		background: #fff;
+		border: 2px solid var(--primary);
+		cursor: grab;
+	}
+
+	#display-setting #effectPerformanceSlider:active::-webkit-slider-thumb {
+		cursor: grabbing;
+	}
+
+	#display-setting #effectPerformanceSlider::-moz-range-thumb {
+		height: 1rem;
+		width: 1rem;
+		border-radius: 9999px;
+		background: #fff;
+		border: 2px solid var(--primary);
+		cursor: grab;
 	}
 
 	#display-setting #colorSlider {

@@ -6,10 +6,8 @@ import {
 	siteConfig,
 } from "@/config";
 
-// 按页面区分默认壁纸模式：首页 fullscreen（hero 滚动过渡），其他页面 overlay
-const _siteBase = import.meta.env.BASE_URL.replace(/\/+$/, "");
-const isHomePage = Astro.url.pathname.replace(/\/+$/, "") === _siteBase;
-const effectiveDefaultMode = isHomePage ? "fullscreen" : "overlay";
+// 默认壁纸模式：overlay（首页由 HeroOverlayScroll 强制全屏 hero 过渡）
+const effectiveDefaultMode = "overlay";
 ---
 
 <div

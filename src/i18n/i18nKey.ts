@@ -300,6 +300,7 @@ enum I18nKey {
 	sakuraEffect = "sakuraEffect",
 	effectsSettings = "effectsSettings",
 	effectPerformanceMode = "effectPerformanceMode",
+	effectMinimalPriority = "effectMinimalPriority",
 	effectEfficiencyPriority = "effectEfficiencyPriority",
 	effectQualityPriority = "effectQualityPriority",
 	postListLayout = "postListLayout",
@@ -315,6 +316,8 @@ enum I18nKey {
 	settingsMusicPlaylistId = "settingsMusicPlaylistId",
 	settingsMusicPlaylistIdPlaceholder = "settingsMusicPlaylistIdPlaceholder",
 	settingsMusicPlaylistIdHint = "settingsMusicPlaylistIdHint",
+	lyricSubtitle = "lyricSubtitle",
+	lyricSubtitleBgOpacity = "lyricSubtitleBgOpacity",
 
 	// 站点统计
 	siteStats = "siteStats",

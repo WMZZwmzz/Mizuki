@@ -310,6 +310,7 @@ export const zh_TW: Translation = {
 	[Key.sakuraEffect]: "櫻花特效",
 	[Key.effectsSettings]: "特效",
 	[Key.effectPerformanceMode]: "效能模式",
+	[Key.effectMinimalPriority]: "極簡優先",
 	[Key.effectEfficiencyPriority]: "效率優先",
 	[Key.effectQualityPriority]: "畫面優先",
 	[Key.postListLayout]: "文章佈局",
@@ -325,6 +326,8 @@ export const zh_TW: Translation = {
 	[Key.settingsMusicPlaylistId]: "歌單ID",
 	[Key.settingsMusicPlaylistIdPlaceholder]: "輸入網易雲歌單ID",
 	[Key.settingsMusicPlaylistIdHint]: "支援貼上歌單分享連結，自動擷取歌單ID",
+	[Key.lyricSubtitle]: "歌詞字幕",
+	[Key.lyricSubtitleBgOpacity]: "歌詞字幕背景透明度",
 
 	// 站點統計
 	[Key.siteStats]: "站點統計",
