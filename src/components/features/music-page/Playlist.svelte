@@ -363,7 +363,11 @@ function clearSearch() {
 	@media (max-width: 900px) {
 		.playlist {
 			min-height: 300px;
+			/* 矮屏上 min 不得越过 50dvh 上限，否则子容器会高出父容器 */
+			min-height: min(300px, 50dvh);
 			max-height: 50vh;
+			/* 与父容器 .music-page__playlist 的 50dvh 上限保持同一单位，避免父子溢出 */
+			max-height: 50dvh;
 		}
 	}
 
@@ -376,6 +380,18 @@ function clearSearch() {
 		.playlist__item-cover {
 			width: 40px;
 			height: 40px;
+		}
+	}
+
+	/* 触屏设备：搜索框字号至少 16px 避免 iOS 聚焦自动放大，清除按钮保证 44px 触控目标 */
+	@media (hover: none) and (pointer: coarse) {
+		.playlist__search-input {
+			font-size: 1rem;
+		}
+
+		.playlist__search-clear {
+			min-width: 44px;
+			min-height: 44px;
 		}
 	}
 </style>

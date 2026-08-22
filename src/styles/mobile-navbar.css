@@ -157,6 +157,46 @@
   }
 }
 
+/* --- 窄屏导航栏防溢出 --- */
+/* ≤md 视口下品牌区(导航栏内层第一个 a,带 shrink-0/px-5)与 5 个 44px 按钮的
+   最小宽度合计超过视口,会把按钮挤出屏幕、产生整页横向滚动(元素错位)。
+   处理:品牌区允许收缩、标题超出省略,按钮缩至 40px;桌面端(≥768px)不受影响。 */
+@media (max-width: 767px) {
+  #navbar > div > a:first-child {
+    flex-shrink: 1;
+    min-width: 0;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  #navbar > div > a:first-child > div {
+    min-width: 0;
+  }
+  #navbar > div > a:first-child span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  #navbar > div > a:first-child img,
+  #navbar > div > a:first-child svg {
+    flex-shrink: 0;
+  }
+  #search-switch,
+  #mobile-toc-switch,
+  #display-settings-switch,
+  #scheme-switch,
+  #nav-menu-switch {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  #navbar > div > a:first-child {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+}
+
 /* 手机端导航栏全宽优化 */
 @media (max-width: 768px) {
   #navbar > div {

@@ -94,7 +94,10 @@ function handlePlaySong(index: number) {
 		}
 
 		.music-page__playlist {
+			/* 解除桌面端 min-height，避免矮屏上卡片底部留白；dvh 兼容移动端动态工具栏 */
+			min-height: 0;
 			max-height: 50vh;
+			max-height: 50dvh;
 		}
 	}
 </style>

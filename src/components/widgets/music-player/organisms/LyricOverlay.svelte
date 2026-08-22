@@ -246,4 +246,12 @@ function handleResizeReset() {
 .lyric-overlay__resize:active {
 	opacity: 0.9;
 }
+
+/* 触屏设备：缩放手柄加大，保证可拖拽命中 */
+@media (hover: none) and (pointer: coarse) {
+	.lyric-overlay__resize {
+		width: 1rem;
+		height: 1rem;
+	}
+}
 </style>

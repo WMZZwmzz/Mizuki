@@ -254,7 +254,7 @@ let progressPercent = $derived(
 <style>
 	.now-playing {
 		display: grid;
-		grid-template-columns: 300px 1fr;
+		grid-template-columns: 300px minmax(0, 1fr);
 		gap: 32px;
 		width: 100%;
 		align-items: start;
@@ -265,11 +265,13 @@ let progressPercent = $derived(
 		display: flex;
 		flex-direction: column;
 		align-items: center;
+		min-width: 0;
 	}
 
 	/* Cover Art */
 	.now-playing__cover {
 		width: 280px;
+		max-width: 100%;
 		height: 280px;
 		border-radius: 12px;
 		overflow: hidden;
@@ -365,7 +367,8 @@ let progressPercent = $derived(
 		transition: opacity 0.15s ease;
 	}
 
-	.now-playing__slider:hover::-webkit-slider-thumb {
+	.now-playing__slider:hover::-webkit-slider-thumb,
+	.now-playing__slider:active::-webkit-slider-thumb {
 		opacity: 1;
 	}
 
@@ -380,7 +383,8 @@ let progressPercent = $derived(
 		transition: opacity 0.15s ease;
 	}
 
-	.now-playing__slider:hover::-moz-range-thumb {
+	.now-playing__slider:hover::-moz-range-thumb,
+	.now-playing__slider:active::-moz-range-thumb {
 		opacity: 1;
 	}
 
@@ -560,7 +564,7 @@ let progressPercent = $derived(
 	/* ── Responsive ─ */
 	@media (max-width: 700px) {
 		.now-playing {
-			grid-template-columns: 1fr;
+			grid-template-columns: minmax(0, 1fr);
 			gap: 1.5rem;
 		}
 
@@ -592,6 +596,34 @@ let progressPercent = $derived(
 		.now-playing__btn--small {
 			width: 36px;
 			height: 36px;
+		}
+	}
+
+	/* 触屏设备：滑块手柄恒定可见并加大，控制按钮保证 44px 触控目标 */
+	@media (hover: none) and (pointer: coarse) {
+		.now-playing__slider {
+			height: 6px;
+		}
+
+		.now-playing__slider::-webkit-slider-thumb {
+			opacity: 1;
+			width: 18px;
+			height: 18px;
+		}
+
+		.now-playing__slider::-moz-range-thumb {
+			opacity: 1;
+			width: 18px;
+			height: 18px;
+		}
+
+		.now-playing__controls {
+			flex-wrap: wrap;
+		}
+
+		.now-playing__btn {
+			min-width: 44px;
+			min-height: 44px;
 		}
 	}
 </style>
