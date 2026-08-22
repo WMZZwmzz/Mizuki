@@ -9,6 +9,7 @@
 
 	const state = {
 		active: false,
+		correcting: false,
 	};
 	window.musicScrollLimitState = state;
 
@@ -49,9 +50,24 @@
 		return false;
 	}
 
+	// 触屏设备交还原生滚动：惯性滚动与回弹纠正互相拉扯会形成滚动死循环
+	const prefersNativeScroll = window.matchMedia(
+		"(hover: none) and (pointer: coarse)",
+	).matches;
+
+	// 立即跳转（覆盖全局 scroll-behavior:smooth，避免纠正变成动画；
+	// 平滑动画期间 scroll 事件持续触发并反复重启 scrollTo，会形成永不收敛的死循环）
+	function jumpTo(y) {
+		try {
+			window.scrollTo({ top: y, behavior: "instant" });
+		} catch (error) {
+			window.scrollTo(0, y);
+		}
+	}
+
 	// 滚轮：向下滚动即将越过边界时直接拦截并停在边界处
 	function onWheel(event) {
-		if (!state.active || event.deltaY <= 0) {
+		if (!state.active || prefersNativeScroll || event.deltaY <= 0) {
 			return;
 		}
 		if (isInsideScrollablePanel(event.target)) {
@@ -60,18 +76,24 @@
 		const maxScrollY = getMaxScrollY();
 		if (window.scrollY + event.deltaY >= maxScrollY) {
 			event.preventDefault();
-			window.scrollTo(0, maxScrollY);
+			jumpTo(maxScrollY);
 		}
 	}
 
-	// 兜底：触摸、键盘、拖动滚动条等方式越界后立即回弹到边界
+	// 兜底：键盘、拖动滚动条等方式越界后立即回弹到边界。
+	// correcting 标记防止纠正期间触发的 scroll 事件再次进入纠正逻辑
 	function onScroll() {
-		if (!state.active) {
+		if (!state.active || prefersNativeScroll || state.correcting) {
 			return;
 		}
 		const maxScrollY = getMaxScrollY();
-		if (window.scrollY > maxScrollY) {
-			window.scrollTo(0, maxScrollY);
+		if (window.scrollY > maxScrollY + 1) {
+			state.correcting = true;
+			jumpTo(maxScrollY);
+			// 正常一帧内收敛；超时兜底覆盖个别引擎把 instant 退化为 smooth 的情况
+			setTimeout(() => {
+				state.correcting = false;
+			}, 400);
 		}
 	}
 
