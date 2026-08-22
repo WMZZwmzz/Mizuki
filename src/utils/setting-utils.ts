@@ -365,7 +365,35 @@ export function setLyricBgOpacity(value: number): void {
 	applyLyricBgOpacity();
 }
 
+export const DEFAULT_LYRIC_SCALE = 1;
+export const MIN_LYRIC_SCALE = 0.5;
+export const MAX_LYRIC_SCALE = 2;
+
+export function getStoredLyricScale(): number {
+	const stored = localStorage.getItem("lyricScale");
+	if (!stored) return DEFAULT_LYRIC_SCALE;
+	const value = Number(stored);
+	if (Number.isNaN(value)) return DEFAULT_LYRIC_SCALE;
+	return Math.min(MAX_LYRIC_SCALE, Math.max(MIN_LYRIC_SCALE, value));
+}
+
+export function setLyricScale(value: number): void {
+	const clamped = Math.min(MAX_LYRIC_SCALE, Math.max(MIN_LYRIC_SCALE, value));
+	localStorage.setItem("lyricScale", String(clamped));
+	applyLyricScale();
+	window.dispatchEvent(
+		new CustomEvent("lyric-scale-change", { detail: { scale: clamped } }),
+	);
+}
+
 // 供页面加载时恢复（LyricOverlay 挂载时调用）
+export function applyLyricScale(): void {
+	const root = document.querySelector(":root") as HTMLElement;
+	if (root) {
+		root.style.setProperty("--lyric-scale", String(getStoredLyricScale()));
+	}
+}
+
 export function applyLyricBgOpacity(): void {
 	const root = document.querySelector(":root") as HTMLElement;
 	if (root) {

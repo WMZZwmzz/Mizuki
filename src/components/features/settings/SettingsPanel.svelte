@@ -19,6 +19,7 @@ import {
 import { extractPlaylistId } from "@utils/playlist-id-utils";
 import {
 	DEFAULT_LYRIC_BG_OPACITY,
+	DEFAULT_LYRIC_SCALE,
 	getDefaultBannerTitleEnabled,
 	getDefaultHue,
 	getDefaultMusicPlaylistId,
@@ -30,6 +31,7 @@ import {
 	getHue,
 	getStoredBannerTitleEnabled,
 	getStoredLyricBgOpacity,
+	getStoredLyricScale,
 	getStoredMusicPlaylistId,
 	getStoredOverlayBlur,
 	getStoredOverlayCardOpacity,
@@ -39,6 +41,7 @@ import {
 	setBannerTitleEnabled,
 	setHue,
 	setLyricBgOpacity,
+	setLyricScale,
 	setMusicPlaylistId,
 	setOverlayBlur,
 	setOverlayCardOpacity,
@@ -162,7 +165,10 @@ let overlaySettingsIsDefault = $derived(
 		(!isOverlayBlurSwitchable || overlayBlur === defaultOverlayBlur) &&
 		(!isOverlayCardOpacitySwitchable ||
 			overlayCardOpacity === defaultOverlayCardOpacity) &&
-		(!isLyricSettingsAvailable || lyricBgOpacity === DEFAULT_LYRIC_BG_OPACITY),
+		(!isLyricSettingsAvailable ||
+			lyricBgOpacity === DEFAULT_LYRIC_BG_OPACITY) &&
+		(!isLyricSettingsAvailable ||
+			getStoredLyricScale() === DEFAULT_LYRIC_SCALE),
 );
 
 let bannerSettingsIsDefault = $derived(
@@ -216,6 +222,12 @@ function resetOverlaySettings() {
 	if (isLyricSettingsAvailable && lyricBgOpacity !== DEFAULT_LYRIC_BG_OPACITY) {
 		lyricBgOpacity = DEFAULT_LYRIC_BG_OPACITY;
 		setLyricBgOpacity(DEFAULT_LYRIC_BG_OPACITY);
+	}
+	if (
+		isLyricSettingsAvailable &&
+		getStoredLyricScale() !== DEFAULT_LYRIC_SCALE
+	) {
+		setLyricScale(DEFAULT_LYRIC_SCALE);
 	}
 	requestAnimationFrame(refreshAllRangeProgress);
 }
