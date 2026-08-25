@@ -12,7 +12,7 @@
 -->
 <script lang="ts">
 import Icon from "@iconify/svelte";
-import { tick } from "svelte";
+import { onDestroy, tick } from "svelte";
 
 import type { MusicPlayerState } from "@/stores/musicPlayerStore";
 import { musicPlayerStore } from "@/stores/musicPlayerStore";
@@ -26,13 +26,21 @@ interface LyricLine {
 
 interface Props {
 	playerState: MusicPlayerState;
+	playlistInteractionVersion?: number;
 }
 
-let { playerState }: Props = $props();
+let { playerState, playlistInteractionVersion = 0 }: Props = $props();
 
 let lyricsPanelRef: HTMLDivElement | undefined = $state();
 let userScrollTimer: ReturnType<typeof setTimeout> | undefined;
+let playlistInteractionTimer: ReturnType<typeof setTimeout> | undefined;
+let programmaticScrollTimer: ReturnType<typeof setTimeout> | undefined;
 let isUserScrolling = $state(false);
+let isPlaylistInteractionPaused = $state(false);
+let isProgrammaticLyricsScroll = false;
+let lastPlaylistInteractionVersion = 0;
+
+const mobileMediaQuery = "(hover: none) and (pointer: coarse)";
 
 // Derived values
 let currentSong = $derived(playerState.currentSong);
@@ -94,31 +102,115 @@ function getRepeatIcon(): string {
 	return "material-symbols:repeat-rounded";
 }
 
+function isMobileViewport(): boolean {
+	return (
+		typeof window !== "undefined" && window.matchMedia(mobileMediaQuery).matches
+	);
+}
+
+function clearPlaylistInteractionTimer() {
+	if (playlistInteractionTimer) {
+		clearTimeout(playlistInteractionTimer);
+		playlistInteractionTimer = undefined;
+	}
+}
+
+function pauseLyricsForPlaylistInteraction() {
+	if (!isMobileViewport()) return;
+
+	isPlaylistInteractionPaused = true;
+	clearPlaylistInteractionTimer();
+	playlistInteractionTimer = setTimeout(() => {
+		isPlaylistInteractionPaused = false;
+		playlistInteractionTimer = undefined;
+	}, 4000);
+}
+
+function clearUserScrollPause() {
+	if (userScrollTimer) {
+		clearTimeout(userScrollTimer);
+		userScrollTimer = undefined;
+	}
+	isUserScrolling = false;
+}
+
+function scrollToActiveLyric() {
+	if (currentLyricIndex < 0 || !lyricsPanelRef) return;
+
+	const activeLine = lyricsPanelRef.querySelector(
+		".lyric-line--active",
+	) as HTMLElement | null;
+	if (!activeLine) return;
+
+	isProgrammaticLyricsScroll = true;
+	activeLine.scrollIntoView({
+		behavior: "smooth",
+		block: "center",
+	});
+	if (programmaticScrollTimer) clearTimeout(programmaticScrollTimer);
+	programmaticScrollTimer = setTimeout(() => {
+		isProgrammaticLyricsScroll = false;
+		programmaticScrollTimer = undefined;
+	}, 800);
+}
+
+function focusCurrentLyric() {
+	clearPlaylistInteractionTimer();
+	isPlaylistInteractionPaused = false;
+	clearUserScrollPause();
+	tick().then(scrollToActiveLyric);
+}
+
+function isLyricLineTarget(target: EventTarget | null): boolean {
+	return target instanceof Element && !!target.closest(".lyric-line");
+}
+
+function handleLyricsPanelClick(event: MouseEvent) {
+	if (!isLyricLineTarget(event.target)) {
+		focusCurrentLyric();
+	}
+}
+
+function handleLyricsPanelKeyDown(event: KeyboardEvent) {
+	if (
+		(event.key === "Enter" || event.key === " ") &&
+		!isLyricLineTarget(event.target)
+	) {
+		event.preventDefault();
+		focusCurrentLyric();
+	}
+}
+
+// 播放列表交互期间，移动端暂时不让歌词变化触发页面回跳。
+$effect(() => {
+	if (playlistInteractionVersion === lastPlaylistInteractionVersion) return;
+	lastPlaylistInteractionVersion = playlistInteractionVersion;
+	pauseLyricsForPlaylistInteraction();
+});
+
 // Auto-scroll lyrics to current line (paused while user is scrolling)
 $effect(() => {
-	if (isUserScrolling) return;
+	if (isUserScrolling || isPlaylistInteractionPaused) return;
 	if (currentLyricIndex >= 0 && lyricsPanelRef) {
-		tick().then(() => {
-			const activeLine = lyricsPanelRef?.querySelector(
-				".lyric-line--active",
-			) as HTMLElement | null;
-			if (activeLine) {
-				activeLine.scrollIntoView({
-					behavior: "smooth",
-					block: "center",
-				});
-			}
-		});
+		tick().then(scrollToActiveLyric);
 	}
 });
 
 function handleLyricsScroll() {
+	if (isProgrammaticLyricsScroll) return;
 	isUserScrolling = true;
 	if (userScrollTimer) clearTimeout(userScrollTimer);
 	userScrollTimer = setTimeout(() => {
 		isUserScrolling = false;
+		userScrollTimer = undefined;
 	}, 3000);
 }
+
+onDestroy(() => {
+	if (userScrollTimer) clearTimeout(userScrollTimer);
+	if (playlistInteractionTimer) clearTimeout(playlistInteractionTimer);
+	if (programmaticScrollTimer) clearTimeout(programmaticScrollTimer);
+});
 
 let progressPercent = $derived(
 	duration > 0 ? (currentTime / duration) * 100 : 0,
@@ -224,7 +316,15 @@ let progressPercent = $derived(
 	</div>
 
 	<!-- 右侧：歌词展示区域 -->
-	<div class="now-playing__lyrics" bind:this={lyricsPanelRef} onscroll={handleLyricsScroll}>
+	<div
+		class="now-playing__lyrics"
+		bind:this={lyricsPanelRef}
+		onscroll={handleLyricsScroll}
+		onclick={handleLyricsPanelClick}
+		onkeydown={handleLyricsPanelKeyDown}
+		tabindex="0"
+		aria-label="点击歌词空白区域聚焦当前歌词"
+	>
 		{#if lyricsLoading}
 			<div class="now-playing__lyrics-loading">
 				<Icon

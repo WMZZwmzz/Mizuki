@@ -28,6 +28,7 @@ let { config }: Props = $props();
 
 let playerState: MusicPlayerState = $state(musicPlayerStore.getState());
 let unsubscribe: (() => void) | undefined;
+let playlistInteractionVersion = $state(0);
 
 let playlist = $derived(playerState.playlist);
 let currentIndex = $derived(playerState.currentIndex);
@@ -48,14 +49,25 @@ onDestroy(() => {
 function handlePlaySong(index: number) {
 	musicPlayerStore.playIndex(index);
 }
+
+function handlePlaylistInteraction() {
+	playlistInteractionVersion += 1;
+}
 </script>
 
 <div class="music-page">
 	<div class="music-page__layout">
 		<div class="music-page__player">
-			<NowPlaying {playerState} />
+			<NowPlaying
+				{playerState}
+				{playlistInteractionVersion}
+			/>
 		</div>
-		<div class="music-page__playlist">
+		<div
+			class="music-page__playlist"
+			onpointerdown={handlePlaylistInteraction}
+			onfocusin={handlePlaylistInteraction}
+		>
 			<Playlist
 				songs={playlist}
 				currentIndex={currentIndex}
@@ -73,7 +85,7 @@ function handlePlaySong(index: number) {
 
 	.music-page__layout {
 		display: grid;
-		grid-template-columns: 1fr 320px;
+		grid-template-columns: minmax(0, 1fr) 320px;
 		gap: 24px;
 		height: 100%;
 	}
@@ -90,7 +102,8 @@ function handlePlaySong(index: number) {
 
 	@media (max-width: 1100px) {
 		.music-page__layout {
-			grid-template-columns: 1fr;
+			/* 允许单列轨道收缩，避免歌词长文本按最小内容宽度撑开页面 */
+			grid-template-columns: minmax(0, 1fr);
 		}
 
 		.music-page__playlist {
