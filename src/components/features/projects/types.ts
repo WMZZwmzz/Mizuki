@@ -14,6 +14,7 @@ export interface Project {
 	startDate: string;
 	endDate?: string;
 	featured?: boolean;
+	archived?: boolean;
 	tags?: string[];
 	showImage?: boolean;
 }

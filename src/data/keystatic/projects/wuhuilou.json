@@ -1,0 +1,16 @@
+{
+	"title": "无回楼",
+	"description": "《无回楼》中式心理恐怖游戏：设计文档与 Godot 4.7 垂直切片 Demo",
+	"image": "",
+	"category": "desktop",
+	"techStack": ["Godot 4", "GDScript"],
+	"status": "in-progress",
+	"liveDemo": "",
+	"sourceCode": "https://github.com/WMZZwmzz/wuhuilou",
+	"visitUrl": "",
+	"startDate": "2026-08-23",
+	"endDate": "",
+	"featured": true,
+	"tags": ["Godot", "GDScript", "独立游戏", "心理恐怖"],
+	"showImage": false
+}

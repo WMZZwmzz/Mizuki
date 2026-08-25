@@ -68,6 +68,13 @@ const filterTabs = [
 
 const title = i18n(I18nKey.projects);
 const subtitle = i18n(I18nKey.projectsSubtitle);
+
+// 归档项目排到最后，其余保持原序（稳定排序）
+const sortedProjects = [...projectsData].sort((a, b) => {
+	if (a.archived && !b.archived) return 1;
+	if (!a.archived && b.archived) return -1;
+	return 0;
+});
 ---
 
 <MainGridLayout title={title} description={subtitle}>
@@ -97,9 +104,9 @@ const subtitle = i18n(I18nKey.projectsSubtitle);
 				class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start"
 			>
 				{
-					projectsData.map((project) => (
-						<ProjectCard project={project} maxTechStack={4} />
-					))
+				sortedProjects.map((project) => (
+					<ProjectCard project={project} maxTechStack={4} />
+				))
 				}
 			</div>
 

@@ -291,6 +291,7 @@ export default config({
 					itemLabel: (props) => props.value,
 				}),
 				showImage: fields.checkbox({ label: "显示封面图", defaultValue: true }),
+				archived: fields.checkbox({ label: "已归档", defaultValue: false }),
 			},
 		}),
 

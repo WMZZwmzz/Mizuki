@@ -394,7 +394,8 @@ function generateProjects() {
 			const featured = e.featured ? "true" : "undefined";
 			const tags = e.tags && e.tags.length > 0 ? strArray(e.tags) : "undefined";
 			const showImage = e.showImage === false ? "false" : "undefined";
-			return `\t{ id: ${escapeStr(e.title)}, title: ${escapeStr(e.title)}, description: ${escapeStr(e.description || "")}, image: ${escapeStr(e.image || "")}, category: "${e.category || "web"}", techStack: ${strArray(e.techStack)}, status: "${e.status || "completed"}", liveDemo: ${liveDemo}, sourceCode: ${sourceCode}, visitUrl: ${visitUrl}, startDate: ${escapeStr(e.startDate)}, endDate: ${endDate}, featured: ${featured}, tags: ${tags}, showImage: ${showImage} }`;
+			const archived = e.archived ? "true" : "undefined";
+			return `\t{ id: ${escapeStr(e.title)}, title: ${escapeStr(e.title)}, description: ${escapeStr(e.description || "")}, image: ${escapeStr(e.image || "")}, category: "${e.category || "web"}", techStack: ${strArray(e.techStack)}, status: "${e.status || "completed"}", liveDemo: ${liveDemo}, sourceCode: ${sourceCode}, visitUrl: ${visitUrl}, startDate: ${escapeStr(e.startDate)}, endDate: ${endDate}, featured: ${featured}, tags: ${tags}, showImage: ${showImage}, archived: ${archived} }`;
 		})
 		.join(",\n");
 
@@ -419,6 +420,7 @@ export interface Project {
   featured?: boolean;
   tags?: string[];
   showImage?: boolean;
+  archived?: boolean;
 }
 
 export const projectsData: Project[] = [
