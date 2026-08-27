@@ -55,7 +55,13 @@ Define verifiable success criteria before starting (e.g., a failing test that th
 - **If any sensitive information needs to be included in the code to function, you must ask me first before committing. Do not decide on your own.**
 - If you discover sensitive data that has already been committed, immediately alert me so I can rotate the key and clean up the Git history.
 
-## 6. Project-Specific Conventions (docs/rule/)
+## 6. 子代理与跨对话通信
+
+- 可根据任务需要使用、创建、委派或并行运行子代理；本项目规则不限制子代理的使用，但仍须遵守更高优先级的系统与平台规则。
+- 无论运行模式、权限级别或任务类型如何，未经用户明确允许，不得擅自向其他 Codex 任务或对话发送消息、转发内容、共享上下文，或代表用户进行任何跨对话通信。
+- 执行跨对话通信前，必须先取得用户在当前对话中的明确许可，并确认目标对话以及要发送的内容或目的；模糊授权不得视为许可。
+
+## 7. Project-Specific Conventions (docs/rule/)
 
 **Before writing or refactoring project code, follow the conventions in [`docs/rule/`](./docs/rule/README.md).** These are Mizuki-specific and take precedence over generic habits.
 
