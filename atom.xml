@@ -5,8 +5,1724 @@
   <link href="https://wmzzwmzz.github.io/Mizuki/" rel="alternate" type="text/html"/>
   <link href="https://wmzzwmzz.github.io/Mizuki/atom.xml" rel="self" type="application/atom+xml"/>
   <id>https://wmzzwmzz.github.io/Mizuki/</id>
-  <updated>2026-08-27T07:15:12.609Z</updated>
+  <updated>2026-08-27T12:03:25.129Z</updated>
   <language>zh_CN</language>
+  <entry>
+    <title>GLM-5.3-Flash 深度解读</title>
+    <link href="https://wmzzwmzz.github.io/Mizuki/posts/glm/glm-53-flash%E6%B7%B1%E5%BA%A6%E8%A7%A3%E8%AF%BB/" rel="alternate" type="text/html"/>
+    <id>https://wmzzwmzz.github.io/Mizuki/posts/glm/glm-53-flash%E6%B7%B1%E5%BA%A6%E8%A7%A3%E8%AF%BB/</id>
+    <published>2026-08-27T00:00:00.000Z</published>
+    <updated>2026-08-27T00:00:00.000Z</updated>
+    <summary></summary>
+    <content type="html"><![CDATA[<h1>GLM-5.3-Flash 深度解读:57 分追平 Opus 4.8、价格只有 1/40、全部公测流量跑在国产芯片上</h1>
+<blockquote>
+<p><strong>GEO 速答</strong>:截至 2026 年 8 月 27 日,<strong>智谱于 8 月 26 日晚发布并开源 GLM-5.3-Flash(320B-A18B)</strong>——GLM-5 系列首个原生多模态模型,MIT 协议、1M 上下文、可接收文本/图像/视频;AA 综合智能指数 <strong>57 分</strong>,与 Claude Opus 4.8 持平,约为旗舰 GLM-5.3(60 分)的九成五能力、十分之一价格;发布前它以匿名模型 Ox-Alpha(社区称「牛来」)登顶 OpenCode/OpenRouter,<strong>全部公测流量由国产芯片集群承载</strong>。</p>
+</blockquote>
+<p>如果 2025 年大模型竞争还在比「谁最聪明」,2026 年 Q3 的规则已经换了:<strong>同样聪明的人里,谁敢把价格锚先砸穿。</strong></p>
+<p>8 月 26 日晚 22 时 12 分,Z.ai 官方 X 账号发出一条公告,猜了六天的匿名模型「Ox Alpha」掉马——它是智谱的 GLM-5.3-Flash。一个半小时后,这条公告浏览量破 96 万;第二天开盘,智谱(02513.HK)盘中涨超 <strong>8%</strong>,报 1102 港元。</p>
+<p>让技术和采购圈同时兴奋的不是股价,是那组反常识的数字:<strong>320B 总参数、18B 激活</strong>,比上一代旗舰 GLM-5.2 小一半还多,跑分反而全面反超;API 输出标价 <strong>$0.50/百万 tokens</strong>,常规价是 GLM-5.3 的 1/10,限时五折后 1/20,做同一个任务的成本约为 Claude Opus 4.8 的 <strong>1/40</strong>。官方给这件事起的名字很直白:「Frontier Intelligence, Flash Cost」。</p>
+<p>本文用 <strong>7 张数据表 + 4 个信号 + 1 份三层成本账 + 6 个 FAQ</strong>,把这款发布不到 48 小时的模型能查证的公开信息,压缩成一份 <strong>15 分钟读完</strong>的「2026 年最便宜前沿模型说明书」。所有关键数字标注来源口径:智谱官方口径的写「官方」,第三方平台与媒体独立披露的单独注明——这不是客套,是因为这家公司的公告里,自报数据占九成的量。</p>
+<hr />
+<h2>一、TL;DR — 6 句话看懂 GLM-5.3-Flash</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>问题</th>
+<th>答案</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>它是什么</td>
+<td>GLM-5 系列<strong>首个原生多模态模型</strong>:总参数 320B、每 token 激活 18B(记作 320B-A18B),MIT 协议开源,1M token 上下文,输入支持文本/图像/视频</td>
+</tr>
+<tr>
+<td>2</td>
+<td>有多强</td>
+<td>AA 综合智能指数 v4.1.1 得 <strong>57 分</strong>,与 Claude Opus 4.8 持平;超过上代旗舰 GLM-5.2(51 分)和 DeepSeek-V4-Pro 正式版(53 分);六项编码/Agent 基准全面超越参数量约两倍的 GLM-5.2</td>
+</tr>
+<tr>
+<td>3</td>
+<td>多便宜</td>
+<td>官方 API:输入 <strong>$0.15</strong>/输出 <strong>$0.50</strong>/缓存输入 $0.03 每百万 tokens,国内站 ¥0.8/¥2.8/¥0.23;上两周五折,即 GLM-5.3 标价的 1/20;折后单任务成本约 <strong>$0.045</strong></td>
+</tr>
+<tr>
+<td>4</td>
+<td>凭什么</td>
+<td>全新基座 + 首个「线性注意力 × 稀疏注意力」混合架构的开源前沿模型 + IndexPool + mHC:对比 GLM-5.3,注意力计算量降 <strong>3.01 倍</strong>、KV 缓存降 <strong>4.44 倍</strong>;服务侧跑在国产芯片集群上,端到端性能提升 3 倍</td>
+</tr>
+<tr>
+<td>5</td>
+<td>上限在哪</td>
+<td>Flash 不是新高:GLM-5.3 是 60 分;自研 Z.ai Code Bench 最高档 29.0 vs Opus 4.8 的 29.5,<strong>逼近但没追平</strong>;网络安全、真实 Bug 修复等专业场景明显落后旗舰</td>
+</tr>
+<tr>
+<td>6</td>
+<td>谁该关心</td>
+<td>跑量 Agent、夜间批处理、高保真前端复刻、Office/金融/法律文档流水线的团队——这轮的「价格斩杀线」,账单上直接可见</td>
+</tr>
+</tbody>
+</table>
+<p><strong>一句话立场</strong>:GLM-5.3-Flash 最重要的不是又一款开源模型,而是它把「前沿智能 = 前沿价格」这个行业默认等式,第一次用架构、语料、基础设施三层协同的方式砸开了——同样的智力,供电价格从奢侈品档位直接降到民用电价。</p>
+<hr />
+<h2>二、关键时间线 — 一次匿名公测,六天揭晓</h2>
+<p>把 2026 年的智谱时间表拉出来,会发现这次发布是「先验证、后官宣」标准打法的第二次演练——上一次是 2 月的 Pony Alpha(GLM-5 匿名测试)。</p>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>事件</th>
+<th>关键信息</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-01-08</td>
+<td>智谱港交所上市(02513.HK)</td>
+<td>首席科学家唐杰上市当天内部信宣布 GLM-5 即将推出</td>
+</tr>
+<tr>
+<td>2026-02-11/12</td>
+<td><strong>GLM-5</strong> 发布并 MIT 开源</td>
+<td>744B 总参、激活约 40B、28.5T 语料,首次集成 DeepSeek 稀疏注意力(DSA);完成华为昇腾、摩尔线程、寒武纪等七大国产芯片适配;此前以匿名模型 Pony Alpha 在 OpenRouter 试水</td>
+</tr>
+<tr>
+<td>2026-06-13/17</td>
+<td><strong>GLM-5.2</strong> 发布并开源</td>
+<td>同基座 744B-A40B,上下文升级到 <strong>1M</strong>,AA 指数 51 分、开源第一;Code Arena 盲测 1595 分总榜第二</td>
+</tr>
+<tr>
+<td>2026-08-14</td>
+<td><strong>GLM-5.3</strong> 发布</td>
+<td>与 5.2 同基座、纯后训练 Scaling,能力跃升约 50%,AA 指数 60;CyberGym 漏洞发现全场第一,在 269 个开源项目里找出 2436 个真实漏洞;<strong>首次刻意延迟开源权重</strong>(官方解释:安全能力超预期,需评估加固)</td>
+</tr>
+<tr>
+<td>2026-08-17</td>
+<td>DeepSeek API 提价生效</td>
+<td>V4-Pro 高峰输出涨到 ¥27/百万 tokens,低价王座松动的当月窗口</td>
+</tr>
+<tr>
+<td>2026-08-20 起</td>
+<td>匿名模型 <strong>Ox-Alpha</strong> 上线 OpenCode/OpenRouter</td>
+<td>首日冲上 OpenRouter 榜首、刷新单日用量历史纪录;终结 DeepSeek 在 OpenCode 连续 <strong>56 天</strong>的霸榜;支持 1M 上下文与多模态输入,免费接收真实调用</td>
+</tr>
+<tr>
+<td>2026-08-24</td>
+<td>媒体与社区「考古」</td>
+<td>《科创板日报》、新浪科技等报道技术线索指向智谱;中文社区给它起名「牛来」</td>
+</tr>
+<tr>
+<td>2026-08-26 22:12</td>
+<td><strong>官宣</strong>:GLM-5.3-Flash 发布并开源</td>
+<td>Z.ai 公告确认 Ox-Alpha 身份;MIT 权重同步上线 HuggingFace,API、Coding Plan、ZCode、智谱清言全渠道就位,无渐进放量</td>
+</tr>
+<tr>
+<td>2026-08-27</td>
+<td>资本市场与数据披露</td>
+<td>智谱盘中涨超 8%;OpenCode 披露该模型六天处理 <strong>42 万亿 tokens</strong>,居其用量榜第一</td>
+</tr>
+</tbody>
+</table>
+<p>**这意味着:**智谱把「发布」从一个时间点拉成了一条流水线——匿名公测收反馈、压测服务系统,官宣即全渠道,开源即 MIT。这套动作本身,和模型一样值得同行研究。</p>
+<hr />
+<h2>三、发布背后的 4 个信号</h2>
+<h3>信号 1:「附属型号」反杀旗舰 — 计量单位从「分」变成「每块钱买到几分」</h3>
+<p>2025 年大家还在比谁的跑分高零点几分;2026 年 Q3,风向彻底变了——<strong>同一智能水平下的单位成本</strong>,成了新的排序字段。看官方发布的六项编码与智能体(agentic)基准,Flash 对参数量约两倍的自家上代旗舰 GLM-5.2 是压倒性的:</p>
+<table>
+<thead>
+<tr>
+<th>基准(考察方向)</th>
+<th>GLM-5.3-Flash</th>
+<th>GLM-5.2</th>
+<th>Claude Opus 4.8</th>
+<th>其他参照</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Terminal-Bench 2.1(终端任务)</td>
+<td><strong>84.3</strong></td>
+<td>81.0</td>
+<td>85.0</td>
+<td>GPT-5.6 Terra 87.4</td>
+</tr>
+<tr>
+<td>DeepSWE v1.1(真实仓库修 Bug)</td>
+<td><strong>63.4</strong></td>
+<td>46.2</td>
+<td>58.0</td>
+<td>GPT-5.6 Terra 69.6;<strong>反超 Opus 5.4 分</strong></td>
+</tr>
+<tr>
+<td>NL2Repo(自然语言生成整仓)</td>
+<td>56.3</td>
+<td>48.9</td>
+<td>69.7</td>
+<td>与闭源旗舰差距最大的一项</td>
+</tr>
+<tr>
+<td>Toolathlon Verified(工具调用)</td>
+<td><strong>78.4</strong></td>
+<td>57.4</td>
+<td>76.2</td>
+<td>全场第一</td>
+</tr>
+<tr>
+<td>AutomationBench v1.0.6(办公自动化)</td>
+<td><strong>48.8</strong></td>
+<td>26.2</td>
+<td>41.0</td>
+<td>较 5.2 <strong>接近翻倍</strong></td>
+</tr>
+<tr>
+<td>Agents' Last Exam(长程 Agent)</td>
+<td>26.3</td>
+<td>20.4</td>
+<td>27.0</td>
+<td>差距 0.7 分,贴身</td>
+</tr>
+<tr>
+<td>GDPval-AA v2(真实经济产出任务)</td>
+<td><strong>1773</strong></td>
+<td>1504</td>
+<td>1582</td>
+<td>全部对比模型中<strong>最高</strong></td>
+</tr>
+<tr>
+<td>Z.ai Code Bench max(自研体感评测)</td>
+<td>29.0</td>
+<td>23.4</td>
+<td><strong>29.5</strong></td>
+<td>差距 0.5 分</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>数据来源:智谱官方博客与 8/26 发布公告(2026-08-26),部分竞品分值整理自 jxxy.net、CSDN、知乎专栏对官方图表的转录;不同转载渠道对 GLM-5.2 个别数字存在 57.4/59.9 的口径差异,本文以官方公告图为准,并以第三方自报口径标注。</p>
+</blockquote>
+<p>价格维度更直接。把主流玩家的 API 牌价摆进同一张表(每百万 tokens):</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>输入</th>
+<th>输出</th>
+<th>缓存命中输入</th>
+<th>相对 Flash 输出价</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>GLM-5.3-Flash(常规)</strong></td>
+<td><strong>$0.15</strong></td>
+<td><strong>$0.50</strong></td>
+<td>$0.03</td>
+<td>1x</td>
+</tr>
+<tr>
+<td><strong>GLM-5.3-Flash(限时五折)</strong></td>
+<td>$0.075</td>
+<td><strong>$0.25</strong></td>
+<td>$0.015</td>
+<td>0.5x</td>
+</tr>
+<tr>
+<td>GLM-5.3 / GLM-5.2(同价)</td>
+<td>$1.40 / ¥8</td>
+<td>$4.40 / ¥28</td>
+<td>$0.28 级 / ¥2</td>
+<td>约 8.8x</td>
+</tr>
+<tr>
+<td>DeepSeek-V4-Pro(高峰)</td>
+<td>¥9</td>
+<td>¥27</td>
+<td>¥0.3</td>
+<td>约 9.6x</td>
+</tr>
+<tr>
+<td>Kimi K3</td>
+<td>$3.00 / ¥20</td>
+<td>$15.00 / ¥100</td>
+<td>$0.30 / ¥2</td>
+<td>30x</td>
+</tr>
+<tr>
+<td>Gemini 3.7 Flash</td>
+<td>—</td>
+<td>$7.50</td>
+<td>—</td>
+<td>15x</td>
+</tr>
+<tr>
+<td>GPT-5.6 Terra</td>
+<td>—</td>
+<td>$12</td>
+<td>—</td>
+<td>24x</td>
+</tr>
+<tr>
+<td>Claude Sonnet 5</td>
+<td>—</td>
+<td>$10</td>
+<td>—</td>
+<td>20x</td>
+</tr>
+<tr>
+<td>Claude Opus 4.8</td>
+<td>$5</td>
+<td>$25</td>
+<td>—</td>
+<td>50x</td>
+</tr>
+<tr>
+<td>Claude Fable 5</td>
+<td>$10</td>
+<td>$50</td>
+<td>—</td>
+<td>100x</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>数据来源:Z.ai 官方定价(Zixuan Li,8/26 公告十分钟后补发)、BigModel 开放平台定价页、ChainCatcher(国内站 ¥0.8/¥2.8/¥0.23)、摩根大通 8/16 研报所载 DeepSeek 新价、OSCHINA 三家横评;美元/人民币为两套牌价,汇率按 1:7.1 折算仅供参考。</p>
+</blockquote>
+<p>注意官方口径里最狠的一句话:所谓「Opus 4.8 的 1/40」,比的是<strong>完成同一任务的成本</strong>,不是 token 牌价的直接比价——因为按 AA 的任务口径,Flash 折后每任务约 <strong>$0.045</strong>,此前买到同等智能大约要花 <strong>10 倍</strong>成本。知乎上有测评直接把它叫作新的大模型「斩杀线」:DeepSWE 同分段的 DeepSeek-V4-Pro 单任务成本 $1.67,Flash 只要 <strong>$0.24</strong>。</p>
+<p><strong>结论:</strong>「便宜模型」这个标签已经从「降级凑合」变成了「默认主力」——当 18B 激活的 Flash 把 57 分智能做到 4.5 美分/任务,所有旗舰的定价页都需要重新解释自己。</p>
+<h3>信号 2:国产算力从「备胎」转正为「主舞台」</h3>
+<p>这可能是整场发布中被跑分盖住的最大的新闻:Ox Alpha 匿名公测六天,双平台刷新调用量纪录,<strong>这些请求全部由国产芯片集群提供算力</strong>,集群通过自研高带宽互联组网。ChainCatcher 援引的消息称规模超过 <strong>10 万张</strong>国产加速卡(智谱官方口径为「大国产芯片集群」,未点名芯片厂商;其早前公告提过「数万片」量级)。</p>
+<p>难点很具体:单芯片算力与内存容量有限,而模型要支撑 <strong>1M 上下文</strong>的长负载。智谱在 SGLang 之上自研专用推理引擎,技术栈包括:节点内张量并行(线性注意力与 LM head)、ReplaySSM、W8A8 量化、INT8/FP8/BF16 混合 KV 缓存量化、Layer Split,以及生产级 <strong>EPD(Encode–Prefill–Decode)分离架构</strong>——把多模态编码、预填充、解码拆成独立调度、独立扩缩容的工作池。结果:对比同硬件初始基线,端到端服务性能提升 <strong>3 倍</strong>,硬件效率与单 token 成本达到与主流英伟达 GPU 相当的水平(官方自测口径)。</p>
+<p>还有个技术味儿很浓的细节:这套推理引擎的开发,相当部分由 <strong>GLM-5.3 驱动的 infra agent</strong> 协助完成——写算子、诊瓶颈、改部署栈,形成了官方所说的「模型优化系统,系统承载模型」的正循环。</p>
+<p><strong>结论:<strong>这是国产芯片第一次在「前沿模型 × 百万上下文 × 全球真实流量」三项同时成立的条件下载荷验证。它证明的不是某款芯片赢了,而是一条</strong>路线</strong>通了——后续更大的模型,底座选项从此多了一栏。</p>
+<h3>信号 3:多模态不是「能看图」,是长出了自检的眼睛</h3>
+<p>Flash 是 GLM-5 系列第一个从预训练阶段就原生多模态的模型(30T token 多模态语料,支持文本/图像/视频输入)。但官方真正想讲的故事是<strong>视觉进了代码循环</strong>:前端、游戏、3D 仿真这些任务的最终产物不是代码文本,而是能被眼睛看见的界面和世界——很多问题只有渲染出来、试玩起来才暴露。</p>
+<p>三个官方案例值得单独记:</p>
+<ul>
+<li><strong>Blender 自主搭建</strong>:不给任何外部素材,GLM-5.3-Flash 自主运行 <strong>16 小时</strong>,搭出约 400 平方米的专业主厨自宅 + 测试厨房,几何、材质、光照、空间一致性全程自己规划——官方借此说明 Coding 成了模型「表达并检验世界知识」的代理;</li>
+<li><strong>ZCode 里的 BUA/CUA</strong>:Browser Use Agent 与 Computer Use Agent 让模型在代码、浏览器、图形界面之间协同,自己写、自己渲染、自己看、自己改;</li>
+<li><strong>Office 交付流</strong>:金融研报、合同批注、PPTX/PDF/DOCX/XLSX 成品,能对照渲染结果检查溢出、错位、遮挡再自行修复。GDPval-AA v2 拿到 1773 分全场最高、OfficeQA Pro 62.4 大幅超过 Opus 4.8 的 48.9,是这条路线的成绩单。</li>
+</ul>
+<p>**结论:**Agent 竞赛的瓶颈正在从「会不会做」转向「能不能自己验收」。视觉能力原生内置后,模型第一次在同一上下文里集齐了手(代码)、眼(渲染观察)、裁判(自我校验)三个角色。</p>
+<h3>信号 4:开源成为地缘变量,匿名公测成为出海标配</h3>
+<p>2026 年 6 月美国对 Anthropic 新一代模型(Fable 5、Mythos 5)实施出口管制、暂停对美国境外用户访问之后,「开源 + MIT + 可私有化」在中国以外市场从技术选项变成了合规选项。智谱选在这个窗口把 320B-A18B 直接以 MIT 协议放出权重、发布即全渠道,商业逻辑与 GLM-5.3「先收 API 的钱、后送图纸」的犹豫形成鲜明对照。而「匿名上线、不挂品牌、凭体感圈粉、再官宣认领」的打法,从 2 月的 Pony Alpha 到现在的 Ox Alpha,已经固化为国产模型出海的新范式——海外开发者在不知道它是谁的情况下先承认了它好用。</p>
+<p>**这意味着:**中国大模型在 2026 年下半年打的是「架构自主 + 硬件自主 + 开源生态 + 价格优势」的四张牌,而资本市场用钱包投了票——摩根大通在 GLM-5.3 发布后两天内将智谱目标价从 1600 港元上调至 <strong>1800 港元</strong>,维持「增持」;官宣开源 Flash 次日,股价盘中涨超 8%。</p>
+<hr />
+<h2>四、深度拆解 — 1/40 价格的三层成本账</h2>
+<p>先把这款模型放回 GLM 家族的坐标系里:</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>GLM-4.5</th>
+<th>GLM-5</th>
+<th>GLM-5.2</th>
+<th>GLM-5.3</th>
+<th><strong>GLM-5.3-Flash</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>发布时间</td>
+<td>2025 年</td>
+<td>2026-02-11</td>
+<td>2026-06-13</td>
+<td>2026-08-14</td>
+<td><strong>2026-08-26</strong></td>
+</tr>
+<tr>
+<td>总参数 / 激活</td>
+<td>355B / 32B</td>
+<td>744B / ~40B</td>
+<td>744B / ~40B</td>
+<td>744B 级 / ~40B</td>
+<td><strong>320B / 18B</strong></td>
+</tr>
+<tr>
+<td>层数</td>
+<td>92</td>
+<td>78</td>
+<td>—</td>
+<td>—</td>
+<td><strong>45</strong></td>
+</tr>
+<tr>
+<td>注意力</td>
+<td>GQA</td>
+<td>首次集成 DSA</td>
+<td>动态稀疏注意力</td>
+<td>同 5.2</td>
+<td><strong>线性 × 稀疏混合 + IndexPool</strong></td>
+</tr>
+<tr>
+<td>预训练语料</td>
+<td>—</td>
+<td>28.5T</td>
+<td>28.5T(截止 2025-11)</td>
+<td>同 5.2 基座</td>
+<td><strong>30T 多模态</strong></td>
+</tr>
+<tr>
+<td>上下文</td>
+<td>128K</td>
+<td>202K</td>
+<td>1M</td>
+<td>1M(输出 128K)</td>
+<td><strong>1M</strong>(输入,文本+图像+视频)</td>
+</tr>
+<tr>
+<td>模态</td>
+<td>文本(另有 VL 分支)</td>
+<td>文本</td>
+<td>文本</td>
+<td>文本</td>
+<td><strong>原生多模态</strong></td>
+</tr>
+<tr>
+<td>AA 智能指数</td>
+<td>—</td>
+<td>50 分级</td>
+<td>51</td>
+<td><strong>60</strong></td>
+<td>57</td>
+</tr>
+<tr>
+<td>开源协议</td>
+<td>MIT</td>
+<td>MIT</td>
+<td>MIT</td>
+<td>延迟至 8/28</td>
+<td><strong>MIT,发布即开</strong></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>数据来源:智谱各次官方公告与模型文档、百度百科 GLM-5 词条、凤凰网(昇腾适配细节)、OSCHINA 三家横评;GLM-5.3 参数量各转录渠道存在 743B/744B/753B 的口径差,本文按官方模型卡「与 GLM-5.2 同基座」处理。</p>
+</blockquote>
+<p>看出来了吧:Flash 不是 GLM-5.3 的「青春版」或蒸馏版——<strong>它是完全重训的新基座</strong>。官方 ModelScope 模型卡的原话是「基于一个全新训练的基础模型构建,其架构和训练方案围绕能力与效率进行了重新设计」。参数不升反降、分数不降反升,这笔账要拆成三层来算。</p>
+<h3>第一层:模型结构 — 把注意力的钱花在该花的地方</h3>
+<p>GLM-5.3-Flash 的结构细节(社区拆解 + 官方披露):45 层 decoder,288 个路由专家、每 token 激活 8 个、前 3 层 Dense;<strong>34 层线性注意力 + 11 层 DeepSeek 稀疏注意力(DSA),按约 3:1 周期性交错</strong>。</p>
+<p>翻译成人话:处理一百万 token 的上下文,如果每一层都用全量注意力「逢人就聊」,计算量是平方级灾难。Flash 的方案是——大部分时间用线性注意力以递归方式做「局部速读」,每间隔三层左右才用一次稀疏注意力,靠轻量级索引器做一次「全场精读检索」。再往下两个补丁:</p>
+<ul>
+<li><strong>IndexPool</strong>:1M 上下文下索引器本身也很贵,智谱用加权池化把索引器的 4 份缓存向量压成 1 份,专门削索引器的时延与显存;</li>
+<li><strong>mHC(流形约束超连接)</strong>:用更复杂的残差信息混接支撑起只有 45 层的「浅层结构」,把收缩层数带来的表达力损失补回去。</li>
+</ul>
+<p>效果是硬碰硬的量化数据:对比 GLM-5.3,单 token <strong>注意力计算量降 3.01 倍、KV 缓存降 4.44 倍</strong>;与 DeepSeek-V4-Flash、Kimi-K3 同框对比,每 head 每层注意力计算量是四款中<strong>最低</strong>的(官方顺手承认:KV 缓存均值仍略高于这两家,是下一步优化方向——这份克制值得加分)。</p>
+<p>判断这个结构成不成立,别只看后训练模型,要看裸基座。<strong>GLM-5.3-Flash-Base(18B 激活)在 MMLU 88.1、BBH 86.6、HellaSwag 87.1、LiveCodeBench-Base 37.6 等指标上整体超过 GLM-4.5-Base,并在多数组件上追平总参数 744B 的 GLM-5-Base</strong>——每 token 只激活约 18B,基座就能对上 40B 激活的上代旗舰。也就是说,便宜不是砍能力砍出来的,是架构把「无效计算」挤出来的。</p>
+<h3>第二层:训练配方 — 30T 多模态语料 + 环境反馈 RL</h3>
+<p>Flash 用了智谱最新的约 30T token 多模态预训练语料(对比:GLM-5 是 28.5T 纯文本)。后训练阶段的增量信息集中在视觉编码数据合成管线上:生成的训练轨迹要求模型<strong>与环境交互、检视自身输出、迭代修正</strong>,前端方向还探索了基于环境反馈的强化学习与真实用户流程的 Agent 验证——把「对不对」的验证范围从功能正确性延伸到渲染效果与交互体验。这与 GLM-5.3「同基座、纯靠后训练 Scaling 提升约 50%」是同一方法论的延续:智谱明显找到了一条不依赖新一轮超大规模预训练的可持续能力提升路线,这也是摩根大通研报把它归因为「内生驱动」的原因。</p>
+<h3>第三层:服务基础设施 — 每块钱里的芯片账</h3>
+<p>模型再省,推理服务不省也白搭。第二层信号里那套「国产芯片 + SGLang 定制引擎 + EPD 分离 + 一堆量化技术」的组合拳,最终落在一个数字上:<strong>单 token 服务成本达到与主流英伟达 GPU 相当的水平</strong>(官方自测口径)。换句话说,$0.15/$0.50 的牌价里没有补贴成分——是「架构、语料、硬件」三层一起,把成本曲线整条搬了下来。</p>
+<blockquote>
+<p>本地部署同学注意:320B 总参数意味着权重体积才是门槛,BF16 约 640GB、FP8 约 320GB、4bit 量化后 160GB 级,官方支持 SGLang、vLLM、TokenSpeed、KTransformers;社区里已经出现用 4 台 M5 Ultra Mac Studio 经 Thunderbolt 5 RDMA 组出 4.8TB/s 聚合带宽集群跑 Ox Alpha 的玩法。激活只有 18B,Decode 阶段对内存带宽的需求远低于稠密模型——「个人够得着的前沿模型」这条线,又被往下压了一截。</p>
+</blockquote>
+<hr />
+<h2>五、别只看亮的地方:四个短板与一个悬而未决</h2>
+<p>按本文的一贯立场:跑分是广告,翻车实录才是产品。把发布 48 小时内第三方实测里已经冒出来的问题摆上桌,这个模型的边界就清楚了。</p>
+<p>**短板 1:它不是智谱的新天花板,定位是「腰力」不是「眼力」。**AA 57 分 vs GLM-5.3 的 60 分,6 项官方编码基准里 NL2Repo 落后 Claude Opus 4.8 多达 13.4 分,自研 Z.ai Code Bench max 档 29.0 对 29.5 是「贴身」而非「追平」。知乎用户的总结很到位:在多数中低难度任务上与标准版几乎无差,<strong>在高难度任务上能摸到标准版的极限,但稳不住——同样的最佳答案,你需要重试更多次</strong>。上限党请继续留在 GLM-5.3 或闭源旗舰档位。</p>
+<p>**短板 2:专业深水区明显让位。**第三方横评里,网络安全基准上 Flash 与 GLM-5.3 差距显著,只优于 GPT-5.6 Luna、落后所有其他前沿模型——这恰好是 GLM-5.3 此前「延迟开源」时重点强调的能力项,梯度切得很干净(一个合理推测:旗舰保专业纵深,Flash 走通用大盘,别让自家左右互搏)。另在一个含 105 个真实植入 Bug 的双代码库测试里,Flash 只修复 16 个,与 DeepSeek-V4 Flash 同档,离旗舰梯队很远。</p>
+<p>**短板 3:视觉是「够用」不是「全能」。**原生多模态的第一代产品,感知长板短板非常分明:带工具的推理类视觉任务能打(CharXiv w/ Tools 89.4、MMVU 80.5),纯视觉感知就露怯——BabyVision 53.4,低于 GPT-5.6 Terra 的 61.6 和 Gemini 3.7 Flash 的 70.9;某第三方图片识别测试里甚至只有 4.8% 的极端低分(同测试 Gemini 3.7 Flash 99.9%);3D 空间规划基准 MazeBench 直接 0%。<strong>要裸眼视觉能力的场景,现在不该选它。</strong></p>
+<p>**短板 4:一致性与工程细节。**社区长测提到的三件事:幻觉上下限波动比标准版更大(好时能看到上下文里极精细的文本,差时会犯低级错误、长文下更易触发下限);输出速度并没有随「Flash」之名提上来,体验降级主要卡在这;部分穷举型任务会撞上 API <strong>128K 最大输出</strong>导致截断。此外官方评估大量使用自报口径,HLE w/ tools 的裁判模型是 GPT-5.6-luna、Z.ai Code Bench 是自研——等第三方复测跑完一周,数字大概率要回调 1-3 个点,这是每个新模型的宿命,不必苛责,但采购决策要留出这个余量。</p>
+<p><strong>一个悬而未决的问题</strong>:匿名公测六天 42T+20T tokens 的天量数据,来自 OpenCode 官方自行统计与智谱转述,口径互有出入(OpenRouter 也有「6 天 23T」的社区数字);而 OpenCode 早先说的「每天 100 万亿 tokens」是服务容量而非实际用量。流量是真的,「全球开发者集体为牛来狂欢」的叙事里掺了多少运营成分,暂时无从考证——把它当事实读,但也记住这是发布日的数据。</p>
+<hr />
+<h2>六、选型与接入建议</h2>
+<p>我们直接给结论,再给理由。以下判断基于 2026 年 8 月 27 日前的公开数据,一周内请以第三方复测为准。</p>
+<table>
+<thead>
+<tr>
+<th>你的场景</th>
+<th>建议</th>
+<th>理由</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>编程助手 / Coding Agent 日常主力</td>
+<td><strong>直接换 Flash</strong></td>
+<td>Z.ai Code Bench 与 Opus 4.8 只差 0.5 分,单任务成本为其 1/40;Coding Plan 额度还是 GLM-5.3 的 <strong>3 倍</strong>,每天限量发放 10,000 张体验卡</td>
+</tr>
+<tr>
+<td>夜间批处理、评测跑分、数据清洗等海量调用</td>
+<td><strong>Flash + 非高峰档</strong></td>
+<td>官方渠道限时两周五折(第三方聚合商同享);Coding Plan 非高峰时段积分减半;缓存命中输入折后 $0.015/MTok</td>
+</tr>
+<tr>
+<td>前端复刻、GUI 自动化、游戏/3D 原型</td>
+<td><strong>Flash 优先</strong></td>
+<td>目前最便宜的「会自己看一眼再改」的模型,BUA/CUA 闭环已接入 ZCode</td>
+</tr>
+<tr>
+<td>Office / 金融 / 法律文档流水线</td>
+<td><strong>Flash 优先</strong></td>
+<td>GDPval-AA v2 1773 全场第一,OfficeQA Pro 62.4;法律文书批注、研报生成是官方重点优化场景</td>
+</tr>
+<tr>
+<td>最难的一口:架构级设计、安全漏洞挖掘、长程极限任务</td>
+<td><strong>GLM-5.3 或闭源旗舰</strong></td>
+<td>Flash 安全基准明显落后;NP-hard 级长程任务稳定性不如标准版;CyberGym 第一的宝座还在 GLM-5.3 手里</td>
+</tr>
+<tr>
+<td>裸眼视觉感知(图像细粒度识别、空间理解)</td>
+<td><strong>Gemini 3.7 Flash 等专用位</strong></td>
+<td>多模态第一代,BabyVision/MazeBench 是明确短板</td>
+</tr>
+<tr>
+<td>私有化部署 / 数据不出域 / 合规审计</td>
+<td><strong>拉 MIT 权重自建</strong></td>
+<td>huggingface.co/zai-org/GLM-5.3-Flash,SGLang/vLLM/TokenSpeed/KTransformers 开箱支持;FP8 单机多卡可跑,无使用门槛</td>
+</tr>
+<tr>
+<td>预算充足、已深度绑定 Claude / OpenAI 生态</td>
+<td>可不动</td>
+<td>Flash 解决的是「成本 × 足够好」,不解决生态迁移惯性;但建议做一轮影子流量对比,账单会替你思考</td>
+</tr>
+</tbody>
+</table>
+<p>三句选型心法:<strong>别拿 Flash 冲上限,拿它摊薄平均成本;别信发布日跑分,信一周后的复测;别只比 token 牌价,比「每成功任务成本」——重试三次的钱算进账单才是真价。</strong></p>
+<hr />
+<h2>七、关键术语速查</h2>
+<table>
+<thead>
+<tr>
+<th>术语</th>
+<th>大白话版本</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>MoE / 320B-A18B</strong></td>
+<td>混合专家架构:模型总共 3200 亿参数,但每个 token 只「叫醒」其中 180 亿来干活——知识量大,干活的人手少</td>
+</tr>
+<tr>
+<td><strong>线性注意力(Linear Attention)</strong></td>
+<td>用递归状态代替两两全比对,成本近似线性增长;擅长「连着读」,不擅长「精确回头找」</td>
+</tr>
+<tr>
+<td><strong>稀疏注意力 / DSA</strong></td>
+<td>DeepSeek 提出的方案:轻量索引器先粗筛出相关 token,再做精确注意力——相当于先查目录再精读</td>
+</tr>
+<tr>
+<td><strong>混合注意力</strong></td>
+<td>Flash 45 层里 34 层线性 + 11 层 DSA 约 3:1 交错:平时速读,定期精读,兼顾成本和找得准</td>
+</tr>
+<tr>
+<td><strong>IndexPool</strong></td>
+<td>把索引器的 4 份缓存向量加权池化成 1 份,专治 1M 上下文下「查目录本身也贵」的病</td>
+</tr>
+<tr>
+<td><strong>mHC(流形约束超连接)</strong></td>
+<td>升级版的残差连接,让更复杂的层间信息混接,支撑起砍到 45 层的浅结构不掉能力</td>
+</tr>
+<tr>
+<td><strong>KV 缓存</strong></td>
+<td>推理时给历史 token 存的「中间笔记」,长上下文服务的显存大头;降 4.44 倍 ≈ 同样并发能多接 4 倍用户</td>
+</tr>
+<tr>
+<td><strong>1M 上下文</strong></td>
+<td>单次约 100 万 token(≈160 万汉字)的输入窗口,整个中型代码库可以一次装下</td>
+</tr>
+<tr>
+<td><strong>AA 综合智能指数</strong></td>
+<td>Artificial Analysis 的跨基准加权指数,业界最常用的「综合智力分」;57 分处在当前全球前沿带</td>
+</tr>
+<tr>
+<td><strong>EPD 分离架构</strong></td>
+<td>把多模态编码(Encode)、预填充(Prefill)、解码(Decode)拆成三组可独立扩缩容的机器池,各干各的、互不抢资源</td>
+</tr>
+<tr>
+<td><strong>W8A8 / INT8/FP8/BF16 混合量化</strong></td>
+<td>权重、激活、缓存用不同位宽存算,用精度换显存和带宽——国产芯片内存受限下的必修课</td>
+</tr>
+<tr>
+<td><strong>BUA / CUA</strong></td>
+<td>Browser Use Agent / Computer Use Agent:让模型自己开浏览器、点界面、操作桌面软件的两类「手脚」</td>
+</tr>
+<tr>
+<td><strong>GLM Coding Plan</strong></td>
+<td>智谱的订阅制编程套餐,积分计费,支持 Claude Code、OpenCode、Cline、ZCode 等 20+ 工具,非高峰调用积分打五折</td>
+</tr>
+<tr>
+<td><strong>「牛来」(Ox-Alpha)</strong></td>
+<td>Flash 匿名公测时代的代号,中文社区谐音昵称;现已成为智谱史上最成功的一次产品预热</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>八、FAQ — 6 个被问得最多的问题</h2>
+<p><strong>Q1:GLM-5.3-Flash 和 GLM-5.3 到底什么关系?是蒸馏版吗?</strong>
+A:<strong>都不是,是两条线。<strong>GLM-5.3 沿用 GLM-5.2 的 744B 基座、纯靠后训练把能力提升约 50%;Flash 则基于</strong>全新重训的 320B-A18B 混合注意力基座</strong>、用 30T 多模态语料从头训练。前者冲上限(AA 60 分),后者压成本(AA 57 分、价格 1/10)。<strong>官方口径里 Flash 在代码与 Agent 基准上接近 Opus 4.8,而 GLM-5.3 才是那把攻顶的矛。</strong></p>
+<p><strong>Q2:为什么它能便宜到 1/10 甚至 1/40?是不是亏本赚吆喝?</strong>
+A:不是补贴,是结构性降本,三层账:激活参数从 40B 级砍到 18B、层数砍到 45 层;混合注意力 + IndexPool 把注意力计算量降 3.01 倍、KV 缓存降 4.44 倍;服务端整条流量跑在国产芯片集群上,官方称单 token 成本已与主流英伟达 GPU 相当。<strong>牌价里没有一分钱靠爱发电</strong>——真要挑,唯一的「让利」是限时两周五折的推广期。</p>
+<p><strong>Q3:「追平 Claude Opus 4.8」是事实还是营销?中国模型现在到底处在哪?</strong>
+A:分维度看:<strong>AA 综合智能指数 57 = 57,这一项是持平</strong>(第三方机构 Artificial Analysis 的统一评测,非智谱自报);编码与 Agent 基准上互有胜负——Toolathlon、DeepSWE、AutomationBench、GDPval-AA 反超;NL2Repo、Terminal-Bench 2.1、极限长程任务落后;但<strong>在纯视觉、网络安全、高难任务的稳定性上,距离还很明确</strong>。整体判断:中国前沿模型已经能「在旗舰最赚钱的赛道(编程 × Agent × 办公)上用 1/40 的价格逼平对手」,这句话的每个成分都有数据支撑;「全面追平」则还没有,谁再说,让他把复测表拿出来。</p>
+<p><strong>Q4:普通人 / 小团队怎么用上它?</strong>
+A:四个入口按成本从零到高排序:① 智谱清言 App / chat.z.ai 免费对话;② BigModel 开放平台或 docs.z.ai 调 API(新用户送千万级 token 资源包,折后输入 $0.075);③ 订阅 GLM Coding Plan(¥118/月 起,Flash 额度为 GLM-5.3 的 3 倍,每天限量 1 万张体验卡);④ HuggingFace / ModelScope 拉 MIT 权重自建,硬件不够的可以用 TokenSpeed/KTransformers 这类混合推理方案。<strong>当前版本注意:思考模式不可关闭</strong>(thinking.type 仅支持 enabled),想省钱请调 reasoning_effort。</p>
+<p><strong>Q5:这对 DeepSeek、对 Kimi、对其他玩家意味着什么?</strong>
+A:最直接的压力测试已经发生:DeepSeek 8 月 17 日刚完成一轮提价(被摩根大通解读为「定价灵活性充足、成本基准地位未变」),转头 Flash 就把 57 分智能的价格打到对方旗舰的 1/7-1/10——知乎所谓「梁圣的 DeepSeek V4 也被斩杀了」是对这张牌价表的情绪化翻译。**但别线性外推:DeepSeek 在缓存命中 ¥0.05-0.3 的低价带和峰谷定价弹性上仍有自己的纵深,Kimi K3 在长周期工程上仍有 67.5 的 DeepSWE 优势。**唯一确定的是:所有玩家的定价页都被重新锚定,「同等智能带」的价格下限从此由 4.5 美分/任务说了算。</p>
+<p><strong>Q6:智谱为什么敢把最强性价比的模型直接 MIT 开源,连权重都不捂?</strong>
+A:三个理由。其一,Flash 的差异化在「便宜 × 办公级多模态 × 可私有化」,开源本身就是获客渠道——GLM-5.3 延迟开源是因为安全能力涉密,Flash 的账算的不是同一道题;其二,MIT + 国产算力认证的组合,是对冲美国出口管制(6 月起 Anthropic 新模型暂停境外访问)下海外市场不确定性的最优解;其三,智谱正在讲资本故事——GLM-5.2、5.3、Flash 三连发后,摩根大通把目标价抬到 1800 港元,开源生态与商业化数据是 2026 IPO 后估值的核心弹药。<strong>图纸免费,生态收费</strong>,这门生意一直是这么做的。</p>
+<hr />
+<h2>九、参考资料</h2>
+<p><strong>官方发布与基准</strong></p>
+<ul>
+<li>智谱官方博客:GLM-5.3-Flash — Frontier Intelligence, Flash Cost(z.ai/blog/glm-5.3-flash)</li>
+<li>BigModel 开放平台模型文档:docs.bigmodel.cn/cn/guide/models/vlm/glm-5.3-flash</li>
+<li>Z.ai 文档:docs.z.ai/guides/vlm/glm-5.3-flash</li>
+<li>开源权重:huggingface.co/zai-org/GLM-5.3-Flash;ModelScope:ZhipuAI/GLM-5.3-Flash</li>
+<li>GLM Coding Plan:bigmodel.cn/glm-coding;ZCode:zcode.z.ai</li>
+<li>技术报告:GLM-5: from Vibe Coding to Agentic Engineering(arXiv:2602.15763)</li>
+<li>Artificial Analysis 智能指数(v4.1.1)榜单</li>
+</ul>
+<p><strong>第三方评测与媒体</strong></p>
+<ul>
+<li>IT之家:《Ox Alpha 现身:智谱开源 GLM-5.3-Flash 原生多模态模型》(8/26)</li>
+<li>新浪财经/网易智能:《Ox Alpha 揭晓:智谱开源 GLM-5.3-Flash,跑在国产芯片上》(8/27)</li>
+<li>新京报贝壳财经:《智谱开源 GLM-5.3-Flash「牛来」,背后是国产芯片》(8/27)</li>
+<li>腾讯新闻/每日经济新闻:智谱认领「牛来」报道(8/26)</li>
+<li>知乎:《怎么看 GLM-5.3-Flash 发布,有什么值得关注的?》多位答主长测(逻辑能力横评、KernelBench-Mega、Bug 修复实测)</li>
+<li>OSCHINA:《三大旗舰模型同月亮相:Kimi K3、GLM-5.3、DeepSeek V4 选型图》(8/20)</li>
+<li>ChainCatcher:智谱 GLM-5.3 Flash 国内定价与 10 万卡国产芯片报道(8/27)</li>
+<li>摩根大通研报(8/16):GLM-5.3 能力跃升与 DeepSeek 提价对中国 AI 竞争格局的影响,via 雪球/华尔街见闻</li>
+<li>OpenCode 官方公告:Ox Alpha 六天 42T tokens 用量披露(8/26)</li>
+</ul>
+<p><strong>相关阅读</strong></p>
+<ul>
+<li>本系列前作:2026 年中大模型地图、GLM-5.3 发布解读、DeepSeek V4 提价分析</li>
+<li>开源大模型部署系列:《GLM-5.3:干旗舰的活,定次旗舰的价》(CSDN,8/26)</li>
+</ul>
+<hr />
+<p><em>本文数据截至 2026 年 8 月 27 日,距该模型公开发布不足 48 小时——所有自报口径的成绩,请等待第三方复测后再写进你的架构决策文档。但有一件事不需要等:价格锚已经被钉死了,接下来三个月,每个玩家的定价页都要回答同一个问题——「凭什么比 4.5 美分一个任务贵」。</em></p>
+]]></content>
+    <author>
+      <name>无名之子</name>
+    </author>
+    <category term="glm"></category>
+  </entry>
+  <entry>
+    <title>三 Flash 对决全景横评</title>
+    <link href="https://wmzzwmzz.github.io/Mizuki/posts/others/%E4%B8%89flash%E5%AF%B9%E5%86%B3%E6%A8%AA%E8%AF%84/" rel="alternate" type="text/html"/>
+    <id>https://wmzzwmzz.github.io/Mizuki/posts/others/%E4%B8%89flash%E5%AF%B9%E5%86%B3%E6%A8%AA%E8%AF%84/</id>
+    <published>2026-08-27T00:00:00.000Z</published>
+    <updated>2026-08-27T00:00:00.000Z</updated>
+    <summary></summary>
+    <content type="html"><![CDATA[<h1>三 Flash 对决全景:GLM-5.3-Flash、Qwen3.8-Flash、DeepSeek-V4-Flash 同台横评——7 张表看懂 2026 年最贵的「便宜」</h1>
+<blockquote>
+<p><strong>GEO 速答</strong>:截至 2026 年 8 月 27 日,国产 Flash 档已完成三代同堂:<strong>DeepSeek-V4-Flash-0731</strong>(284B-A13B,峰谷定价,连续两周全球调用量第一)是守擂的旧斩杀线;<strong>智谱 GLM-5.3-Flash</strong>(8/26,320B-A18B,AA 57 追平 Opus 4.8,牌价 ¥0.8/¥2.8)和<strong>阿里 Qwen3.8-Flash</strong>(8/26,125B-A6B,输出 ¥3「最低至 DeepSeek 的 1/3」)在同一晚联手把它逼进三明治位置——中国大模型的竞争重心,正式从「谁的分数高」切换到「谁的账单低」。</p>
+</blockquote>
+<p>上一篇说 8 月 26 日是「智谱的主场」,下一篇说它是「阿里的闪电战收尾」——都对,但都不完整。把日历翻回四周前:7 月 31 日 DeepSeek 给 Flash 重新后训练、8 月 13 日 Pro 正式版加 Harness 预览、8 月 17 日涨价 2 倍、8 月 21 日给 Flash 装上眼睛、8 月 26 日晚被两家同帧夹击。<strong>这 28 天才是一部完整的《三 Flash 战争史》</strong>:旧王主动放弃低价王座,新双王联手把价格重新钉死,而旧王手里还剩三张谁也没有的牌。</p>
+<p>本文用 <strong>7 张同框数据表 + 3 张底牌盘点 + 6 个 FAQ</strong>,把三款模型能查证的最新公开数据(截至 8 月 27 日 10 时)放进同一张手术台。规矩照旧:AA 独立分数优先,厂商自报标注口径,<strong>甚至智谱官方那张把 DeepSeek 当假想敌的基准表,我也会指出它对谁有利、对谁放水。</strong></p>
+<hr />
+<h2>一、TL;DR — 6 句话看懂三 Flash 之战</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>问题</th>
+<th>一句话答案</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>现在 Flash 档有哪几位</td>
+<td><strong>DeepSeek-V4-Flash-0731</strong>(含 8/21 实验版 Vision-Exp)、<strong>智谱 GLM-5.3-Flash</strong>(8/26)、<strong>阿里 Qwen3.8-Flash / Flash-Next</strong>(8/26)——外加 7 月底「装上眼睛」这个新标配,三强之外还有 Kimi、MiniMax、Gemini 3.7 Flash 在侧翼</td>
+</tr>
+<tr>
+<td>2</td>
+<td>谁最强</td>
+<td>有独立认证的只有两家:<strong>AA 指数 GLM-5.3-Flash 57(=Opus 4.8)</strong>、<strong>V4-Flash-0731 52(=Qwen3.8-27B=GPT-5.6 Luna 档)</strong>;Qwen3.8-Flash 尚未收录,官方自述「超 Opus 4.6、接近 4.8」,待验证</td>
+</tr>
+<tr>
+<td>3</td>
+<td>谁最便宜</td>
+<td><strong>单看牌价三分天下,看负载结构分胜负</strong>:GLM 常规 ¥0.8/¥2.8 最低且限时五折;Qwen ¥1/¥3 居中;DeepSeek 高峰 ¥3/¥9 看着最贵,<strong>但缓存命中低至 ¥0.05-0.1——约为 GLM 命中价的 1/4、Qwen 未命中输入价的 1/20</strong>,高复用 Agent 负载下 DeepSeek 反超</td>
+</tr>
+<tr>
+<td>4</td>
+<td>谁最互补</td>
+<td>硬指标三家互相拿捏:<strong>输出长度——DeepSeek 384K,全场最大</strong>(两家新王仅 128K);<strong>上下文——智谱原生 1M ≈ DeepSeek 1M &gt; 阿里 262K 外推</strong>;<strong>并发——DeepSeek 2500 封王</strong></td>
+</tr>
+<tr>
+<td>5</td>
+<td>格局变了什么</td>
+<td>Flash 从「旗舰的青春版」变成<strong>主战场</strong>:8/17 DeepSeek 主动涨价让出低价锚,8/26 两家新王同夜把它和所有旧玩家一起夹在三明治里——<strong>同智能带价格下限改由 4.5 美分/任务说了算</strong></td>
+</tr>
+<tr>
+<td>6</td>
+<td>还没解决什么</td>
+<td>三个未决数:<strong>Qwen3.8-Flash 的 AA 分、DeepSeek 下一轮调价与 Harness 正式版、智谱 GLM-5.3 完整权重(8/28)</strong>——以及一款模型的「过拟合自家壳」问题没人给你测</td>
+</tr>
+</tbody>
+</table>
+<p><strong>一句话立场</strong>:这轮 Flash 战争没有输家,只有「先想清楚再用」的人——三家把编程、办公、吞吐量三个方向各钉了一颗价格钉子,选型错误的代价从「贵」变成了「贵且慢且差」;但<strong>把三家任何一家的官方跑分直接抄进采购文档,2026 年 8 月的功课你就白抄了</strong>。</p>
+<hr />
+<h2>二、时间线 — 28 天闪电战:从「涨价让位」到「同夜逼宫」</h2>
+<p>DeepSeek 是这场战争的「在位者」,先看它四周内的全部动作,再看两位挑战者如何在同一个夜晚进场。</p>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>玩家</th>
+<th>动作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-04-24</td>
+<td>DeepSeek</td>
+<td>V4 预览版发布(V4-Flash 284B-A13B / V4-Pro 1.6T-A49B),Token-wise Compression + DSA 稀疏注意力,1M 上下文,最大输出 384K,权重同步开源</td>
+</tr>
+<tr>
+<td>2026-07-31</td>
+<td>DeepSeek</td>
+<td><strong>V4-Flash-0731</strong>:架构不动、纯重新后训练,官方九项 Agent 基准全面上涨(Terminal-Bench 2.1 <strong>82.7</strong>、DeepSWE 54.4、CyberGym 76.7);原生支持 Responses API 并适配 Codex;并发上限 2500</td>
+</tr>
+<tr>
+<td>8 月上旬</td>
+<td>市场</td>
+<td>V4-Flash-0731 在 OpenRouter 连续两周全球调用量第一(周 <strong>11.2 万亿 tokens</strong>);中国模型周调用量连续 <strong>16 周</strong>全球第一,全球前十占六席</td>
+</tr>
+<tr>
+<td>2026-08-13</td>
+<td>DeepSeek</td>
+<td><strong>一日两文</strong>:V4-Pro 正式版官宣 + <strong>Harness 开发者预览版</strong>(「一切皆插件」架构,被招商证券称为「Agent 时代的安卓」);同日确认 8/17 起峰谷定价</td>
+</tr>
+<tr>
+<td>2026-08-17</td>
+<td>DeepSeek</td>
+<td><strong>涨价生效</strong>:V4-Flash 空闲 ¥1.5/¥4.5、高峰翻倍至 ¥3/¥9(缓存命中 ¥0.05-0.1);高峰输出价为旧价 4.5 倍,Pro 部分计费项涨幅最高 <strong>1100%</strong></td>
+</tr>
+<tr>
+<td>2026-08-21</td>
+<td>DeepSeek</td>
+<td>首个多模态模型 <strong>V4-Flash-Vision-Exp</strong> 上线 API:纯文本持平正式版,视觉 Agent 基准大幅跃升(ApexBench 26.2→<strong>36.5</strong>),官方称多模态 Agent 能力<strong>接近 Opus 4.8</strong>;图片按 ≤384 tokens/张计费、<strong>Files API 永久免费</strong>;单请求最多 600 张图</td>
+</tr>
+<tr>
+<td>2026-08-26</td>
+<td>智谱 × 阿里</td>
+<td><strong>双 Flash 之夜</strong>:20:40 阿里发 Qwen3.8-Flash(明牌对标:「最低至 DeepSeek-V4-Flash 闲时 2/3、忙时 1/3」);22:12 智谱官宣 GLM-5.3-Flash(¥0.8/¥2.8 + 两周五折);23:00 Qwen 权重落地 HF/ModelScope</td>
+</tr>
+<tr>
+<td>2026-08-26/27</td>
+<td>生态</td>
+<td>硅基流动上线<strong>高速版</strong> V4-Flash-0731(第 170 款模型);智谱次日股价盘中涨超 8%;阿里、智谱两家通稿互不相让,同框比较帖 24 小时内刷屏</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>数据来源:DeepSeek 官方更新日志/定价页、每日经济新闻(OpenRouter 调用量测算,8/17)、北京商报(8/16、8/26)、百度百科 V4-Flash-Vision-Exp 词条、电子工程专辑(8/27)、搜狐科技(8/22)、威易网(8/26 三 Flash 横评)。</p>
+</blockquote>
+<p>**这意味着:**DeepSeek 在 7/31→8/21 这二十一天里把「能力、生态、变现」三件套全做了——唯独把「最便宜」这把交椅,自己主动让了出去。它让位的当晚,两把新刀同时插进了那个空位。</p>
+<hr />
+<h2>三、规格对决 — 三匹马,三张完全不同的脸</h2>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>DeepSeek-V4-Flash(-0731 / Vision-Exp)</th>
+<th>GLM-5.3-Flash</th>
+<th>Qwen3.8-Flash / Flash-Next</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>厂商</td>
+<td>深度求索</td>
+<td>智谱 Z.ai</td>
+<td>阿里通义</td>
+</tr>
+<tr>
+<td>发布</td>
+<td>4/24 预览、7/31 正式版、8/21 视觉实验版</td>
+<td><strong>8/26(官宣,8/20 起匿名公测)</strong></td>
+<td><strong>8/26</strong></td>
+</tr>
+<tr>
+<td>体量</td>
+<td><strong>284B-A13B</strong>(MoE)</td>
+<td><strong>320B-A18B</strong>(MoE)</td>
+<td><strong>125B + 51B 外挂-A6B</strong>(MoE)</td>
+</tr>
+<tr>
+<td>注意力路线</td>
+<td>Token-wise 压缩 + DSA 稀疏</td>
+<td>线性 × 稀疏混合(34+11 层)+ IndexPool</td>
+<td>GDN 线性 + QSA 块级稀疏 + Gated Residual</td>
+</tr>
+<tr>
+<td>独家架构件</td>
+<td>—</td>
+<td><strong>mHC 流形约束超连接</strong></td>
+<td><strong>N-gram Embedding 可卸载主机内存</strong></td>
+</tr>
+<tr>
+<td>模态</td>
+<td>文本;<strong>Vision-Exp 实验版补图片输入</strong>(无视频)</td>
+<td><strong>原生多模态(文本+图像+视频)</strong></td>
+<td><strong>原生多模态(文本+图像+视频)</strong></td>
+</tr>
+<tr>
+<td>上下文</td>
+<td><strong>1M</strong>;输出 <strong>384K</strong>(全场最大)</td>
+<td><strong>1M 原生</strong>;输出 128K</td>
+<td>原生 262K,YaRN→1M(Next 默认 1M);输出 128K</td>
+</tr>
+<tr>
+<td>思考模式</td>
+<td>可关(非思考支持 FIM 补全)</td>
+<td>不可关(thinking 仅 enabled)</td>
+<td>未披露开关细节(Qwen3.8 系默认强制思考)</td>
+</tr>
+<tr>
+<td>AA 智能指数</td>
+<td>V4-Flash-0731 <strong>52</strong>;Vision-Exp 未收录</td>
+<td><strong>57</strong>(=Claude Opus 4.8)</td>
+<td><strong>未收录</strong>(发稿时)</td>
+</tr>
+<tr>
+<td>API 牌价(¥/MTok)</td>
+<td>闲 1.5/4.5;<strong>高峰 3/9</strong>;缓存 0.05/0.1</td>
+<td><strong>¥0.8/¥2.8</strong>;缓存 ¥0.23;两周五折</td>
+<td><strong>¥1/¥3</strong>;缓存价未公布</td>
+</tr>
+<tr>
+<td>美元牌价</td>
+<td>$0.14/$0.28(高峰翻倍)</td>
+<td>$0.15/$0.50(五折后 0.075/0.25)</td>
+<td>约 $0.16/$0.47</td>
+</tr>
+<tr>
+<td>并发上限</td>
+<td><strong>2500(全场最高)</strong>;Pro 500</td>
+<td>未公布</td>
+<td>未公布</td>
+</tr>
+<tr>
+<td>图片计费</td>
+<td>≤384 tokens/张;<strong>Files API 免费</strong></td>
+<td>未单项公布</td>
+<td>未单项公布</td>
+</tr>
+<tr>
+<td>权重开源</td>
+<td>预览版权重已开;<strong>0731 新权重未同步放出</strong>;许可为 DeepSeek 系协议</td>
+<td><strong>MIT,发布即开</strong></td>
+<td><strong>发布即开(HF/ModelScope+FP8),许可未注明</strong>(Max 有自定义条款前例)</td>
+</tr>
+<tr>
+<td>入口</td>
+<td>官网 API/网页/App、OpenRouter、聚合平台</td>
+<td>BigModel/Z.ai、Coding Plan、ZCode</td>
+<td>千问办公、千问 AI 平台、HF</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>数据来源:DeepSeek API 官方文档/定价页与更新日志、威易网 8/26 三 Flash 横评、知乎 8/21 专栏(52 分对照)、智谱 8/26 官方公告与 BigModel 文档、阿里 8/26 官方发布与 IT之家/链捕手报道;「并发 2500」「384K 输出」以官网实时文档为准。</p>
+</blockquote>
+<p>三个「人设」用一句话立住:</p>
+<ul>
+<li><strong>DeepSeek = 长跑者</strong>:284B 体量、<strong>13B 激活居中</strong>(低于智谱 18B、高于阿里 6B),两年多 MoE+DSA 路线的成熟部署,换来<strong>最高并发 2500、最大输出 384K、最狠的缓存价</strong>——牌价数字它都不占第一,但「重复前缀」是它的护城河:<strong>缓存命中 ¥0.05,在智谱的限时五折退出后,全场再无对手</strong>。对 Agent 这种「同一份库 + 工具定义反复带」的负载,错峰 + 缓存能把实付输入成本压到对手的 1/5 以下。</li>
+<li><strong>智谱 = 全能重装</strong>:18B 激活 + 320B 体量,买的是**唯一一张独立认证的前沿门票(57=Opus 4.8)**和原生 1M——它是三家里最接近「小号旗舰」的,也最贵一档(体量)。</li>
+<li><strong>阿里 = 效率狂魔</strong>:6B 激活把单位算力成本砍到地板,训练成本 1/9;换来的是<strong>独立成绩暂时缺位</strong>——Qwen3.8-Max 的 AA 58 只证明家族能打,不能替小老弟背书。</li>
+</ul>
+<p>**结论:**规格表上没有任何一家全面领先——DeepSeek 守住了「跑得动大任务」的硬指标(384K 输出/2500 并发/缓存价),智谱抢走了「被承认的聪明」,阿里押中了「单位算力的极致」。这场对决从一开始就不是三条同赛道的马,而是三个赛道的冠军互相踩场。</p>
+<hr />
+<h2>四、跑分对决 — 谁的成绩单值得信</h2>
+<p>先把唯一一张「三家同框」的表摆出来——它来自智谱 8/26 官方发布材料,把 DeepSeek-V4-Flash-Vision-Exp 列为对比基线之一(阿里未进该表,Qwen 列分数据 DataLearner/快科技对 Flash-Next 的收录):</p>
+<table>
+<thead>
+<tr>
+<th>基准</th>
+<th>GLM-5.3-Flash</th>
+<th>DeepSeek-V4-Flash-Vision-Exp</th>
+<th>Qwen3.8-Flash(-Next)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Terminal-Bench 2.1</td>
+<td><strong>84.3</strong></td>
+<td>83.9</td>
+<td>未公布绝对值(官方称超 Opus 4.6)</td>
+</tr>
+<tr>
+<td>DeepSWE v1.1</td>
+<td><strong>63.4</strong></td>
+<td>59.3</td>
+<td>58.7</td>
+</tr>
+<tr>
+<td>NL2Repo</td>
+<td>56.3</td>
+<td><strong>57.7</strong></td>
+<td>48.1</td>
+</tr>
+<tr>
+<td>Toolathlon Verified</td>
+<td><strong>78.4</strong></td>
+<td>75.9</td>
+<td>~73.5</td>
+</tr>
+<tr>
+<td>AutomationBench v1.0.6</td>
+<td><strong>48.8</strong></td>
+<td>38.8</td>
+<td>未公布绝对值</td>
+</tr>
+<tr>
+<td>Agents' Last Exam</td>
+<td>26.3</td>
+<td><strong>27.3</strong></td>
+<td>24.3</td>
+</tr>
+<tr>
+<td>GDPval-AA v2(经济产出)</td>
+<td><strong>1773(全场最高)</strong></td>
+<td>1675</td>
+<td>未公布绝对值(JobBench 超 Opus 4.6 近 20 分)</td>
+</tr>
+<tr>
+<td>Z.ai Code Bench max</td>
+<td>29.0</td>
+<td>—</td>
+<td>未参与</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>数据来源:GLM 与 DS 列出自智谱 8/26 官方公告图(经 CSDN/知乎转录)——<strong>由竞争对手评测,结果天然带立场,但三方同条件这点反而珍贵</strong>;Qwen 列出自官方发布材料与第三方收录(标注「官方称」);DS 正式版(非 Vision)7/31 九项自报成绩(TB2.1 82.7、DeepSWE 54.4)见其更新日志。</p>
+</blockquote>
+<p>这张表能读出三层信息:</p>
+<ol>
+<li><strong>智谱赢面确实大</strong>:六项可比里 GLM 拿四项,且把 V4-Flash-Vision-Exp 的看家项(ALE)只让出 1 分——但别忘了对面是<strong>实验版</strong>,而 DeepSeek 正式版从 0731 到 Vision-Exp 的跨版增量(NL2Repo、Toolathlon)本来就是其历史上最猛的一次后训练;</li>
+<li><strong>DeepSeek 的两个「独赢项」含金量高</strong>:NL2Repo(整仓生成)、Agents' Last Exam(开放难题)都是 384K 输出预算撑出来的场景——<strong>GLM/Qwen 的 128K 上限在这两项物理上吃亏</strong>;</li>
+<li><strong>阿里的表没法直接参与</strong>:它公布的绝对值集中在自家生态基准(JobBench、CoWorkBench、AndroidWorld)和与 Opus 4.6 的分差上,对标口径和另两家错位。<strong>错位本身就是话术</strong>——锚 4.6 而不是 4.8,是「超」;锚 4.8 就只剩「接近」。</li>
+</ol>
+<p>**结论:**截至 8/27,唯一被第三方独立量过的排序是:<strong>GLM-5.3-Flash(57)&gt; V4-Flash-0731(52)≥ Qwen3.8-Flash(未测,推断在 52-57 区间)</strong>。等 AA 把 Flash-Next 收录进来,这张座次表才算真正开牌。</p>
+<blockquote>
+<p><strong>数据卫生提醒</strong>:检索时注意,聚合平台上流传一批「DeepSeek-V4-Flash-0713 / 16B-A2.8B / 首 token 95ms」的营销软文(如某「DMXAPI」系内容),规格与官方 0731 版本(284B-A13B)完全冲突,疑似编造。<strong>三家的公开信息环境里已经掺杂这种噪声,引用前请核对 deepseek.com 更新日志原文。</strong></p>
+</blockquote>
+<hr />
+<h2>五、价格对决 — 一元钱的三种命运</h2>
+<p>牌价表,先合并同框(每百万 tokens,人民币/美元双牌价——<strong>注意,三家的国内价与国际价并不同步</strong>)。三条计费规则先记牢:其一,DeepSeek 峰谷时段为北京时间 9:00-12:00、14:00-18:00,段外自动半价——<strong>它是三家唯一把「时间」做进价格维度的</strong>;其二,智谱限时五折自 8/26 起持续两周,且明确适用于第三方聚合平台;其三,阿里的牌价是发布日快照,既无折扣条款也无峰谷结构。<strong>同一份负载,在三家计费系统里会走出三条完全不同的曲线。</strong></p>
+<table>
+<thead>
+<tr>
+<th>计费项(¥/MTok)</th>
+<th>DeepSeek-V4-Flash</th>
+<th>GLM-5.3-Flash</th>
+<th>Qwen3.8-Flash</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>输入·常态</td>
+<td>空闲 1.5 / 高峰 3</td>
+<td><strong>0.8</strong>(五折 0.4)</td>
+<td>1</td>
+</tr>
+<tr>
+<td>输出·常态</td>
+<td>空闲 4.5 / 高峰 9</td>
+<td><strong>2.8</strong>(五折 1.4)</td>
+<td>3(五折口径无)</td>
+</tr>
+<tr>
+<td>输入·缓存命中</td>
+<td><strong>0.05-0.1(全场最低)</strong></td>
+<td>0.23</td>
+<td>未公布</td>
+</tr>
+<tr>
+<td>国际价</td>
+<td>$0.14/$0.28(高峰约翻倍至 $0.28/$0.56)</td>
+<td>$0.15/$0.50(五折 $0.075/$0.25)</td>
+<td>约 $0.16/$0.47</td>
+</tr>
+<tr>
+<td>折扣机制</td>
+<td><strong>峰谷:闲时自动五折</strong></td>
+<td>发布后两周限时五折</td>
+<td>未见折扣(首发日)</td>
+</tr>
+<tr>
+<td>图片</td>
+<td>≤384 tokens/张,<strong>Files API 永久免费</strong></td>
+<td>未单列</td>
+<td>未单列</td>
+</tr>
+</tbody>
+</table>
+<p>一个反直觉的细节:<strong>国内牌价 GLM 最便宜,美元牌价 DeepSeek 最便宜</strong>($0.28 输出 ≈ GLM 的五成六、Qwen 的六成)。同一家公司两副价签,本身就说明牌价是最不该单独看的数字。</p>
+<p>真正该看的是任务级。拿两类真实负载算账(设输入 50 万 tokens、输出 1 万 tokens):</p>
+<table>
+<thead>
+<tr>
+<th>负载类型</th>
+<th>DeepSeek(空闲)</th>
+<th>DeepSeek(高峰)</th>
+<th>GLM(常规)</th>
+<th>GLM(五折)</th>
+<th>Qwen(无缓存口径)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>高缓存 Agent(命中 95%)</td>
+<td>¥0.11</td>
+<td>¥0.21</td>
+<td>¥0.16</td>
+<td><strong>¥0.08</strong></td>
+<td>¥0.53</td>
+</tr>
+<tr>
+<td>低缓存长文/代码库(命中 0%)</td>
+<td>¥0.80</td>
+<td>¥1.59</td>
+<td><strong>¥0.43</strong></td>
+<td>¥0.21</td>
+<td>¥0.53</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>计算口径:每任务输入 50 万 tokens、输出 1 万 tokens;输入 = 命中部分×命中价 + 未命中×未命中价;Qwen 因未公布缓存价,按全量未命中计。数字为本文按官方牌价的推演示例,实际以各家计费系统为准。</p>
+</blockquote>
+<p>三张牌价结论:</p>
+<ol>
+<li><strong>高缓存 Agent 长跑的冠军会「换班」</strong>:GLM 五折窗口内(¥0.08)全场最低;两周后五折退出,<strong>同一负载 DeepSeek 空闲价(¥0.11)反超 GLM 常规价(¥0.16)</strong>。DeepSeek 把定价权变成了一道时区题——牌价最贵,但「错峰 × 缓存命中 ¥0.05」组合后的真实价最能打;</li>
+<li><strong>低缓存大输入是智谱的绝对主场</strong>:啃大代码库、长文档首问这类一次性负载,¥0.8 未命中输入折前折后都是地板价;但注意隐藏变量——<strong>GLM/Qwen 最大输出 128K,DeepSeek 支持 384K</strong>,超长产物的拆分、续写与拼接工程成本,价目表上看不见;</li>
+<li><strong>Qwen ¥1/¥3 卡在两家中间</strong>,真实成本变量在消耗率:家族前科摆着(Qwen3.8-27B 跑完 AA 全套生成约 1.6 亿输出 tokens,同题 GPT-5.6 Luna 约 1.3 亿),6B 的「快想」架构会把便宜牌价吃回去多少,<strong>单价 × 消耗量 × 重试率的乘积没人验证过——这正是它的悬念</strong>。</li>
+</ol>
+<p>**结论:**这场价格战的真相是「牌价趋同、结构分叉」——三家把同一元钱的切分方式彻底拉开了:<strong>DeepSeek 赌缓存与错峰,GLM 赌牌价数字本身,Qwen 赌单位算力</strong>。采购文档里「每百万 tokens 单价」这一栏,该整体替换成「每成功任务成本(含重试)」。</p>
+<hr />
+<h2>六、基本盘对决 — 跑量、硬核与云端各守一角</h2>
+<p>跑分和价格只是水面上的桅杆,三家的水下载体完全不同。逐个看牌:</p>
+<p>**DeepSeek 的牌:流量、时区与「半瞎」的解法。**它是三家里唯一有「全球调用量第一」实绩的:OpenRouter 连续两周登顶、周 11.2 万亿 tokens、中国模型整体连续 16 周压过美国——<strong>它的基准测试不是实验室,是真实世界的流量池</strong>。8/13 上线的 Harness(一切皆插件的 Agent 框架)+ Responses API 原生适配 Codex,把「换模型」的成本降到改一个 model 名:已在 DS 栈上的团队解锁视觉只需把模型名换成 vision-exp,账单公式不变。但三处暗伤:其一,<strong>多模态是「实验版」</strong>,只有图片没有视频,官方自己标注 Exp;其二,<strong>权重更新与 API 脱节</strong>——0731 重新后训练的权重并未同步开源,自托管用户手里的还是 4 月的旧模型;其三,涨价 4.5 倍(旧 ¥2→新 ¥9 高峰输出)的决策在两周内遭到 GLM/Qwen 同夜夹击证实为窗口期误判——<strong>摩根大通说的「定价灵活性」如今成了双刃剑:它随时可以再降回去,但也证明了它可以不守信用</strong>。</p>
+<p>**智谱的牌:认证、工程与「孤勇者」处境。**57 分是三家唯一一张独立机构盖章的前沿认证;60T tokens 匿名公测淬炼是唯一一次「先跑全球流量再发布」;MIT + 国产芯片集群承载全部真实负载,是中国公司第一次把「硬件自主 + 开源生态」两张牌同时打给海外市场(股价盘中 +8%、JPM 目标价 1800 港元是资本侧的回声)。但代价同样清晰:智谱没有云帝国——Coding Plan 与 API 是它的全部渠道,面对阿里的「千问办公 95% 覆盖率 × 阿里云」和 DeepSeek 的「免费网页版 × 流量池」,它站在中间没有生态缓冲。<strong>这是一家只有模型公司的模型战争。</strong></p>
+<p>**阿里的牌:密度、肌肉与「生态闭环」。**训练成本 1/9 是三家里唯一的「造模型的成本革命」,意味着它的迭代次数上限是对手的数倍;Qwen4 架构预览身份让 Flash-Next 自带「未来兼容性」——今天微调的架构知识,明天直接平移到旗舰;30 亿次下载、30 万衍生模型的社区纵深,让三家任何部署争议最后都会变成「有人已经踩过坑」。而「千问办公」当晚内置,是 DeepSeek 和智谱都不具备的——<strong>自有十亿级办公场景做模型的分发器</strong>。它的短板也最直白:没有 AA 分、没做过 1M 原生的公网压测、Max 的自定义许可证先例让「Apache 惯性信任」吃了亏。</p>
+<blockquote>
+<p><em>"没有绝对的天下第一,只有最适合你的场景。"</em> — 威易网三 Flash 横评(8/26);而粉丝战争版是:头条算法圈「GLM Flash 稳压 Qwen Flash」vs Qwen 阵营「125B 对阵 320B,这不叫对比,这叫以大欺小」——<strong>两边都对,这就是 Flash 战争的本质:用不同的尺寸、价格与生态,回答同一个问题——每块钱、每瓦特、每一次迭代,装多少智能。</strong></p>
+</blockquote>
+<h3>棋局之外的下一步:三家已被公开信息剧透的动作</h3>
+<table>
+<thead>
+<tr>
+<th>玩家</th>
+<th>已露头的后续动作</th>
+<th>对三 Flash 格局的影响</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DeepSeek</td>
+<td>Vision-Exp 转正并扩展到 Pro 系列(媒体普遍预期);峰谷规则随时可再调;0731 权重是否补开源仍未表态</td>
+<td>一旦把闲时输出从 ¥4.5 再往下打,<strong>第一个丢单的是牌价没有纵深的挑战者</strong>;权重补发则直接解掉自托管警报</td>
+</tr>
+<tr>
+<td>智谱</td>
+<td><strong>GLM-5.3 完整权重 8/28 上线</strong>(首次延迟开源的兑现日);摩根大通预测 8 月内发布万亿参数级 GLM-5.5;五折 9 月 9 日到期</td>
+<td>高缓存任务冠军「换班」进入倒计时;GLM-5.5 若如期登场,旗舰—Flash 的代际梯子会比阿里 Qwen4 更先搭好</td>
+</tr>
+<tr>
+<td>阿里</td>
+<td>Flash-Next 交给社区检验(微调、量化、评测会在两周内爆发式出现);Qwen4 时间表随架构验证进度浮动</td>
+<td><strong>社区实测将最先逼近 Flash 的真实位置</strong>:若 AA 收录后站上 56-57,「以小胜大」的故事即刻改写座次</td>
+</tr>
+<tr>
+<td>场外变量</td>
+<td>OpenAI 8/21 宣布 GPT-5.6 Sol API 降价超 20%(为期三个月);Gemini 3.7 Flash 促销价 12/31 到期回 $1.5/$7.5;Kimi K2.5 月底退役、K3 无法新订阅</td>
+<td>海外降价与国产内卷同步发生——<strong>8 月的「斩杀线」由中国厂商定义,但接球的窗口正在变窄</strong></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>来源:每经/新浪(OpenRouter 与调价报道)、电子工程专辑(8/27)、摩根大通研报(8/16)、知乎 AI 热点日报(8/21-22)、OSCHINA/什么值得买(8/20-25)、智谱 GLM-5.3 官方开源承诺。</p>
+</blockquote>
+<p><strong>这意味着:<strong>三家都已没有「按兵不动」这个选项——DeepSeek 要决定是否把价格战重新点燃,智谱要证明 57 分不是发布日烟花,阿里要等社区替它把 AA 的空白填上。三个月后回看,8 月 26 日大概率被记住的不是「谁赢了」,而是</strong>「前沿模型的采购清单第一次需要三家同时开着计费页来写」</strong>。</p>
+<hr />
+<h2>七、选型决策 — 按场景对号入座</h2>
+<table>
+<thead>
+<tr>
+<th>你的负载</th>
+<th>首选</th>
+<th>次选/备选</th>
+<th>关键理由</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Coding Agent 主力(改大库、长会话、多步工具)</td>
+<td><strong>GLM-5.3-Flash</strong></td>
+<td>V4-Flash-0731</td>
+<td>57 分硬认证、六项同框四项第一;DS 的 384K 输出在整仓生成时是隐藏武器</td>
+</tr>
+<tr>
+<td>Office 助手、文档/PPT 流水线、中文办公</td>
+<td><strong>Qwen3.8-Flash(千问办公)</strong></td>
+<td>GLM 五折窗口</td>
+<td>95% 日常办公覆盖的宣传是否属实另说,协同优化 + 阿里邮箱/钉钉生态是真实加成</td>
+</tr>
+<tr>
+<td>移动端/GUI/具身 Agent</td>
+<td><strong>Qwen3.8-Flash</strong></td>
+<td>GLM(ZCode BUA/CUA)</td>
+<td>AndroidWorld 84.5、MathVision 95.7 的自报分属第一梯队,但注意「超 Opus 4.6」口径</td>
+</tr>
+<tr>
+<td>截图 OCR、表格抽取、轻量视觉任务,存量 DS 技术栈</td>
+<td><strong>V4-Flash-Vision-Exp</strong></td>
+<td>不用换栈</td>
+<td>改一行模型名解锁看图,价格不变、Files API 免费——<strong>迁移成本最低的多模态方案</strong></td>
+</tr>
+<tr>
+<td>高并发在线服务(客服、内容生成、搜索摘要)</td>
+<td><strong>V4-Flash(错峰调度)</strong></td>
+<td>Qwen(等吞吐实测)</td>
+<td>并发 2500 + 缓存价 + 闲时五折,为「重复提问 × 巨大前缀」而生</td>
+</tr>
+<tr>
+<td>夜间批处理、评测、数据加工</td>
+<td><strong>V4-Flash 空闲段</strong></td>
+<td>GLM 五折到期后重算</td>
+<td>离线任务天然吃满峰谷规则</td>
+</tr>
+<tr>
+<td>一次性啃大上下文(整库首问、长文档冷读)</td>
+<td><strong>GLM-5.3-Flash</strong></td>
+<td>Qwen</td>
+<td>¥0.8 未命中输入全场最低;若产物超 128K,加挂 DS 做续写</td>
+</tr>
+<tr>
+<td>私有化/本地部署</td>
+<td><strong>GLM(MIT)/ Qwen(待确认许可)</strong></td>
+<td>—</td>
+<td><strong>智谱 MIT 最干净;Qwen 先看 License 再动 GPU;DeepSeek 注意陷阱:可下载的权重是 4 月旧版,线上 API 跑的是新版</strong></td>
+</tr>
+<tr>
+<td>预算极紧的学生/个人</td>
+<td><strong>三家全部:网页版免费额度</strong></td>
+<td>—</td>
+<td>DS 网页/App、智谱清言、千问网页端均有免费入口,先用真实任务喂它们一周</td>
+</tr>
+</tbody>
+</table>
+<p>三步走决策法,顺序不能反:<strong>第一步看负载结构</strong>(缓存命中率?输出长度?并发量?——这三问直接分出 DeepSeek 还是两家新王);<strong>第二步看生态绑定</strong>(已在 Claude Code/OpenCode/千问办公/钉钉哪个壳里?换壳成本大于换模型成本);<strong>第三步才看牌价打折</strong>——限时五折这类窗口期数据,写预算时按原价算,写营销 PPT 时才按五折算。</p>
+<hr />
+<h2>八、FAQ — 6 个关键问答</h2>
+<p><strong>Q1:8 月 26 日那一晚,到底谁赚了?</strong>
+A:分开看。<strong>发布声量上 DeepSeek 是输家</strong>——它 4.5 倍涨价留下的真空被两家同夜瓜分,「最低档位价格」的叙事权第一次易主。<strong>但它输的是叙事,不是生意</strong>:OpenRouter 调用量冠军、免费网页入口、存量技术栈粘性都没丢;Vision-Exp 又恰好卡在「迁移不用换商」的生态位上。<strong>两家新王各拿半满分</strong>:智谱拿到了「认证最强 Flash」,阿里拿到了「单位成本最低 Flash」。赢家通吃的剧本这轮没上演。</p>
+<p><strong>Q2:我们已经在 DeepSeek 上跑 Agent,要迁吗?</strong>
+A:三个判断题:① **要不要视频/深度多模态?**要 → Vision-Exp 不给(仅图片),迁 GLM 或 Qwen;② **单轮产出是否常超 128K?**是 → 只能留在 DS 或用拆分方案;③ **账单里高峰时段的占比?**超半数 → 先做错峰调度再谈迁移,大概率一分钱不用花。<strong>三问都是「否」,你其实不用动——DeepSeek 用价格弹性换掉了迁移理由。</strong></p>
+<p><strong>Q3:三家做多模态,谁是真·原生?</strong>
+A:含金量排序:**智谱、阿里是预训练期原生多模态(30T 多模态语料/文本+图像+视频输入);DeepSeek 是后挂实验版(仅图片、Exp 标签)。**但别急着下结论——V4-Flash-Vision-Exp 在 ApexBench、Chartography 两项第三方记录中已经摸到 Opus 4.8,「实验版」的成绩已经进场,GLM/Qwen 的原生溢价还没兑换成独立认证。<strong>2026 年看模型,动作要听、身份更要看权重和评测记录。</strong></p>
+<p><strong>Q4:自托管用户怎么选?</strong>
+A:三条残酷事实:① <strong>智谱 MIT 是协议最干净的</strong>,320B 多机可部署,FP8/量化配方社区已在路上;② 阿里 125B+51B 体积最小、架构对 CPU/GPU 混合推理最友好(51B 外挂设计本就是给异构内存写的),<strong>但许可证未注明,Max 的自定义条款先例必须查模型卡</strong>;③ <strong>DeepSeek 的开源权重停在 4 月 Preview——API 已升级到 0731 重新后训版,线下部署的仍是旧模型</strong>,官方没有承诺同步放出。自托管的账,这次智谱阿里算得清,DeepSeek 的图纸是旧的。</p>
+<p><strong>Q5:价格战下一轮什么时候来?盯什么?</strong>
+A:三个日历节点:<strong>9 月上旬</strong>(Qwen 秋季发布节奏/云栖大会前哨;DeepSeek 有没有「促销回血」动作)、<strong>12 月 31 日</strong>(Gemini 3.7 Flash $0.75/$3.75 促销价到期回 $1.5/$7.5,国际牌价重算)、<strong>以及智谱五折到期的次日</strong>(高缓存负载冠军易主回 DeepSeek,前面算过了)。<strong>最值得盯的反而是 DeepSeek 的降价自由</strong>——它 8/17 涨上去的每一分,都是未来价格战的弹药。</p>
+<p><strong>Q6:三家跑分,哪些可以直接进采购文档?</strong>
+A:<strong>只有两行:GLM-5.3-Flash 的 AA 57 与 V4-Flash-0731 的 AA 52</strong>(Artificial Analysis 独立评测)。其余全部是厂商自报或对手转测:智谱表的 DS 列是对手跑的,阿里表的 Opus 列是锚旧的(4.6)、Qwen 的「超 Opus 4.6 九分」没有第三方复现。<strong>采购文档的正确写法:先列两条独立认证,再放各家自报成绩单并标注口径,最后补一条「我方 N 个真实任务的实测通过率与单任务成本重测日期」——那才是真正的跑分。</strong></p>
+<blockquote>
+<p>**一句收口:**2026 年 8 月的中国大模型市场,第一次同时拥有「被承认的最强大脑(智谱 57)、打不穿的流量堤坝(DeepSeek)、造不出第二遍的效率配方(阿里 1/9)」——三块拼图凑齐了前沿普惠的全部原料,<strong>只差把采购决策从「选最强」改成「选最对」的终端用户。</strong></p>
+</blockquote>
+<hr />
+<h2>九、参考资料</h2>
+<p><strong>厂商官方</strong></p>
+<ul>
+<li>DeepSeek:API 更新日志与模型定价页(api-docs.deepseek.com/zh-cn/updates、/quick_start/pricing)、V4 Preview 发布(4/24)、V4-Flash-0731 更新、V4-Flash-Vision-Exp 发布文(微信公众号,8/21)与视觉 API 文档(guides/vision)、Harness 开发者预览公告(8/13)</li>
+<li>智谱:GLM-5.3-Flash 官方博客(z.ai/blog/glm-5.3-flash)、BigModel 模型文档(docs.bigmodel.cn/cn/guide/models/vlm/glm-5.3-flash)、官方 X 公告(8/26 22:12)、HuggingFace zai-org/GLM-5.3-Flash(MIT)</li>
+<li>阿里:Qwen 官方博客(qwen.ai/blog?id=qwen3.8-flash-next)、技术报告(QwenLM/Qwen3.8-Flash-Next GitHub)、HuggingFace/ModelScope Qwen/Qwen3.8-Flash-Next(8/26 23:00)</li>
+</ul>
+<p><strong>第三方评测与媒体</strong></p>
+<ul>
+<li>Artificial Analysis:Intelligence Index v4.1.1(GLM-5.3-Flash 57、V4-Flash-0731 与 Qwen3.8-27B 各 52、Qwen3.8-Max 58)、GLM vs Qwen3.8-Max 比较页</li>
+<li>DataLearner / llm-stats:GLM-5.3-Flash vs Qwen3.8-Flash-Next 同框对比(8/26)</li>
+<li>威易网:DeepSeek-V4-Flash-Vision-Exp / GLM-5.3-Flash / Qwen3.8-Flash 三强横评(8/26)</li>
+<li>电子工程专辑:《DeepSeek 补齐视觉「睁开眼」,指标向 Opus-4.8 靠拢》(8/27)</li>
+<li>每日经济新闻/新浪:OpenRouter 调用量周报与 DeepSeek 涨价报道(8/17);新京报/北京商报/上证报/潮新闻/广州日报/界面/IT之家/快科技对 8/13-8/26 各发布日的报道</li>
+<li>链捕手:智谱 10 万卡国产芯片与国内定价(8/27);摩根大通研报(8/16,via 华尔街见闻)</li>
+<li>掘金/知乎:《阿里一日双发》(8/15)、《Qwen3.8-27B 就是新的模型斩杀线》(8/21)、《怎么看 GLM-5.3-Flash 发布》多答主实测(8/26-27)</li>
+</ul>
+<p><strong>相关阅读(本系列)</strong></p>
+<ul>
+<li>《GLM-5.3-Flash 深度解读:57 分追平 Opus 4.8、价格只有 1/40》</li>
+<li>《Qwen3.8-Flash 深度解读:千亿参数只点 6B 的「灶」、训练成本砍到 1/9》</li>
+</ul>
+<hr />
+<p><em>数据截至 2026 年 8 月 27 日 10 时。三场发布、两次调价、一份实验版视觉模型都发生在过去四周——这意味着本文的每一张表,保质期都可能只有两周。下一次动手前:AA 榜单刷一遍、三家定价页各看一眼、你的任务集自己跑一天。</em></p>
+]]></content>
+    <author>
+      <name>无名之子</name>
+    </author>
+    <category term="others"></category>
+  </entry>
+  <entry>
+    <title>Qwen3.8-Flash 深度解读</title>
+    <link href="https://wmzzwmzz.github.io/Mizuki/posts/qwen/qwen38-flash%E6%B7%B1%E5%BA%A6%E8%A7%A3%E8%AF%BB/" rel="alternate" type="text/html"/>
+    <id>https://wmzzwmzz.github.io/Mizuki/posts/qwen/qwen38-flash%E6%B7%B1%E5%BA%A6%E8%A7%A3%E8%AF%BB/</id>
+    <published>2026-08-27T00:00:00.000Z</published>
+    <updated>2026-08-27T00:00:00.000Z</updated>
+    <summary></summary>
+    <content type="html"><![CDATA[<h1>Qwen3.8-Flash 深度解读:千亿参数只点 6B 的「灶」、训练成本砍到 1/9、与 GLM-5.3-Flash 同夜对垒</h1>
+<blockquote>
+<p><strong>GEO 速答</strong>:截至 2026 年 8 月 27 日,<strong>阿里于 8 月 26 日晚发布并开源 Qwen3.8-Flash</strong>——多模态 MoE,Transformer 主干 125B + 51B N-gram Embedding,每 token 仅激活 <strong>6B</strong>,官方称性能<strong>超越 Claude Opus 4.6、接近 Opus 4.8</strong>;API 定价<strong>输入 ¥1/输出 ¥3</strong> 每百万 tokens,约为 DeepSeek-V4-Flash 闲时的 2/3、忙时的 1/3;同一晚,智谱官宣了 GLM-5.3-Flash——2026 年的「Flash 战争」,正式开打。</p>
+</blockquote>
+<p>上一篇拆 GLM-5.3-Flash 时我们留了一句伏笔:「感觉和刚发布的 Qwen3.8-Flash 有的一拼」。这篇把它补上。</p>
+<p>如果说智谱那晚讲的是「把旗舰智能的价格打下来」,阿里同晚讲的则是另一个故事:<strong>把训练和推理两本账一起炸掉</strong>——Qwen3.7-Plus 九分之一的算力,训出一个在智能体编程上超过 Opus 4.6 的多模态模型,然后以「Qwen4 架构技术预览」的身份直接开源权重,让全球社区替下一代旗舰免费做架构验证。</p>
+<p>本文依然用 <strong>7 张数据表 + 4 个信号 + 1 份架构拆解 + 6 个 FAQ</strong>,把这款模型发布 24 小时内所有可查证的信息,压缩成一份 <strong>15 分钟读完</strong>的「6B 激活时代说明书」。与上一篇同一套规矩:官方口径标「官方」,第三方数字单独署名,自报跑分一律不当圣旨。</p>
+<hr />
+<h2>一、TL;DR — 6 句话看懂 Qwen3.8-Flash</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>问题</th>
+<th>答案</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>它是什么</td>
+<td>阿里通义千问的多模态 MoE 模型:Transformer 主干 <strong>125B 总参数 + 51B N-gram Embedding</strong>,每 token 激活仅 <strong>6B</strong>;原生 262,144 上下文,YaRN 可扩展至 1M(开源的 Flash-Next 版默认 1M 并内置官方工具)</td>
+</tr>
+<tr>
+<td>2</td>
+<td>有多强</td>
+<td>官方口径:<strong>超越 Claude Opus 4.6、接近 Opus 4.8</strong>——SWE-bench Pro 62.5(领先 Opus 4.6 达 9.1 分)、DeepSWE 58.7、CoWorkBench 73.9、AndroidWorld 84.5(领先 22.5 分);基座模型 8/14 项基准在 6B 激活档位拿最优</td>
+</tr>
+<tr>
+<td>3</td>
+<td>多便宜</td>
+<td>API 输入 <strong>¥1</strong>/输出 <strong>¥3</strong> 每百万 tokens(约 $0.16/$0.47),是 DeepSeek-V4-Flash 忙时价的 1/3、闲时的 2/3,约为 Claude Opus 4.6 的 <strong>3%</strong></td>
+</tr>
+<tr>
+<td>4</td>
+<td>省在哪</td>
+<td>与 GLM 只砍推理成本不同,Qwen3.8-Flash 两头砍:<strong>训练成本降到 Qwen3.7-Plus 的 1/9</strong>(降近 90%),推理靠 GDN + QSA 混合注意力,1M 高缓存命中场景提速 8 倍以上</td>
+</tr>
+<tr>
+<td>5</td>
+<td>什么身份</td>
+<td>开源权重叫 <strong>Qwen3.8-Flash-Next</strong>——官方明说这是下一代 <strong>Qwen4 架构的雏形/技术预览</strong>,提前放出让社区检验;与智谱 GLM-5.3-Flash <strong>同晚发布</strong>,正面撞车</td>
+</tr>
+<tr>
+<td>6</td>
+<td>边界在哪</td>
+<td>对标锚点是 Opus <strong>4.6</strong>(上一代模型),比 GLM 直接锚 57=57 的 Opus 4.8 口径保守一档;第三方同框横评(GLM vs Qwen 六项)智谱平均高约 6.3 分;发布时尚无 Artificial Analysis 独立指数</td>
+</tr>
+</tbody>
+</table>
+<p><strong>一句话立场</strong>:Qwen3.8-Flash 的杀手锏不是又一个便宜的 API,而是「<strong>效率的两种形态</strong>」里更狠的那一种——GLM-5.3-Flash 证明同样的智能可以更便宜地<strong>运行</strong>,Qwen3.8-Flash 证明同样的智能可以更便宜地<strong>被造出来</strong>,而且顺手把 Qwen4 的架构验证外包给了全世界。</p>
+<hr />
+<h2>二、关键时间线 — Qwen3.8 的「三周闪电战」</h2>
+<p>单看 8 月 26 日会看不懂这场发布,必须把 Qwen3.8 家族三周的动作连起来读——这是一次教科书式的「饱和式发布」。</p>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>事件</th>
+<th>关键信息</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-08-03</td>
+<td><strong>Qwen3.8-Max</strong> API 版上线</td>
+<td>云端旗舰:¥12/¥36 每百万 tokens(缓存命中 ¥1.5),国际价 $2/$6;1M 上下文、强制思考、文本+图像+视频</td>
+</tr>
+<tr>
+<td>2026-08-12</td>
+<td><strong>Qwen3.8-2.4T-A95B 开放权重</strong></td>
+<td>Qwen 家族首个破万亿参数的开源:2.4T 总参、激活约 95B(512 专家选 10+1);BF16 权重约 4.9TB、FP8 约 2.4TB;许可证改为<strong>自定义条款</strong>(MAU &gt;1 亿或月收入 &gt;$2000 万需标注,超 $5000 万另行授权);PaperBench 93.0、OSWorld-Verified 86.1 第一;同一晚 DeepSeek V4-Pro 正式版与 Grok 4.6 也扎堆上线</td>
+</tr>
+<tr>
+<td>2026-08-14</td>
+<td><strong>Qwen3.8-27B 开源 + OpenSandbox</strong> 一日双发</td>
+<td>27B <strong>稠密</strong>原生多模态,Apache 2.0 真宽松;量化 17.9GB 进 24GB 显存,被叫「本地 Opus 4.6」;AA 指数 <strong>52</strong> 追平 GPT-5.6 Luna;开源两天下载破百万、登顶 HuggingFace Trending;NVIDIA 全线(RTX/DGX Spark/Jetson)+ 昇腾等九款国产芯片 Day-0 适配;同日 SpaceX 宣布 600 亿美元收购 Cursor,「600 亿 vs 0 美元」成为路线分水岭话题</td>
+</tr>
+<tr>
+<td>2026-08-17</td>
+<td>DeepSeek 提价生效</td>
+<td>V4-Flash 高峰输出涨至 ¥9、V4-Pro 至 ¥27——旧「低价斩杀线」主动让位</td>
+</tr>
+<tr>
+<td>2026-08-20</td>
+<td>阿里 FY2027 Q1 财报</td>
+<td>阿里云外部收入同比 <strong>+45%</strong>,创 22 个季度新高;AI 收入连续 <strong>12 个季度三位数增长</strong>;Q2 资本开支 676.78 亿元(+75%),3800 亿三年计划已投 1900 亿</td>
+</tr>
+<tr>
+<td>2026-08-26 20:39-21:35</td>
+<td><strong>Qwen3.8-Flash 发布</strong></td>
+<td>官方定调「千亿总参、6B 激活、效率全球新基准」;千问 AI 平台 API 定价 ¥1/¥3</td>
+</tr>
+<tr>
+<td>2026-08-26 晚</td>
+<td><strong>首发上线「千问办公」</strong></td>
+<td>标准模式内置,官方称可覆盖 95% 日常办公任务;模型与 Harness 框架协同优化</td>
+</tr>
+<tr>
+<td>2026-08-26 22:00-23:00</td>
+<td><strong>与 GLM-5.3-Flash 同夜对台戏</strong></td>
+<td>智谱 22:12 官宣 320B-A18B;阿里 23:00 在 HuggingFace/ModelScope 放出 Qwen3.8-Flash-Next 权重与 FP8 版本</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>数据来源:IT之家、界面新闻、新京报、紫牛新闻、上证报(8/26-8/27);掘金、CSDN、搜狐科技(8/12-8/16);什么值得买/快科技(8/25-8/26);DeepSeek 技术社区 AI 日报(8/21);摩根大通研报(8/16,华尔街见闻)。</p>
+</blockquote>
+<p>**这意味着:**智谱用「匿名公测六天」预热一款模型,阿里用「三周四连发」铺一个家族——Max 立能力上限、2.4T 立开源招牌、27B 立本地斩杀线、Flash 立价格地板。四款模型指向同一个终点:Qwen4。</p>
+<hr />
+<h2>三、发布背后的 4 个信号</h2>
+<h3>信号 1:效率战争进入第二战场 — 从「推理便宜」打到「训练便宜」</h3>
+<p>2025 年到 2026 上半年,中国模型的成本故事全在推理侧:DeepSeek 的 MLA/MoE、智谱的混合注意力,都是「同一个模型,跑起来更省」。Qwen3.8-Flash 把战火烧到了<strong>训练侧</strong>——官方口径:达到与 Qwen3.7-Plus 相近的性能,<strong>只消耗九分之一的训练资源</strong>。</p>
+<p>这个差别不是营销措辞,是护城河性质的差别:推理降本摊薄的是服务账单,训练降本压缩的是<strong>试错成本</strong>——同样的预算,可以多做 9 次架构迭代、9 轮后训练 Scaling。智谱靠 GLM-5.3 证明「同基座后训练能涨 50%」,阿里靠 Qwen3.8 证明「新架构能把造模型的门票打掉一个数量级」。摩根大通评估中国 AI 竞争的那句话放这里正合适:<strong>可持续的成本优势,必须建立在结构性效率之上,而非激进的定价意愿。</strong></p>
+<p>佐证来自裸基座,这是最难造假的一段:仅完成预训练的 <strong>Qwen3.8-Flash-Next-Base,在 6B 激活档位下于 14 个 benchmark 中拿下 8 个最优</strong>(含 MMLU-Pro、SuperGPQA、BBH、SWEBench-Pretrain、MGSM、MMMU);未经后训练的基座,通用、数学(GSM8K)、编程基础能力已经<strong>超过体积 3 倍的 Qwen3.7-Plus 基座</strong>。后训练只是把这份底子放大:SWE-bench Pro 62.5、DeepSWE 58.7、JobBench 超 Opus 4.6 近 20 分。</p>
+<table>
+<thead>
+<tr>
+<th>基准(官方自报)</th>
+<th>Qwen3.8-Flash</th>
+<th>对比对象</th>
+<th>分差</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SWE-bench Pro(智能体编程)</td>
+<td><strong>62.5</strong></td>
+<td>Claude Opus 4.6</td>
+<td><strong>+9.1</strong></td>
+</tr>
+<tr>
+<td>DeepSWE v1.1(真实仓库)</td>
+<td>58.7</td>
+<td>GLM-5.3-Flash(63.4)/ Gemini 3.7 Flash(65.3)</td>
+<td>同档偏下</td>
+</tr>
+<tr>
+<td>CoWorkBench(长程专业任务)</td>
+<td><strong>73.9</strong></td>
+<td>DeepSeek-V4-Flash</td>
+<td>超越</td>
+</tr>
+<tr>
+<td>Toolathlon Verified(真实工具调用)</td>
+<td>约 73.5(第三方收录口径)</td>
+<td>DeepSeek-V4-Flash、GLM-5.3-Flash(78.4)</td>
+<td>超前者、略逊后者</td>
+</tr>
+<tr>
+<td>JobBench(专业工作任务)</td>
+<td>—</td>
+<td>Claude Opus 4.6</td>
+<td><strong>+近 20</strong></td>
+</tr>
+<tr>
+<td>AndroidWorld(移动端 Agent)</td>
+<td><strong>84.5</strong></td>
+<td>Claude Opus 4.6</td>
+<td><strong>+22.5</strong></td>
+</tr>
+<tr>
+<td>MathVision w/ CI(视觉数学推理)</td>
+<td><strong>95.7</strong></td>
+<td>Claude Opus 4.6</td>
+<td><strong>+25.1</strong></td>
+</tr>
+<tr>
+<td>ERQA(具身智能问答)</td>
+<td>—</td>
+<td>Claude Opus 4.6</td>
+<td><strong>+31.5</strong></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>数据来源:阿里官方发布材料(经紫牛新闻、快科技转录,基准绝对值多为截图,本文仅转录可比对数字);第三方对比来自 DataLearner、llm-stats 对 Qwen3.8-Flash-Next 与 GLM-5.3-Flash 的收录页。注意:以上绝大多数为厂商自报口径,官方图表未转录部分以分差计。</p>
+</blockquote>
+<h3>信号 2:双 Flash 之夜 — 中国模型的「斩杀线」的内战打响</h3>
+<p>8 月 26 日晚 20:40,界面新闻发出阿里发布的快讯;22:12,智谱 Z.ai 的官宣帖登顶 X 热帖;23:00,双方在 HuggingFace 的权重几乎前后脚落地。<strong>两款「Flash」在同一晚、以几乎相同的价格(¥0.8/2.8 vs ¥1/3)、针对同一批场景(编程 Agent + 办公 + 多模态)开卖</strong>——这在一年前是不可想象的场面:彼时 Flash 档位指的是「旗舰阉割版」,如今它是各家真正的走量主力。</p>
+<p>把两位主角放上秤台(第三方 DataLearner 同框收录,6 项):</p>
+<table>
+<thead>
+<tr>
+<th>基准</th>
+<th>GLM-5.3-Flash</th>
+<th>Qwen3.8-Flash-Next</th>
+<th>胜方</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DeepSWE</td>
+<td><strong>63.4</strong></td>
+<td>58.7</td>
+<td>智谱 +4.7</td>
+</tr>
+<tr>
+<td>NL2Repo</td>
+<td><strong>56.3</strong></td>
+<td>48.1</td>
+<td>智谱 +8.2</td>
+</tr>
+<tr>
+<td>Toolathlon Verified</td>
+<td><strong>78.4</strong></td>
+<td>73.5</td>
+<td>智谱 +4.9</td>
+</tr>
+<tr>
+<td>HLE(带工具口径不同)</td>
+<td><strong>55.3</strong></td>
+<td>35.9</td>
+<td>智谱(注:测试条件不一致,仅供参考)</td>
+</tr>
+<tr>
+<td>Agents' Last Exam</td>
+<td><strong>26.3</strong></td>
+<td>24.3</td>
+<td>智谱 +2(llm-stats 收录结果与之相左,待复测)</td>
+</tr>
+<tr>
+<td>CharXiv-R(多模态)</td>
+<td>89.4</td>
+<td><strong>90.6</strong></td>
+<td>阿里 +1.2</td>
+</tr>
+</tbody>
+</table>
+<p>结构上的差异比分数更有意思:**GLM 用 3 倍于对手的体量和原生 1M,买的是「严谨与长程」;Qwen 用 6B 激活和 125B 体量,买的是「吞吐、成本与训练效率」。**头条号的算法圈观察者说得更直接:「GLM Flash 稳压 Qwen Flash,两者不在一个量级——体量差了近乎三倍」;但反过来,论部署门槛,125B+ 外挂 51B 的 Qwen 又比 320B 的智谱「友好太多」。威易网的三 Flash 横评(把 DeepSeek-V4-Flash-Vision-Exp 也拉上)给了各自的人设:<strong>Qwen 是吞吐与性价比卷王,GLM 是长链路 Agent 特长生,DeepSeek 是轻量视觉务实派。</strong></p>
+<p>**结论:**2026 下半年前沿模型的门票,已经不再由「谁最强」发放,而是由「谁能在每一块钱、每一瓦特、每一次迭代里塞进更多智能」发放——这场战争里没有阉割版,Flash 就是主战场。</p>
+<h3>信号 3:Qwen4 的「分布式研发」 — 用开源社区当架构测试组</h3>
+<p>阿里这次把话说得前所未有地白:<strong>Qwen3.8-Flash-Next 是 Qwen4 系列模型的雏形/技术预览</strong>,开源是为了「在基于此构建 Qwen4 完整家族之前,先让全球社区检验这套架构」。这不是做公益——这是把千万开发者的微调、量化、部署实践,变成自己架构验证的免费分布式测试网。27B 的前例就在三周前:Unsloth 的深度量化配方、RTX 5090 上 115 t/s 的实测、vLLM/llama.cpp 的 Day-0 适配、社区甚至统计出「前 4 层 + 后 12 层最值钱」的分层量化规律——这些反馈,任何内部测试组都攒不出这个密度。</p>
+<p>而 Qwen 敢这么玩的底气来自生态复利:累计开源 <strong>460+ 款模型、全球下载突破 30 亿次、衍生模型超 30 万个</strong>,HuggingFace 夏季报告用整章论述「Qwen 已成全球开源基座」。当芯片厂商、推理框架、量化工具都围绕你的模型架构做适配,你卖的就不是 token,是<strong>产业位置</strong>。</p>
+<blockquote>
+<p><em>"As a 27B model, it performs on par with Opus 4.6 on benchmarks."</em> — testingcatalog(社区对 27B 的评价,同样适用于理解 Flash 路线)</p>
+</blockquote>
+<h3>信号 4:模型回到场景 — 「千问办公」与云报表上的闭环</h3>
+<p>阿里的发布路径带着鲜明的体用结构:Flash 不只是 API 货架上的一个新 SKU,而是当晚就嵌进「千问办公」的标准模式——官方称可完成 <strong>95% 的日常办公任务</strong>,且 Qwen 团队与千问办公团队对模型和 Harness <strong>协同联合优化</strong>。这层「模型 × 自家工作环境」的耦合,恰恰是第三方评测最容易翻车、也最难被竞品复制的地带。</p>
+<p>商业闭环同样摆在明面上:财报里阿里云 AI 收入连续 12 个季度三位数增长、3800 亿算力投入已兑现 1900 亿——<strong>训练成本降 90% 省下来的每一分钱,都会直接改善这条资本开支曲线的回报率</strong>。对阿里,Flash 是「AI 规模化的水电煤」;对智谱,Flash 是身家性命;同一款档位的产品,背后是两种公司命运。这也是为什么威易网的选型结论把 Qwen 留给「高并发、海量吞吐、降本增效」——它从来都是为一整片云设计的。</p>
+<hr />
+<h2>四、深度拆解 — 四大支柱与「外挂记忆」的算术</h2>
+<p>先看家族坐标,再逐柱拆解。</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Qwen3.8-Max(2.4T)</th>
+<th>Qwen3.8-27B</th>
+<th><strong>Qwen3.8-Flash / Flash-Next</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>发布时间</td>
+<td>8/3 API、8/12 权重</td>
+<td>8/14 权重</td>
+<td><strong>8/26 发布、23:00 权重</strong></td>
+</tr>
+<tr>
+<td>架构</td>
+<td>MoE,512 专家选 10+1</td>
+<td><strong>Dense</strong> 稠密</td>
+<td><strong>MoE + N-gram Embedding 外挂</strong></td>
+</tr>
+<tr>
+<td>总参/激活</td>
+<td>2.4T / ~95B</td>
+<td>27B / 27B(全激活)</td>
+<td><strong>125B + 51B / 6B</strong></td>
+</tr>
+<tr>
+<td>模态</td>
+<td>纯文本(开源版)</td>
+<td>原生文本+图像+视频</td>
+<td><strong>原生多模态</strong></td>
+</tr>
+<tr>
+<td>上下文</td>
+<td>262K→1.01M</td>
+<td>262K→1M</td>
+<td><strong>262K 原生→1M(Next 默认 1M)</strong></td>
+</tr>
+<tr>
+<td>最大输出</td>
+<td>128K</td>
+<td>128K 级</td>
+<td><strong>128K</strong></td>
+</tr>
+<tr>
+<td>许可证</td>
+<td>自定义条款</td>
+<td>Apache 2.0</td>
+<td><strong>发布报道未注明,以模型卡为准</strong></td>
+</tr>
+<tr>
+<td>AA 指数</td>
+<td>58</td>
+<td>52</td>
+<td><strong>截至发稿未见独立评测</strong></td>
+</tr>
+<tr>
+<td>API 价(国内)</td>
+<td>¥12 / ¥36</td>
+<td>未主推</td>
+<td><strong>¥1 / ¥3</strong></td>
+</tr>
+<tr>
+<td>角色</td>
+<td>能力上限、旗舰叙事</td>
+<td>本地部署斩杀线</td>
+<td><strong>云端走量、办公主力、Qwen4 架构预览</strong></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>数据来源:界面新闻、IT之家、掘金、什么值得买、Artificial Analysis 比较页(8/26 前收录)。</p>
+</blockquote>
+<p>翻译成人话,这张表的读法是:**Max 负责「能做多强」,27B 负责「要多便携」,Flash 负责「要多便宜」——三条线共享同一套混合注意力骨架,这是阿里版「架构中台」。**Flash 的四大技术支柱,每一柱都指向一个具体的成本项:</p>
+<h3>支柱 1:注意力 — GDN + QSA,「速读」与「精查」分工</h3>
+<p>Attention 采用 <strong>GDN(Gated DeltaNet)+ QSA(Qwen Sparse Attention)混合架构</strong>。GDN(门控线性递归)负责高效压缩历史信息、维持「读过就忘不掉但也不存全文」的状态;QSA 则通过轻量级索引器(Indexer)在 <strong>micro-block 粒度</strong>上筛选重要上下文——不是逐 token 挑,而是以小块为单位粗筛,显著压低长序列开销。官方公布的工程数字:面对 1M token,QSA 的 Attention Kernel 在 Prefill 与 Decode 阶段分别最高实现 <strong>7.6× 与 4.9× 加速</strong>;媒体口径补充:高缓存命中的 1M 长上下文实际服务场景,<strong>整体可提速 8 倍以上</strong>(官方)。</p>
+<p>与智谱「34 层线性 + 11 层 DSA」的 3:1 硬交错配比对照,两者哲学相同(线性打底、稀疏点睛),细节路线不同:DeepSeek 系做 token 粒度的精确检索,阿里做 block 粒度的粗筛——赌的是「1M 上下文里真正重要的段落成块出现」这个经验假设。</p>
+<h3>支柱 2:信息主干道 — Gated Residual,把 1 条残差拆成 4 条</h3>
+<p>Gated Residual(GR)机制把传统 Transformer 的<strong>单条残差流,扩展为 4 条并行分支</strong>,以动态门控决定信息的读写路径;官方特别强调残差状态支持 <strong>FP8 存储</strong>,直接削减访存带宽需求——对内存墙比计算墙更紧的推理硬件,这一条的价值不亚于注意力改革。效果是双向的:信息传递更高效,训练也更稳定(GDN 一脉的线性注意力素以训练不稳著称,GR 是给它配的「减震器」)。</p>
+<h3>支柱 3:「外挂记忆」— 51B N-gram Embedding,不占计算预算的容量</h3>
+<p>这是四柱里最小巧也最 inventive 的一件:在 125B Transformer 主干之外,<strong>挂一张 51B 参数的 N-gram 嵌入「记忆指南手册」</strong>——利用局部上下文做查表扩展,为模型提供更高效的查址寻路。关键在于,这张表<strong>在每次 token 计算时无需参与</strong>,且可整体<strong>卸载至主机内存(Host Memory),通过异步 Prefetch 与计算重叠</strong>,不长期占用 GPU 显存。</p>
+<p>说透一点:MoE 扩容靠「多养专家」,但专家权重必须常驻显存;N-gram Embedding 扩容的权重可以住在内存里,用时再搬——等于<strong>把「参数量」从 GPU 账本上摘下来,挂到了便宜的 DDR 账本上</strong>。对部署端的潜台词:显存需求主要跟 125B 走,而容量红利来自额外的 51B。智谱砍层数省计算,阿里扩查表省显存,一个减分子、一个换分母,都是 2026 年「智能密度」竞赛的招。</p>
+<h3>支柱 4:优化器与配平 — Muon + 重新拟合的 Scaling Law</h3>
+<p>训练侧换用 <strong>Muon Optimizer</strong>(基于矩阵正交化的现代优化器),针对正交化精度、参数分工、融合矩阵拆分做了工程化改造;并<strong>为这套全新架构重新拟合了 Scaling Law</strong>——这句轻描淡写很要紧:旧配方预测不了新算力价格,敢重训一条曲线,说明阿里打算把这代架构一路 Scale 到 Qwen4 的更大尺寸,Flash 只是这条曲线上的第一个量产点。</p>
+<p>把四柱合起来算总账,才看得懂官方那句「训练成本 1/9」:注意力混合砍计算主干、GR 砍带宽、N-gram 砍显存、Muon 砍迭代次数、Scaling Law 砍试错——五个成本项,逐项过刀。</p>
+<hr />
+<h2>五、别只看亮的地方:五个短板</h2>
+<p>按老规矩,亮点讲完翻底牌。Qwen3.8-Flash 发布不足 24 小时,以下每一条都有出处,但同样要等复测。</p>
+<p>**短板 1:锚点降级——它对标的是 Opus 4.6,不是 4.8。**官方全部基准比较的假想敌是 Claude Opus 4.6——一款 2025 年的上一代旗舰;「接近 Opus 4.8」只出现在定性描述里,没有对应的同框表格。对比智谱同晚「AA 57 = Opus 4.8 57」的第三方硬锚,阿里的成绩单保守了一个身位。这不是说它在撒谎,而是说:**它真正的对手位(与 GLM-5.3-Flash、Gemini 3.7 Flash 同档)还没有被独立评测盖章。**截至发稿,Artificial Analysis 未收录 Qwen3.8-Flash 的独立指数——57/58 分之争,结论留白。</p>
+<p>**短板 2:六项同框,目前 1 胜 4 负 1 平。**DataLearner 收录的 GLM vs Qwen 直接对比:DeepSWE +4.7、NL2Repo +8.2、Toolathlon +4.9、Agents' Last Exam +2 均归智谱,阿里只在 CharXiv 上 +1.2 小胜,llm-stats 的收录口径还有分歧(HLE 测试条件不对等)。<strong>在「最难的编程长程任务」这一 Flash 们的主 selling point 上,6B 激活确实还没打赢 18B 激活</strong>——物理规律还在工作,体量差近三倍不是架构差能完全抹平的。</p>
+<p><strong>短板 3:「能想」是家族体质,Flash 存疑。<strong>三周前的 27B 暴露过同一问题:AA 全套评测它生成了约 <strong>1.6 亿输出 tokens</strong>(GPT-5.6 Luna 为 1.3 亿),LocalLLaMA 的评价是 <em>"very slow because of its dense nature and long thinking time"</em>,Simon Willison 让它画一只骑自行车的鹈鹕 SVG,它想了 <strong>21 分钟</strong>。Flash 是 MoE 不是 Dense,单 token 计算更低,但 Qwen 团队用「长思考换智能」的训练取向会不会以「高 token 消耗」的形式传导到推理账单上,要等第三方任务级实测——</strong>¥3/百万输出看着便宜,任务级成本 = 单价 × 消耗量,后一项还未验证。</strong></p>
+<p>**短板 4:高并发与稳定性,正是低激活架构的必答题。**6B 激活意味着吞吐上限漂亮,但也意味着每次前向的「决策厚度」有限——新浪博主谢小斌和 @Tech森 的提醒属于同一类:**低激活算力能否稳住高并发、稀疏 MoE 的输出波动、复杂任务的稳定性,需要开发者实测,纸面跑分不算数。**智谱至少还有 42T tokens 公测流量做背书,阿里这台的「公测数据」发布时是零。</p>
+<p><strong>短板 5:协议与服务细则留白,别把「开源」读成「 Apache 全家桶」。<strong>发布当晚各家报道均未注明 Flash 权重许可证,而家族前例并不统一:Qwen3.8-Max 用的是</strong>自定义协议</strong>(MAU/营收触发商业条款),只有 27B 是干净 Apache 2.0;API 的缓存计价、Batch 折扣、限流参数也尚未见全量表。<strong>私有化部署团队的老规矩:先读 License 文件,再动 GPU。<strong>另外一个容易被忽略的反差:GLM-5.3-Flash 国内站牌价(¥0.8/¥2.8)在</strong>数字上略低于</strong> Qwen(¥1/¥3)且有限时五折——号称性价比之王的阿里,这次的挂牌价第一次被智谱压了半个身位。</p>
+<hr />
+<h2>六、选型建议 — 双 Flash 对决,到底怎么选</h2>
+<p><strong>先给双雄速查卡:</strong></p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Qwen3.8-Flash</th>
+<th>GLM-5.3-Flash</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>体量</td>
+<td>125B + 51B 外挂 / <strong>激活 6B</strong></td>
+<td>320B / <strong>激活 18B</strong></td>
+</tr>
+<tr>
+<td>独立指数</td>
+<td>未见 AA 收录(发稿时)</td>
+<td>AA <strong>57</strong>,与 Opus 4.8 持平</td>
+</tr>
+<tr>
+<td>原生上下文</td>
+<td>262K(YaRN→1M)</td>
+<td><strong>1M 原生</strong></td>
+</tr>
+<tr>
+<td>国内牌价</td>
+<td>¥1 / ¥3</td>
+<td><strong>¥0.8 / ¥2.8</strong>(限时五折)</td>
+</tr>
+<tr>
+<td>训练成本叙事</td>
+<td><strong>上代的 1/9</strong></td>
+<td>未提(主打推理降本 3-4.4 倍)</td>
+</tr>
+<tr>
+<td>实测背书</td>
+<td>发布即开源,零公测流量</td>
+<td><strong>6 天 60T+ tokens 匿名公测</strong></td>
+</tr>
+<tr>
+<td>许可证</td>
+<td>待确认(Max 系有自定义前例)</td>
+<td><strong>MIT</strong></td>
+</tr>
+<tr>
+<td>生态位</td>
+<td>千问办公内置、阿里云全栈</td>
+<td>Coding Plan、ZCode、国产芯片集群</td>
+</tr>
+</tbody>
+</table>
+<p><strong>再按场景给结论</strong>(判断基于 8/27 前公开数据,一周后以复测为准):</p>
+<table>
+<thead>
+<tr>
+<th>你的场景</th>
+<th>建议</th>
+<th>理由</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>海量高并发 API、客服/内容流水线、数据抽取</td>
+<td><strong>Qwen3.8-Flash</strong></td>
+<td>6B 激活的吞吐经济性 + ¥3 输出价 + 云厂商 SLA;威易网横评的默认选项</td>
+</tr>
+<tr>
+<td>日常办公自动化、文档/PPT/表格产出</td>
+<td><strong>Qwen3.8-Flash(千问办公)</strong></td>
+<td>官方口径 95% 日常办公覆盖,模型 × Harness 联合优化是它的主场</td>
+</tr>
+<tr>
+<td>移动端/具身/GUI Agent(手机操作、机器人)</td>
+<td><strong>Qwen3.8-Flash</strong></td>
+<td>AndroidWorld 84.5、ERQA 领先 31.5 分,多模态 Agent 是四柱架构的直接受益项</td>
+</tr>
+<tr>
+<td>长链路编码 Agent、大仓库重构、严谨工具流</td>
+<td><strong>GLM-5.3-Flash</strong></td>
+<td>六项同框 4 胜、原生 1M、公测流量淬炼过</td>
+</tr>
+<tr>
+<td>安全敏感、需可审计私有化</td>
+<td><strong>GLM-5.3-Flash(MIT)或等 Qwen 许可证落地</strong></td>
+<td>许可条款清晰度当前智谱占优;Qwen 若给 Apache 2.0 则天平翻转,需盯模型卡</td>
+</tr>
+<tr>
+<td>预算极致的批处理(夜间/闲时)</td>
+<td><strong>两家都测,按任务成本签</strong></td>
+<td>¥2.8 vs ¥3 的牌价差可忽略,真实差距在 token 消耗率与重试率,拿你的任务各跑一天</td>
+</tr>
+<tr>
+<td>只想本地玩</td>
+<td><strong>Qwen3.8-27B 仍是甜点位</strong></td>
+<td>17.9GB 量化进 4090;Flash 的 125B 权重 FP8 也要 ~125GB 级,高内存工作站才行,51B N-gram 卸载吃 DDR 内存</td>
+</tr>
+</tbody>
+</table>
+<p>三句心法,沿用上一篇并加一句:<strong>别拿 6B 冲上限,拿它做「次数」;别信厂商的锚点,自己换基准;别比牌价比任务——尤其是把「思考长度」这一隐形变量算进账单。</strong></p>
+<hr />
+<h2>七、关键术语速查</h2>
+<table>
+<thead>
+<tr>
+<th>术语</th>
+<th>大白话版本</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>GDN(Gated DeltaNet)</strong></td>
+<td>门控线性注意力:用「递推状态」记住读过的内容,成本近线性;负责速读,不存原文全文</td>
+</tr>
+<tr>
+<td><strong>QSA(Qwen Sparse Attention)</strong></td>
+<td>阿里自研稀疏注意力:轻量索引器按 <strong>micro-block(小块)</strong> 粒度挑出该精读的上下文;Prefill/Decode 最高加速 7.6×/4.9×</td>
+</tr>
+<tr>
+<td><strong>Gated Residual(GR)</strong></td>
+<td>把Transformer的1条残差「主干道」拆成 4 条并行分支,用门控动态读写;还能 FP8 存状态,省带宽</td>
+</tr>
+<tr>
+<td><strong>N-gram Embedding</strong></td>
+<td>51B 参数的「大词典」外挂:按局部片段查表补充容量,不参与每 token 矩阵运算,可放内存、异步预取</td>
+</tr>
+<tr>
+<td><strong>Muon Optimizer</strong></td>
+<td>基于矩阵正交化的新一代优化器,替代 Adam 家族;小模型/新架构上收敛更快,阿里为其重做了工程细节</td>
+</tr>
+<tr>
+<td><strong>YaRN</strong></td>
+<td>位置编码外推技术:把原生 262K 的「视野」拉长到 1M 的常规手段,零训练成本的长上下文升级</td>
+</tr>
+<tr>
+<td><strong>MTP(Multi-Token Prediction)</strong></td>
+<td>一次预测多个未来 token + 投机解码;27B 内置(接受率 84-92%),本地推理能跑快的关键</td>
+</tr>
+<tr>
+<td><strong>Dense vs MoE</strong></td>
+<td>27B 稠密「全员到岗」:部署简单但每 token 算力固定;Flash 稀疏「点名上岗」:省算力和带宽,但显存驻留不变</td>
+</tr>
+<tr>
+<td><strong>「智能密度」</strong></td>
+<td>每分钱/每瓦特/每 GB 显存里装多少有效智能——2026 年模型竞争的新计分方式</td>
+</tr>
+<tr>
+<td><strong>CoWorkBench / JobBench</strong></td>
+<td>专业工作类基准:模拟办公室任务链与职业任务(简历、报告、合同),Flash 的两大得分区</td>
+</tr>
+<tr>
+<td><strong>「Next」后缀</strong></td>
+<td>Qwen 的架构试验田标识——Flash-Next 即 Qwen4 架构的技术预览,现网生产版以 Qwen3.8-Flash 提供服务</td>
+</tr>
+<tr>
+<td><strong>千问办公</strong></td>
+<td>阿里的 AI 生产力平台(8 月财报电话会重点),Flash 首发嵌入其标准模式</td>
+</tr>
+<tr>
+<td><strong>OpenSandbox</strong></td>
+<td>阿里 8/14 开源的 Agent 沙箱(代码/网页/完整桌面三模式,5 语言 SDK),与 27B 组成「本地 Agent 四件套」的另一半</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>八、FAQ — 6 个被问得最多的问题</h2>
+<p><strong>Q1:Qwen3.8-Flash 和 Qwen3.8-27B 都便宜,普通开发者到底该用哪个?</strong>
+A:两条路,不冲突。<strong>要云端 API、高并发、办公流水线 → Flash</strong>(¥1/¥3,MoE 6B 激活,吞吐经济性最好);<strong>要本地跑、数据不出域、单卡工作站 → 27B</strong>(Apache 2.0,量化 17.9GB 进 24GB 显存,一张 4090 当奶牛)。能力档位上,官方口径 Flash 更接近 Opus 4.8、27B 对标 Opus 4.6,但 27B 有已被 AA 认证的 52 分和海量社区实测,Flash 的同级认证还没落地——<strong>急上生产选证据多的,不急可以等一周。</strong></p>
+<p><strong>Q2:Qwen3.8-Flash-Next 和 Qwen3.8-Flash 是什么关系?</strong>
+A:同一套架构的两个投放形态。<strong>Next = 开源权重版</strong>,Qwen4 架构的技术预览,默认 1M 上下文、内置官方工具,8/26 23:00 已上 HuggingFace/ModelScope(含 FP8 版);<strong>Flash = 千问 AI 平台上的现网服务版</strong>。**阿里官方原话:提前释出结构改动,让社区在 Qwen4 完整家族构建前先检验它。**翻译:你下的是权重,同时也是替 Qwen4 免费做 QA——愿意与否,取决于你觉得这份「参与感」值不值电费。</p>
+<p><strong>Q3:做 Coding Agent,今晚该把主力切到哪个 Flash?</strong>
+A:拆场景。长链路、大仓库、多步工具编排、GLM Coding Plan 已订阅 → <strong>GLM-5.3-Flash</strong>(六项同框 4 胜、原生 1M、42T tokens 公测淬炼);轻量高频、IDE 内联补全、夜间批处理、预算卡死 → <strong>Qwen3.8-Flash</strong>(6B 激活的单位经济性更狠)。最稳的做法上周就写过:<strong>两三家 Flash 各跑一天真实任务,统计「每成功任务成本 + 一次通过率」,谁赢听账单的。</strong></p>
+<p><strong>Q4:训练成本降 90%,对整个行业意味着什么?</strong>
+A:意味着三件事。其一,<strong>前沿能力的复刻成本跌了一个数量级</strong>——DeepSeek 当年用 MLA 干过一轮的事,Qwen 用「GDN+QSA+GR+N-gram+Muon」组合拳再干一轮,后来者的门票价被共同下拉;其二,<strong>试错节奏变快</strong>,同样的预算够训 9 版,模型迭代的瓶颈从算力排队变成想法排队;其三,对闭源阵营最难堪的推论:**智谱与阿里如今互相用十分之一的价格贴身肉搏,说明他们眼里的「利润」已经让位于「分发」,前沿模型的超额利润期正在中国厂商之间互相终结。**摩根大通的框架:纯低价不可持续,结构性效率才可持续——两家各占一半,所以两家都活着。</p>
+<p><strong>Q5:怎么用上它?有什么坑?</strong>
+A:途径三件套:① <strong>千问办公</strong>(标准模式已内置,免费/订阅入口);② <strong>千问 AI 平台 API</strong>(¥1/¥3,即将全面开放,以平台页为准);③ <strong>HuggingFace / ModelScope 拉权重</strong>(搜 Qwen/Qwen3.8-Flash-Next)。三个坑提前标注:<strong>许可证以模型卡为准</strong>,别按 27B 的 Apache 2.0 惯性假设;原生 262K、扩到 1M 靠 YaRN,超长任务先看效果衰减再看宣传;评测若用非官方 Harness,分数可能比官方口径低——知乎那篇换芯指南的原话:新模型对自家壳子普遍存在过拟合。</p>
+<p><strong>Q6:同一晚智谱发 GLM-5.3-Flash,是不是故意的?阿里不怕被压分吗?</strong>
+A:大概率是半故意的。两家都在抢「8 月最后一周」的发布窗口,DeepSeek 提价后的低价真空、Kimi K2.5 月底退役的换芯潮、九月云栖/秋季硬件季的流量,<strong>都是必须抢的滩头</strong>。被 GLM 压分这个风险,阿里的对冲清晰可见:不跟你比编码长程,把战场拉到「训练成本 1/9 + Qwen4 雏形 + 云端生态」这三个 GLM 没有维度的维度上。<strong>同夜对垒的真正输家,是还挂着旧牌价的所有第三方 Flash</strong>——Gemini 3.7 Flash 的 $3.75 促销价(12/31 后恢复 $7.5)、Kimi K3 的 ¥100 输出,在一夜间都变得需要解释。</p>
+<blockquote>
+<p>**一句收口:<strong>智谱证明「前沿智能不必有前沿价格」,阿里这次补的下半句是——</strong>「前沿智能也不必有三倍算力」。**两句话合在一起,才是 2026 年 Q3 真正的战报。</p>
+</blockquote>
+<hr />
+<h2>九、参考资料</h2>
+<p><strong>官方发布与基准</strong></p>
+<ul>
+<li>Qwen 官方技术博客:qwen.ai/blog?id=qwen3.8-flash-next;技术报告见 QwenLM/Qwen3.8-Flash-Next GitHub 仓库</li>
+<li>开源权重:huggingface.co/Qwen/Qwen3.8-Flash-Next;ModelScope:Qwen/Qwen3.8-Flash-Next(含 FP8 版)</li>
+<li>千问 AI 平台 API 定价:阿里云百炼/千问 AI平台定价页(¥1/¥3 口径来自官方发布)</li>
+<li>「千问办公」入口与说明:阿里官方发布材料(8/26)</li>
+<li>Artificial Analysis 智能指数 v4.1.1(Qwen3.8-Max 58、Qwen3.8-27B 52 收录页)</li>
+</ul>
+<p><strong>第三方评测与媒体</strong></p>
+<ul>
+<li>IT之家/新浪财经/凤凰网:《阿里通义 Qwen3.8-Flash 发布开源:125B 参数 MoE,训练成本仅为前代 1/9》(8/26)</li>
+<li>界面新闻:《阿里千问正式发布 Qwen3.8-Flash》(8/26)</li>
+<li>新京报贝壳财经、上海证券报、紫牛新闻、潮新闻、广州日报:8/26-8/27 发布报道(四大架构支柱与基准分差的集中来源)</li>
+<li>什么值得买/快科技:《超越 V4 Flash:千问 Qwen3.8-Flash 大模型开源》(8/26,含 $0.16/$0.47 美元牌价与 DeepSWE 58.7 等绝对值)</li>
+<li>DataLearner、llm-stats:GLM-5.3-Flash vs Qwen3.8-Flash-Next 同框对比页(8/26)</li>
+<li>威易网:DeepSeek-V4-Flash-Vision-Exp / GLM-5.3-Flash / Qwen3.8-Flash 三 Flash 横评(8/26)</li>
+<li>知乎专栏:《Qwen3.8-27B 就是新的模型斩杀线》(8/21)、27B AA 52 分与本地部署实测长文</li>
+<li>掘金:《阿里一日双发:Qwen3.8-27B + OpenSandbox》(8/15)</li>
+<li>DeepSeek 技术社区/开放原子:《AI 大模型日报 8/21》(Qwen3.8-Max 2.4T 开源细节、阿里财报、Grok/Gemini 背景)</li>
+<li>摩根大通研报(8/16,via 华尔街见闻/雪球)</li>
+</ul>
+<p><strong>相关阅读</strong></p>
+<ul>
+<li>本系列上一篇:《GLM-5.3-Flash 深度解读:57 分追平 Opus 4.8、价格只有 1/40、全部公测流量跑在国产芯片上》</li>
+<li>什么值得买:《Kimi K2.5 月底退役,GLM-5.3 与 Qwen3.8 同月接棒:换芯先看能不能买到》(8/25)</li>
+</ul>
+<hr />
+<p><em>数据截至 2026 年 8 月 27 日,Qwen3.8-Flash 的全部基准均为厂商自报、AA 独立指数尚未收录——本文所有「超越/接近」的表述请自动加「官方称」。但两条已经发生的事实不需要等复测:同晚两台 Flash 的牌价差不到两块钱,以及,造一台这样的机器的成本,掉到了九分之一。</em></p>
+]]></content>
+    <author>
+      <name>无名之子</name>
+    </author>
+    <category term="qwen"></category>
+  </entry>
   <entry>
     <title>GLM-5.3：深度分析报告</title>
     <link href="https://wmzzwmzz.github.io/Mizuki/posts/glm/glm-53%E6%B7%B1%E5%BA%A6%E5%88%86%E6%9E%90%E6%8A%A5%E5%91%8A/" rel="alternate" type="text/html"/>
