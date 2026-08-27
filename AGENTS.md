@@ -12,8 +12,7 @@ Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-s
   - `pnpm check:important` - 检查 `src/` 样式文件禁止新增 `!important`（存量记录在 `scripts/check-important.baseline.json`，twikoo 文件豁免）；CI 的 biome 作业中同样执行。
   - `pnpm type-check` - `tsc --noEmit` 类型检查。⚠ CI 的 typecheck 作业执行的是 `pnpm astro check`（含 `.astro` 文件的类型检查），检查面比本地 `tsc --noEmit` 更广，本地通过不保证 CI 通过；涉及 `.astro` 文件的类型改动建议本地补跑 `pnpm check`。
   - `pnpm test` - `node --test` 运行 `tests/**/*.test.*`。
-  - `pnpm verify` - 聚合入口：依次执行 `pnpm lint:ci` → `pnpm check:important` → `pnpm type-check` → `pnpm test`（不含 build，任一失败即退出非零）。与 `lint.yml` 门禁的差异：CI 用 `astro check` 替代 `tsc --noEmit`，且 CI 另有 build 作业。
-  - `pnpm build` - 完整构建（番剧数据 → keystatic 同步 → astro build → pagefind → 字体压缩）；执行前 `prebuild` 钩子会先跑 `sync-content` + `sync-keystatic`（受 `ENABLE_CONTENT_SYNC` 控制，为 `false` 时跳过同步、沿用本地数据）。⚠ 修改 package.json 构建链（`prebuild`/`build` 脚本）时，必须同步核对 `.github/workflows/deploy.yml` 的构建段与 `lint.yml` 的 build 作业（三处均应保持同一条 `pnpm build`，仅 env 不同）。
+  - `pnpm build` - 完整构建（番剧数据 → keystatic 同步 → astro build → pagefind → 字体压缩）；执行前 `prebuild` 钩子会先跑 `sync-content` + `sync-keystatic`（受 `ENABLE_CONTENT_SYNC` 控制，为 `false` 时跳过同步、沿用本地数据）。⚠ 修改 package.json 构建链（`prebuild`/`build` 脚本）时，必须同步核对两处 CI 定义：`.github/workflows/deploy.yml` 的部署作业与 `.github/workflows/lint.yml` 的 build 作业——lint.yml 直接调用 `pnpm build`，而 deploy.yml 将各子命令拆成独立 step 手写（sync-keystatic → update-anime → astro build → pagefind → 字体压缩），三处需保持等价，仅 env 不同。
 - 本地启动/预览：
   - `pnpm dev` - 自定义脚本 `scripts/start-dev.mjs`：并行启动 keystatic 同步监听（`sync-keystatic.mjs --watch`）与 Astro dev server（端口 4321）；`predev` 钩子会先跑一次 `sync-content`。
   - `pnpm preview` - `astro preview`，预览 `pnpm build` 产出的 `dist/`。
@@ -45,7 +44,7 @@ Touch only what the request requires; match existing style and don't refactor or
 
 ## 4. Goal-Driven Execution
 
-Define verifiable success criteria before starting (e.g., a failing test that the fix makes pass), then verify with the project commands above — `pnpm verify`, or individually `pnpm lint` / `pnpm type-check` / `pnpm test` — before committing.
+Define verifiable success criteria before starting (e.g., a failing test that the fix makes pass), then verify with the project commands above — `pnpm lint` / `pnpm check:important` / `pnpm type-check` / `pnpm test` as needed — before committing.
 
 ## 5. Security Baseline
 
